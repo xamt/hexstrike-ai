@@ -3495,14 +3495,14 @@ class CTFToolManager:
     def __init__(self):
         self.tool_commands = {
             # Web Application Security Tools
-            "httpx": "httpx -probe -tech-detect -status-code -title -content-length",
-            "katana": "katana -depth 3 -js-crawl -form-extraction -headless",
+            "httpx": "httpx -u {} -probe -tech-detect -status-code -title -content-length",
+            "katana": "katana -u {} -depth 3 -js-crawl -form-extraction -headless",
             "sqlmap": "sqlmap --batch --level 3 --risk 2 --threads 5",
             "dalfox": "dalfox url --mining-dom --mining-dict --deep-domxss",
-            "gobuster": "gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt,js",
+            "gobuster": "gobuster dir -u {} -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt,js",
             "dirsearch": "dirsearch -u {} -e php,html,js,txt,xml,json -t 50",
             "feroxbuster": "feroxbuster -u {} -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,js,txt",
-            "arjun": "arjun -u {} --get --post",
+            "arjun": "arjun -u {} -m GET",
             "paramspider": "paramspider -d {}",
             "wpscan": "wpscan --url {} --enumerate ap,at,cb,dbe",
             "nikto": "nikto -h {} -C all",
@@ -3565,8 +3565,8 @@ class CTFToolManager:
             "zsteg": "zsteg -a",
             "outguess": "outguess -r",
             "jsteg": "jsteg reveal",
-            "volatility": "volatility -f {} imageinfo",
-            "volatility3": "python3 /opt/volatility3/vol.py -f",
+            "volatility": "vol -f {} windows.info",
+            "volatility3": "vol -f {} windows.info",
             "rekall": "rekall -f",
             "wireshark": "tshark -r",
             "tcpdump": "tcpdump -r",
@@ -3611,7 +3611,7 @@ class CTFToolManager:
             "nslookup": "nslookup",
             "host": "host",
             "dnsrecon": "dnsrecon -d",
-            "fierce": "fierce -dns",
+            "fierce": "fierce --domain",
             "sublist3r": "sublist3r -d",
             "amass": "amass enum -d",
             "assetfinder": "assetfinder",
@@ -3726,10 +3726,11 @@ class CTFToolManager:
             elif tool == "feroxbuster" and "-t" not in base_command:
                 base_command += " -t 50"
 
-        if additional_args:
-            return f"{base_command} {additional_args} {target}"
-        else:
-            return f"{base_command} {target}"
+        # Some tool templates need the target before later flags (for example
+        # gobuster -u TARGET -w WORDLIST). Replace their explicit placeholder;
+        # otherwise preserve the historical "command TARGET" behavior.
+        command = base_command.format(target) if "{}" in base_command else f"{base_command} {target}"
+        return f"{command} {additional_args}" if additional_args else command
 
     def get_category_tools(self, category: str) -> List[str]:
         """Get all tools for a specific category"""
@@ -11868,12 +11869,11 @@ def responder():
 
 @app.route("/api/tools/volatility", methods=["POST"])
 def volatility():
-    """Execute Volatility for memory forensics with enhanced logging"""
+    """Execute the pinned Volatility3 CLI for memory forensics."""
     try:
         params = request.json
         memory_file = params.get("memory_file", "")
         plugin = params.get("plugin", "")
-        profile = params.get("profile", "")
         additional_args = params.get("additional_args", "")
 
         if not memory_file:
@@ -11888,12 +11888,9 @@ def volatility():
                 "error": "Plugin parameter is required"
             }), 400
 
-        command = f"volatility -f {memory_file}"
-
-        if profile:
-            command += f" --profile={profile}"
-
-        command += f" {plugin}"
+        # The Docker image pins Volatility3 2.28.2, whose console command is
+        # `vol`; Volatility2 profiles and the `volatility` command do not apply.
+        command = f"vol -f {memory_file} {plugin}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -12989,22 +12986,25 @@ def paramspider():
     try:
         params = request.json
         domain = params.get("domain", "")
-        level = params.get("level", 2)
-        exclude = params.get("exclude", "png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico")
-        output = params.get("output", "")
+        stream = params.get("stream", True)
+        proxy = params.get("proxy", "")
+        placeholder = params.get("placeholder", "FUZZ")
         additional_args = params.get("additional_args", "")
 
         if not domain:
             logger.warning("🌐 ParamSpider called without domain parameter")
             return jsonify({"error": "Domain parameter is required"}), 400
 
-        command = f"paramspider -d {domain} -l {level}"
+        # ParamSpider 1.0.1: -l/--list means a domain-list file, not crawl level.
+        # This endpoint handles one domain, so use -d and only expose flags that
+        # exist in the pinned Kali package.
+        command = f"paramspider -d {domain} -p {placeholder}"
 
-        if exclude:
-            command += f" --exclude {exclude}"
+        if stream:
+            command += " -s"
 
-        if output:
-            command += f" -o {output}"
+        if proxy:
+            command += f" --proxy {proxy}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -13137,21 +13137,32 @@ def httpx():
     """Execute httpx for fast HTTP probing and technology detection"""
     try:
         params = request.json
-        target = params.get("target", "")
+        target = params.get("target", "") or params.get("targets", "")
+        target_file = params.get("target_file", "")
         probe = params.get("probe", True)
         tech_detect = params.get("tech_detect", False)
         status_code = params.get("status_code", False)
         content_length = params.get("content_length", False)
         title = params.get("title", False)
         web_server = params.get("web_server", False)
+        ports = params.get("ports", "")
+        methods = params.get("methods", "")
+        output_file = params.get("output_file", "")
         threads = params.get("threads", 50)
         additional_args = params.get("additional_args", "")
 
-        if not target:
+        if not target and not target_file:
             logger.warning("🌐 httpx called without target parameter")
-            return jsonify({"error": "Target parameter is required"}), 400
+            return jsonify({"error": "Target or target_file parameter is required"}), 400
 
-        command = f"httpx -l {target} -t {threads}"
+        # httpx 1.9.0: -u is a target, while -l is a file containing targets.
+        # Keep both MCP payload variants compatible with that exact CLI contract.
+        if target_file:
+            command = f"httpx -l {target_file} -t {threads}"
+        elif os.path.isfile(target):
+            command = f"httpx -l {target} -t {threads}"
+        else:
+            command = f"httpx -u {target} -t {threads}"
 
         if probe:
             command += " -probe"
@@ -13159,7 +13170,9 @@ def httpx():
         if tech_detect:
             command += " -tech-detect"
 
-        if status_code:
+        if isinstance(status_code, str) and status_code:
+            command += f" -sc -mc {status_code}"
+        elif status_code:
             command += " -sc"
 
         if content_length:
@@ -13170,6 +13183,15 @@ def httpx():
 
         if web_server:
             command += " -server"
+
+        if ports:
+            command += f" -p {ports}"
+
+        if methods:
+            command += f" -x {methods}"
+
+        if output_file:
+            command += f" -o {output_file}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -15239,7 +15261,7 @@ def volatility3():
         params = request.json
         memory_file = params.get("memory_file", "")
         plugin = params.get("plugin", "")
-        output_file = params.get("output_file", "")
+        output_dir = params.get("output_dir", "")
         additional_args = params.get("additional_args", "")
 
         if not memory_file:
@@ -15254,10 +15276,12 @@ def volatility3():
                 "error": "Plugin parameter is required"
             }), 400
 
-        command = f"vol.py -f {memory_file} {plugin}"
+        command = f"vol -f {memory_file}"
 
-        if output_file:
-            command += f" -o {output_file}"
+        if output_dir:
+            command += f" -o {output_dir}"
+
+        command += f" {plugin}"
 
         if additional_args:
             command += f" {additional_args}"

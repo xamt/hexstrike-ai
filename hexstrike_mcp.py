@@ -1733,14 +1733,14 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         return result
 
     @mcp.tool()
-    def volatility_analyze(memory_file: str, plugin: str, profile: str = "", additional_args: str = "") -> Dict[str, Any]:
+    def volatility_analyze(memory_file: str, plugin: str,
+                           additional_args: str = "") -> Dict[str, Any]:
         """
         Execute Volatility for memory forensics analysis with enhanced logging.
 
         Args:
             memory_file: Path to memory dump file
             plugin: Volatility plugin to use
-            profile: Memory profile to use
             additional_args: Additional Volatility arguments
 
         Returns:
@@ -1749,7 +1749,6 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         data = {
             "memory_file": memory_file,
             "plugin": plugin,
-            "profile": profile,
             "additional_args": additional_args
         }
         logger.info(f"🧠 Starting Volatility analysis: {plugin}")
@@ -2537,17 +2536,17 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         return result
 
     @mcp.tool()
-    def paramspider_mining(domain: str, level: int = 2,
-                          exclude: str = "png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico",
-                          output: str = "", additional_args: str = "") -> Dict[str, Any]:
+    def paramspider_mining(domain: str, stream: bool = True,
+                          proxy: str = "", placeholder: str = "FUZZ",
+                          additional_args: str = "") -> Dict[str, Any]:
         """
         Execute ParamSpider for parameter mining from web archives with enhanced logging.
 
         Args:
             domain: The target domain
-            level: Mining level depth
-            exclude: File extensions to exclude
-            output: Output file path
+            stream: Stream discovered parameterized URLs to the command output
+            proxy: Optional HTTP proxy used for archive requests
+            placeholder: Replacement value written into discovered parameters
             additional_args: Additional ParamSpider arguments
 
         Returns:
@@ -2555,9 +2554,9 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         """
         data = {
             "domain": domain,
-            "level": level,
-            "exclude": exclude,
-            "output": output,
+            "stream": stream,
+            "proxy": proxy,
+            "placeholder": placeholder,
             "additional_args": additional_args
         }
         logger.info(f"🕷️  Starting ParamSpider mining: {domain}")
@@ -3198,14 +3197,15 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
     # ============================================================================
 
     @mcp.tool()
-    def volatility3_analyze(memory_file: str, plugin: str, output_file: str = "", additional_args: str = "") -> Dict[str, Any]:
+    def volatility3_analyze(memory_file: str, plugin: str, output_dir: str = "",
+                            additional_args: str = "") -> Dict[str, Any]:
         """
         Execute Volatility3 for advanced memory forensics with enhanced logging.
 
         Args:
             memory_file: Path to memory dump file
             plugin: Volatility3 plugin to execute
-            output_file: Output file path
+            output_dir: Directory for files produced by the selected plugin
             additional_args: Additional Volatility3 arguments
 
         Returns:
@@ -3214,7 +3214,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         data = {
             "memory_file": memory_file,
             "plugin": plugin,
-            "output_file": output_file,
+            "output_dir": output_dir,
             "additional_args": additional_args
         }
         logger.info(f"🧠 Starting Volatility3 analysis: {plugin}")
@@ -3425,15 +3425,17 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         return result
 
     @mcp.tool()
-    def paramspider_discovery(domain: str, exclude: str = "", output_file: str = "", level: int = 2, additional_args: str = "") -> Dict[str, Any]:
+    def paramspider_discovery(domain: str, stream: bool = True,
+                              proxy: str = "", placeholder: str = "FUZZ",
+                              additional_args: str = "") -> Dict[str, Any]:
         """
         Execute ParamSpider for parameter discovery with enhanced logging.
 
         Args:
             domain: Target domain
-            exclude: Extensions to exclude
-            output_file: Output file path
-            level: Crawling level
+            stream: Stream discovered parameterized URLs to the command output
+            proxy: Optional HTTP proxy used for archive requests
+            placeholder: Replacement value written into discovered parameters
             additional_args: Additional ParamSpider arguments
 
         Returns:
@@ -3441,9 +3443,9 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         """
         data = {
             "domain": domain,
-            "exclude": exclude,
-            "output_file": output_file,
-            "level": level,
+            "stream": stream,
+            "proxy": proxy,
+            "placeholder": placeholder,
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting ParamSpider discovery: {domain}")
