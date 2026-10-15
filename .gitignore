@@ -1,2 +1,7 @@
 # 本地会话状态和验证记录，不进入镜像项目的版本历史。
 .helloagents/sessions/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example

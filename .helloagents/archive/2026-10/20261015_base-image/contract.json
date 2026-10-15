@@ -1,0 +1,34 @@
+{
+  "updatedAt": "2026-10-15T06:05:48.623Z",
+  "version": 2,
+  "source": "manual",
+  "originCommand": "",
+  "qaMode": "standard",
+  "qaFocus": [
+    "镜像职责与工具版本保留",
+    "Python 环境隔离",
+    "离线回归与已有 ARM64 构建证据；按用户要求停止后续镜像测试，AMD64 完整验收由用户执行"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}
