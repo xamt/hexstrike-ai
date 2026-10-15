@@ -49,6 +49,14 @@ docker buildx build \
 `--build-arg KALI_APT_MIRROR=http://http.kali.org/kali`；仍验证 Kali 官方签名。
 软件包版本不存在或下载失败时直接中止，不自动升级或跳过工具。
 
+基础镜像和应用镜像的 Python 包默认使用国内清华 PyPI 源：`https://pypi.tuna.tsinghua.edu.cn/simple`，
+原构建命令无需额外参数。该地址是清华镜像站支持的服务域名，使用 HTTPS 并保留证书校验。[镜像站说明](https://mirrors.tuna.tsinghua.edu.cn/help/pypi/)
+基础镜像中的 pip、setuptools、wheel、Volatility3，以及应用镜像的项目 Python 依赖，均显式使用这个源。
+这次调整下载来源，不增加超时时间，不改变固定工具版本，也不自动回退到其他源。
+需要显式切回官方 PyPI 时，在对应构建命令中加入 `--build-arg PIP_INDEX_URL=https://pypi.org/simple`。
+国内镜像仍可能短暂不同步或连接异常；缺少固定版本时应排查包源，而不是放宽版本限制。
+此配置只作用于 Python 包；Kali 仍使用既有阿里云源，Go、Rust、GitHub 的下载配置不变。
+
 ## 3. 构建应用镜像
 
 ### 3.1 AMD64 应用镜像
@@ -191,7 +199,7 @@ docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64
 
 ### 6.1 版本与安装逻辑就近维护
 
-`Dockerfile.base` 只保留上游镜像、Kali 软件源和平台配置；不再声明或传递工具版本。
+`Dockerfile.base` 只保留上游镜像、Kali/PyPI 软件源和平台配置；不再声明或传递工具版本。
 工具版本直接定义在对应安装脚本中，查看安装方式时即可找到版本，不需要跨文件追踪。
 
 | 修改内容 | 唯一维护位置 |

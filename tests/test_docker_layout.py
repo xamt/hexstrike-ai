@@ -15,7 +15,7 @@ class DockerLayoutTests(unittest.TestCase):
         content = (ROOT / "Dockerfile.base").read_text()
         header, stages = content.split("\nFROM ", 1)
         defaults = re.findall(r"^ARG (\w+)=(.+)$", header, re.M)
-        self.assertEqual(7, len(defaults))
+        self.assertEqual(8, len(defaults))
         self.assertEqual(len(defaults), len(dict(defaults)))
         self.assertNotRegex(stages, r"(?m)^ARG \w+=")
         self.assertNotIn("ARG BUILDPLATFORM", header)

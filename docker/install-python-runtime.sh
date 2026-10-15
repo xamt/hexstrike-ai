@@ -8,17 +8,18 @@ SETUPTOOLS_VERSION=80.9.0
 WHEEL_VERSION=0.45.1
 VOLATILITY3_VERSION=2.28.2
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+: "${PIP_INDEX_URL:?缺少 PyPI 下载源配置}"
 
 python3 -m venv /opt/volatility3-venv
-/opt/volatility3-venv/bin/python -m pip install \
+/opt/volatility3-venv/bin/python -m pip install --index-url "${PIP_INDEX_URL}" \
     "pip==${PIP_VERSION}" \
     "setuptools==${SETUPTOOLS_VERSION}" \
     "wheel==${WHEEL_VERSION}"
 
-/opt/volatility3-venv/bin/python -m pip install "volatility3==${VOLATILITY3_VERSION}"
+/opt/volatility3-venv/bin/python -m pip install --index-url "${PIP_INDEX_URL}" "volatility3==${VOLATILITY3_VERSION}"
 
 # 供应用镜像通过 pip --python 创建/管理另一套环境，不写入 Volatility3 环境。
-python3 -m pip install \
+python3 -m pip install --index-url "${PIP_INDEX_URL}" \
     "pip==${PIP_VERSION}" \
     "setuptools==${SETUPTOOLS_VERSION}" \
     "wheel==${WHEEL_VERSION}"

@@ -19,9 +19,11 @@ WORKDIR /opt/hexstrike
 # 使用基础镜像固定的 pip 管理新环境，不修改系统或工具虚拟环境。
 RUN /usr/local/bin/python3.11 -m venv --without-pip /opt/hexstrike-venv
 COPY requirements.txt ./
+# 与基础镜像统一国内 PyPI 源；只用于构建，不改容器运行时的 pip 配置。
+ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 RUN sed -E '/^(pwntools|angr|bcrypt)([<=>]|$)/d' requirements.txt \
       > requirements-runtime.txt && \
-    /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python install -r requirements-runtime.txt && \
+    /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python install -r requirements-runtime.txt --index-url "${PIP_INDEX_URL}" && \
     ln -sf /usr/local/bin/httpx /opt/hexstrike-venv/bin/httpx && \
     /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python check && \
     /opt/volatility3-venv/bin/python -m pip check && \
