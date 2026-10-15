@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
-# BuildKit 自动提供以下平台参数；显式声明后可在 FROM 和构建阶段中使用。
+# BuildKit 自动在全局提供平台参数，FROM 可直接使用，无需在首个 FROM 前声明。
+# 构建阶段内使用 TARGETOS、TARGETARCH 时，再在对应 FROM 后用 ARG 引入。
 # 本项目按目标平台分别构建，使 amd64、arm64 直接体现在镜像仓库名称中。
 # amd64 发布示例：
 #   docker buildx build --platform linux/amd64 \
@@ -12,11 +13,6 @@
 #   docker buildx build --platform linux/amd64,linux/arm64 \
 #     -t harbor.everoffice.cn/harbor-cucc/hexstrike-ai-multiarch:1.0.0 --push .
 # 完整构建、缓存、验证和运行命令见项目根目录 DOCKER_BUILD.md。
-ARG BUILDPLATFORM
-ARG TARGETPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
-
 # 可使用多架构 manifest digest 覆盖此值，以进一步固定基础操作系统：
 #   --build-arg KALI_BASE_IMAGE=kalilinux/kali-rolling@sha256:...
 # 即使保持默认 rolling 标签，下文的安全工具仍全部使用精确版本，绝不自动升级。
