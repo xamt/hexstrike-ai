@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# 本类别工具的固定版本；修改工具时在本文件同步检查安装方式。
+GDB_VERSION=17.2-1+b1
+RADARE2_VERSION=6.0.4+dfsg-1
+BINWALK_VERSION=2.4.3+dfsg1-3
+GHIDRA_VERSION=12.1.4+ds-0kali1
+CHECKSEC_VERSION=2.6.0-2
+BINUTILS_VERSION=2.47-6
+XXD_VERSION=2:9.2.0858-1
+FOREMOST_VERSION_AMD64=1.5.7-12+b1
+FOREMOST_VERSION_ARM64=1.5.7-12
+STEGHIDE_VERSION=0.5.1+git20240220-2
+EXIFTOOL_VERSION=13.55+dfsg-1
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 # 同一类别共用一次成功的索引更新，随后仍逐项安装精确版本。
 apt-get -o APT::Update::Error-Mode=any update
 
@@ -11,7 +25,8 @@ apt-get -o APT::Update::Error-Mode=any update
 # 安装: Kali 软件包 gdb。
 (
 apt-get install -y --no-install-recommends \
-      "gdb=${GDB_VERSION}"
+      "gdb=${GDB_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt gdb "${GDB_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Radare2
@@ -20,7 +35,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 radare2。
 (
 apt-get install -y --no-install-recommends \
-      "radare2=${RADARE2_VERSION}"
+      "radare2=${RADARE2_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt radare2 "${RADARE2_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Binwalk
@@ -29,7 +45,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 binwalk。
 (
 apt-get install -y --no-install-recommends \
-      "binwalk=${BINWALK_VERSION}"
+      "binwalk=${BINWALK_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt binwalk "${BINWALK_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Ghidra
@@ -42,7 +59,8 @@ apt-get install -y --no-install-recommends \
       "ghidra=${GHIDRA_VERSION}" && \
     ghidra_headless="$(find /usr/share/ghidra -type f -name analyzeHeadless -print -quit)" && \
     test -n "${ghidra_headless}" && \
-    ln -sf "${ghidra_headless}" /usr/local/bin/analyzeHeadless
+    ln -sf "${ghidra_headless}" /usr/local/bin/analyzeHeadless && \
+    bash "${script_dir}/record-tool-version.sh" apt ghidra "${GHIDRA_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Checksec
@@ -51,7 +69,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 checksec。
 (
 apt-get install -y --no-install-recommends \
-      "checksec=${CHECKSEC_VERSION}"
+      "checksec=${CHECKSEC_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt checksec "${CHECKSEC_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Strings
@@ -60,7 +79,8 @@ apt-get install -y --no-install-recommends \
 # 安装: strings 由 Kali 软件包 binutils 提供。
 (
 apt-get install -y --no-install-recommends \
-      "binutils=${BINUTILS_VERSION}"
+      "binutils=${BINUTILS_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt binutils "${BINUTILS_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Objdump
@@ -69,7 +89,8 @@ apt-get install -y --no-install-recommends \
 # 安装: objdump 与 strings 共享 Kali 软件包 binutils；此命令确认依赖归属。
 (
 apt-get install -y --no-install-recommends \
-      "binutils=${BINUTILS_VERSION}"
+      "binutils=${BINUTILS_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt binutils "${BINUTILS_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: XXD
@@ -78,7 +99,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 xxd。
 (
 apt-get install -y --no-install-recommends \
-      "xxd=${XXD_VERSION}"
+      "xxd=${XXD_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt xxd "${XXD_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Foremost
@@ -90,7 +112,8 @@ case "${TARGETARCH}" in \
       amd64) package_version="${FOREMOST_VERSION_AMD64}" ;; \
       arm64) package_version="${FOREMOST_VERSION_ARM64}" ;; \
     esac && \
-    apt-get install -y --no-install-recommends "foremost=${package_version}"
+    apt-get install -y --no-install-recommends "foremost=${package_version}" && \
+    bash "${script_dir}/record-tool-version.sh" apt foremost "${package_version}" "${TARGETARCH}"
 )
 
 # 工具: Steghide
@@ -99,7 +122,8 @@ case "${TARGETARCH}" in \
 # 安装: Kali 软件包 steghide。
 (
 apt-get install -y --no-install-recommends \
-      "steghide=${STEGHIDE_VERSION}"
+      "steghide=${STEGHIDE_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt steghide "${STEGHIDE_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: ExifTool
@@ -108,5 +132,6 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 包名为 libimage-exiftool-perl，提供 exiftool 命令。
 (
 apt-get install -y --no-install-recommends \
-      "libimage-exiftool-perl=${EXIFTOOL_VERSION}"
+      "libimage-exiftool-perl=${EXIFTOOL_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt libimage-exiftool-perl "${EXIFTOOL_VERSION}" "${TARGETARCH}"
 )

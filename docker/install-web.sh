@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# 本类别工具的固定版本；修改工具时在本文件同步检查安装方式。
+GOBUSTER_VERSION=3.8.2-1
+FEROXBUSTER_VERSION=2.13.1-0kali3
+DIRSEARCH_VERSION=0.4.3-1
+FFUF_VERSION=2.2.1-1
+DIRB_VERSION_AMD64=2.22+dfsg-7
+DIRB_VERSION_ARM64=2.22+dfsg-7+b1
+HTTPX_TOOLKIT_VERSION=1.9.0-0kali2
+KATANA_VERSION=1.7.0-0kali1
+HAKRAWLER_VERSION=2.1-0kali1
+SQLMAP_VERSION=1.10.9-1
+WPSCAN_VERSION=4.0.0
+ARJUN_VERSION=2.2.7-1
+PARAMSPIDER_VERSION=1.0.1-3
+DALFOX_VERSION=3.2.2-0kali1
+WAFW00F_VERSION=2.4.2-1
+QSREPLACE_VERSION=0.0.3-0kali1
+URO_VERSION=1.0.2-0kali1
+WFUZZ_VERSION=3.1.1-1
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 # 同一类别共用一次成功的索引更新，随后仍逐项安装精确版本。
 apt-get -o APT::Update::Error-Mode=any update
 
@@ -11,7 +32,8 @@ apt-get -o APT::Update::Error-Mode=any update
 # 安装: Kali 软件包 gobuster。
 (
 apt-get install -y --no-install-recommends \
-      "gobuster=${GOBUSTER_VERSION}"
+      "gobuster=${GOBUSTER_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt gobuster "${GOBUSTER_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Feroxbuster
@@ -20,7 +42,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 feroxbuster。
 (
 apt-get install -y --no-install-recommends \
-      "feroxbuster=${FEROXBUSTER_VERSION}"
+      "feroxbuster=${FEROXBUSTER_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt feroxbuster "${FEROXBUSTER_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Dirsearch
@@ -29,7 +52,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 dirsearch。
 (
 apt-get install -y --no-install-recommends \
-      "dirsearch=${DIRSEARCH_VERSION}"
+      "dirsearch=${DIRSEARCH_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt dirsearch "${DIRSEARCH_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: FFuf
@@ -38,7 +62,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 ffuf。
 (
 apt-get install -y --no-install-recommends \
-      "ffuf=${FFUF_VERSION}"
+      "ffuf=${FFUF_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt ffuf "${FFUF_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Dirb
@@ -50,7 +75,8 @@ case "${TARGETARCH}" in \
       amd64) package_version="${DIRB_VERSION_AMD64}" ;; \
       arm64) package_version="${DIRB_VERSION_ARM64}" ;; \
     esac && \
-    apt-get install -y --no-install-recommends "dirb=${package_version}"
+    apt-get install -y --no-install-recommends "dirb=${package_version}" && \
+    bash "${script_dir}/record-tool-version.sh" apt dirb "${package_version}" "${TARGETARCH}"
 )
 
 # 工具: HTTPx
@@ -62,7 +88,8 @@ case "${TARGETARCH}" in \
 (
 apt-get install -y --no-install-recommends \
       "httpx-toolkit=${HTTPX_TOOLKIT_VERSION}" && \
-    ln -sf /usr/bin/httpx-toolkit /usr/local/bin/httpx
+    ln -sf /usr/bin/httpx-toolkit /usr/local/bin/httpx && \
+    bash "${script_dir}/record-tool-version.sh" apt httpx-toolkit "${HTTPX_TOOLKIT_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Katana
@@ -71,7 +98,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 katana。
 (
 apt-get install -y --no-install-recommends \
-      "katana=${KATANA_VERSION}"
+      "katana=${KATANA_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt katana "${KATANA_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Hakrawler
@@ -80,13 +108,14 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 hakrawler。
 (
 apt-get install -y --no-install-recommends \
-      "hakrawler=${HAKRAWLER_VERSION}"
+      "hakrawler=${HAKRAWLER_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt hakrawler "${HAKRAWLER_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Nikto
 # 分类: Web Application Security / Web 服务器检查
 # 描述: 检查 Web 服务器危险文件、错误配置和已知风险。
-# 安装: 从 nikto-source 阶段复制官方 2.6.1 源码并创建命令包装器。
+# 安装: 从 nikto-source 阶段复制固定标签源码并创建命令包装器；版本由其安装脚本维护。
 (
 printf '%s\n' '#!/bin/sh' 'exec perl /opt/nikto/program/nikto.pl "$@"' \
       > /usr/local/bin/nikto && chmod 0755 /usr/local/bin/nikto
@@ -98,18 +127,20 @@ printf '%s\n' '#!/bin/sh' 'exec perl /opt/nikto/program/nikto.pl "$@"' \
 # 安装: Kali 软件包 sqlmap。
 (
 apt-get install -y --no-install-recommends \
-      "sqlmap=${SQLMAP_VERSION}"
+      "sqlmap=${SQLMAP_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt sqlmap "${SQLMAP_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: WPScan
 # 分类: Web Application Security / WordPress
 # 描述: 枚举 WordPress 核心、主题、插件和已知漏洞；漏洞数据库需运行时更新。
-# 安装: Kali 当前主仓库没有 wpscan 包，使用 RubyGems 固定安装 4.0.0。
+# 安装: 保留 RubyGems 安装方式，固定版本在本脚本顶部定义。
 (
 apt-get install -y --no-install-recommends \
       ruby-full ruby-dev build-essential \
       libcurl4-openssl-dev libxml2-dev libxslt1-dev zlib1g-dev && \
-    gem install wpscan --version "${WPSCAN_VERSION}" --no-document
+    gem install wpscan --version "${WPSCAN_VERSION}" --no-document && \
+    bash "${script_dir}/record-tool-version.sh" gem wpscan "${WPSCAN_VERSION}" "all"
 )
 
 # 工具: Arjun
@@ -118,7 +149,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 arjun。
 (
 apt-get install -y --no-install-recommends \
-      "arjun=${ARJUN_VERSION}"
+      "arjun=${ARJUN_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt arjun "${ARJUN_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: ParamSpider
@@ -129,7 +161,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 paramspider。
 (
 apt-get install -y --no-install-recommends \
-      "paramspider=${PARAMSPIDER_VERSION}"
+      "paramspider=${PARAMSPIDER_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt paramspider "${PARAMSPIDER_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Dalfox
@@ -138,7 +171,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 dalfox。
 (
 apt-get install -y --no-install-recommends \
-      "dalfox=${DALFOX_VERSION}"
+      "dalfox=${DALFOX_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt dalfox "${DALFOX_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Wafw00f
@@ -147,7 +181,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 wafw00f。
 (
 apt-get install -y --no-install-recommends \
-      "wafw00f=${WAFW00F_VERSION}"
+      "wafw00f=${WAFW00F_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt wafw00f "${WAFW00F_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Gau
@@ -176,7 +211,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 qsreplace。
 (
 apt-get install -y --no-install-recommends \
-      "qsreplace=${QSREPLACE_VERSION}"
+      "qsreplace=${QSREPLACE_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt qsreplace "${QSREPLACE_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Uro
@@ -185,7 +221,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 uro。
 (
 apt-get install -y --no-install-recommends \
-      "uro=${URO_VERSION}"
+      "uro=${URO_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt uro "${URO_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Wfuzz
@@ -194,10 +231,6 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 wfuzz。
 (
 apt-get install -y --no-install-recommends \
-      "wfuzz=${WFUZZ_VERSION}"
+      "wfuzz=${WFUZZ_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt wfuzz "${WFUZZ_VERSION}" "${TARGETARCH}"
 )
-
-
-# -----------------------------------------------------------------------------
-# Password & Authentication
-# -----------------------------------------------------------------------------

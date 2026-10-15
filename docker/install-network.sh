@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# 本类别工具的固定版本；修改工具时在本文件同步检查安装方式。
+NMAP_VERSION=7.991+dfsg-1kali1
+MASSCAN_VERSION_AMD64=2:1.3.2+ds1-2
+MASSCAN_VERSION_ARM64=2:1.3.2+ds1-2+b1
+RUSTSCAN_VERSION=2.4.1-0kali1
+AMASS_VERSION=5.1.1-0kali3
+SUBFINDER_VERSION=2.16.0-0kali1
+NUCLEI_VERSION=3.11.1-0kali1
+FIERCE_VERSION=1.6.0-2
+DNSENUM_VERSION=1.3.2-1
+AUTORECON_VERSION=0.0~git20251116.e7e98f6-0kali1
+THEHARVESTER_VERSION=4.11.1-0kali2
+RESPONDER_VERSION=3.2.2.0-0kali2
+NETEXEC_VERSION=1.5.1-0kali2
+ENUM4LINUX_NG_VERSION=1.3.10-0kali1
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 # 同一类别共用一次成功的索引更新，随后仍逐项安装精确版本。
 apt-get -o APT::Update::Error-Mode=any update
 
@@ -11,7 +28,8 @@ apt-get -o APT::Update::Error-Mode=any update
 # 安装: Kali 软件包 nmap。
 (
 apt-get install -y --no-install-recommends \
-      "nmap=${NMAP_VERSION}"
+      "nmap=${NMAP_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt nmap "${NMAP_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Masscan
@@ -23,7 +41,8 @@ case "${TARGETARCH}" in \
       amd64) package_version="${MASSCAN_VERSION_AMD64}" ;; \
       arm64) package_version="${MASSCAN_VERSION_ARM64}" ;; \
     esac && \
-    apt-get install -y --no-install-recommends "masscan=${package_version}"
+    apt-get install -y --no-install-recommends "masscan=${package_version}" && \
+    bash "${script_dir}/record-tool-version.sh" apt masscan "${package_version}" "${TARGETARCH}"
 )
 
 # 工具: RustScan
@@ -32,7 +51,8 @@ case "${TARGETARCH}" in \
 # 安装: Kali 软件包 rustscan。
 (
 apt-get install -y --no-install-recommends \
-      "rustscan=${RUSTSCAN_VERSION}"
+      "rustscan=${RUSTSCAN_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt rustscan "${RUSTSCAN_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Amass
@@ -41,7 +61,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 amass。
 (
 apt-get install -y --no-install-recommends \
-      "amass=${AMASS_VERSION}"
+      "amass=${AMASS_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt amass "${AMASS_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Subfinder
@@ -50,7 +71,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 subfinder。
 (
 apt-get install -y --no-install-recommends \
-      "subfinder=${SUBFINDER_VERSION}"
+      "subfinder=${SUBFINDER_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt subfinder "${SUBFINDER_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Nuclei
@@ -60,7 +82,8 @@ apt-get install -y --no-install-recommends \
 #       如需模板，请按版本通过只读卷挂载到运行容器。
 (
 apt-get install -y --no-install-recommends \
-      "nuclei=${NUCLEI_VERSION}"
+      "nuclei=${NUCLEI_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt nuclei "${NUCLEI_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Fierce
@@ -69,7 +92,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 fierce。
 (
 apt-get install -y --no-install-recommends \
-      "fierce=${FIERCE_VERSION}"
+      "fierce=${FIERCE_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt fierce "${FIERCE_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: DNSenum
@@ -78,7 +102,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 dnsenum。
 (
 apt-get install -y --no-install-recommends \
-      "dnsenum=${DNSENUM_VERSION}"
+      "dnsenum=${DNSENUM_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt dnsenum "${DNSENUM_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: AutoRecon
@@ -87,7 +112,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 autorecon。
 (
 apt-get install -y --no-install-recommends \
-      "autorecon=${AUTORECON_VERSION}"
+      "autorecon=${AUTORECON_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt autorecon "${AUTORECON_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: theHarvester
@@ -96,7 +122,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 theharvester；可执行文件名为 theHarvester。
 (
 apt-get install -y --no-install-recommends \
-      "theharvester=${THEHARVESTER_VERSION}"
+      "theharvester=${THEHARVESTER_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt theharvester "${THEHARVESTER_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: Responder
@@ -105,7 +132,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 responder；运行时通常需要 host 网络或附加网络能力。
 (
 apt-get install -y --no-install-recommends \
-      "responder=${RESPONDER_VERSION}"
+      "responder=${RESPONDER_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt responder "${RESPONDER_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: NetExec
@@ -114,7 +142,8 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 netexec；主命令为 nxc。
 (
 apt-get install -y --no-install-recommends \
-      "netexec=${NETEXEC_VERSION}"
+      "netexec=${NETEXEC_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt netexec "${NETEXEC_VERSION}" "${TARGETARCH}"
 )
 
 # 工具: enum4linux-ng
@@ -123,10 +152,6 @@ apt-get install -y --no-install-recommends \
 # 安装: Kali 软件包 enum4linux-ng。
 (
 apt-get install -y --no-install-recommends \
-      "enum4linux-ng=${ENUM4LINUX_NG_VERSION}"
+      "enum4linux-ng=${ENUM4LINUX_NG_VERSION}" && \
+    bash "${script_dir}/record-tool-version.sh" apt enum4linux-ng "${ENUM4LINUX_NG_VERSION}" "${TARGETARCH}"
 )
-
-
-# -----------------------------------------------------------------------------
-# Web Application Security
-# -----------------------------------------------------------------------------

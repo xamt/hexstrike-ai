@@ -22,8 +22,10 @@ class DockerContractTests(unittest.TestCase):
         self.assertNotIn("ARG BUILDPLATFORM", base.split("FROM ", 1)[0])
 
     def test_original_versions_are_preserved(self):
-        base = (ROOT / "Dockerfile.base").read_text()
-        versions = dict(re.findall(r"^ARG (\w+_VERSION(?:_AMD64|_ARM64)?)=(.*)$", base, re.M))
+        scripts = "\n".join(path.read_text() for path in (ROOT / "docker").glob("install-*.sh"))
+        entries = re.findall(r"^\s*(\w+_VERSION(?:_AMD64|_ARM64)?)=([^\s]+)$", scripts, re.M)
+        versions = dict(entries)
+        self.assertEqual(len(entries), len(versions), "每个版本只能有一个定义")
         self.assertEqual(CONTRACT["versions"], versions)
 
     def test_command_coverage_is_preserved(self):
@@ -33,11 +35,12 @@ class DockerContractTests(unittest.TestCase):
 
     def test_all_locked_packages_are_installed_and_verified(self):
         scripts = "\n".join(path.read_text() for path in (ROOT / "docker").glob("install-*.sh"))
-        verification = (ROOT / "docker/verify-base.sh").read_text()
+        verification = (ROOT / "docker/verify-tool-versions.py").read_text()
         arch_packages = {"masscan", "dirb", "ophcrack-cli", "foremost"}
         for package, version in CONTRACT["aptPackages"].items():
             with self.subTest(package=package):
-                self.assertIn(f'"{package}:{version}"', verification)
+                self.assertIn(package, verification)
+                self.assertIn(f'record-tool-version.sh" apt {package} ', scripts)
                 if package in arch_packages:
                     self.assertIn(f'"{package}=${{package_version}}"', scripts)
                     for arch in ("AMD64", "ARM64"):

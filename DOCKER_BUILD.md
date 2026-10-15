@@ -189,14 +189,31 @@ docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64
 
 ## 6. Dockerfile 与脚本如何维护
 
-### 6.1 唯一配置入口
+### 6.1 版本与安装逻辑就近维护
 
-`Dockerfile.base` 顶部配置区集中定义所有可覆盖的构建参数默认值：上游镜像、Kali 源、编译器和工具版本。
-顶部以下只允许无默认值的 `ARG`，用于把配置导入当前阶段；子阶段继承父阶段已导入的参数。
-这是 Docker 的作用域要求，不是重复维护版本。[ARG 与 FROM 的作用域](https://docs.docker.com/reference/dockerfile/#understand-how-arg-and-from-interact)
+`Dockerfile.base` 只保留上游镜像、Kali 软件源和平台配置；不再声明或传递工具版本。
+工具版本直接定义在对应安装脚本中，查看安装方式时即可找到版本，不需要跨文件追踪。
 
-脚本不再另设版本默认值，只使用传入参数。软件包名、目录、包装命令和架构选择属于安装实现，保留在脚本中。
-Go 安装器的 `OUTPUT_DIR` 只供离线测试隔离产物；镜像构建固定使用默认 `/out`。
+| 修改内容 | 唯一维护位置 |
+| --- | --- |
+| APT 工具版本、架构差异 | 对应的 `docker/install-network.sh`、`install-web.sh`、`install-password.sh`、`install-binary.sh` |
+| Gau、Waybackurls、Anew | `docker/install-go-tool.sh` |
+| Rust 编译工具链 | `docker/install-rust-toolchain.sh`；后续 Cargo 使用该阶段选定的默认工具链 |
+| X8 | `docker/install-x8.sh` |
+| Nikto | `docker/install-nikto-source.sh` |
+| WPScan | `docker/install-web.sh` |
+| pip、setuptools、wheel、Volatility3 | `docker/install-python-runtime.sh` |
+
+修改工具版本时直接编辑上述脚本；不再通过 `--build-arg NMAP_VERSION=...` 等参数覆盖。
+源地址和上游镜像仍可通过 Dockerfile 中的构建参数覆盖。现有工具版本及架构差异均未改变。
+`OUTPUT_DIR`、`TOOL_RECORD_DIR` 仅供离线检查隔离临时输出；镜像构建不覆盖这些路径。
+
+安装成功后，脚本调用 `docker/record-tool-version.sh` 保存其声明的**预期版本**，而不是把查询到的实际版本当成预期值。
+Go、Rust、Nikto、Python 阶段的记录随产物一起复制，最终汇总到 `/opt/hexstrike/tool-versions.d/`。
+最终校验不再维护第二份版本号：`docker/verify-tool-versions.py` 读取记录，与实际安装的包状态、版本和架构比对；
+Go/X8 二进制及 Nikto 主程序还会比对构建阶段记录的 SHA256，防止复制后产物发生变化。
+记录缺失、冲突、架构不符或版本漂移均使构建失败；全部校验通过后，才生成原路径 `/opt/hexstrike/tool-versions.lock`。
+记录目录属于构建产物，不是另一套需要手工编辑的配置。校验器只保存必需工具名称，不保存版本常量。
 
 ### 6.2 统一执行方式
 
@@ -210,13 +227,13 @@ Go 安装器的 `OUTPUT_DIR` 只供离线测试隔离产物；镜像构建固定
 | Rust | `docker/install-rust-toolchain.sh`、`docker/install-x8.sh` | X8 二进制 |
 | Nikto | `docker/install-nikto-source.sh` | 固定标签源码 |
 | Kali | `docker/install-system.sh`、四类工具安装脚本 | 系统运行库和 APT 工具 |
-| 工具组装 | `docker/prepare-tool-data.sh` | 版本清单和小型字典 |
+| 工具组装 | `docker/prepare-tool-data.sh` | 小型字典；安装记录由各工具脚本产生 |
 | Python | `docker/install-python-runtime.sh` | Python 安装工具和独立 Volatility3 环境 |
-| 最终镜像 | `docker/finalize-base.sh`、`docker/verify-base.sh` | 动态库接入、vol 包装命令和最终校验 |
+| 最终镜像 | `docker/finalize-base.sh`、`docker/verify-base.sh`、`docker/verify-tool-versions.py` | 动态库接入、vol 包装命令、版本核对与清单生成 |
 
 ### 6.3 工具清单与环境边界
 
-48 个 APT 工具包均按固定版本实际安装，最终再次核对包版本和命令；不存在只声明 `ARG` 却未安装的工具。
+48 个 APT 工具包均有固定版本安装步骤，最终再次核对完整安装状态、包版本和命令，不能仅凭版本变量或安装记录判定成功。
 
 | 脚本 | 包数量 | 工具 |
 | --- | --- | --- |

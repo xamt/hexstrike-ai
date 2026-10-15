@@ -18,14 +18,14 @@ if sys.argv[1] == "env":
     print(values[sys.argv[2]])
 elif sys.argv[1] == "install":
     assert os.environ.get("GOBIN") == "", "GOBIN 未清除"
-    assert sys.argv[2] == "example.invalid/tool@v1.0.0"
+    assert sys.argv[2] == "github.com/lc/gau/v2/cmd/gau@v2.2.4"
     if os.environ.get("TEST_FAIL"):
         sys.exit(17)
     folder = Path(values["GOPATH"]) / "bin"
     if values["GOARCH"] != values["GOHOSTARCH"]:
         folder /= "linux_" + values["GOARCH"]
     folder.mkdir(parents=True)
-    (folder / "tool").write_text(values["GOARCH"])
+    (folder / "gau").write_text(values["GOARCH"])
 else:
     sys.exit(2)
 '''
@@ -44,15 +44,15 @@ class GoToolInstallTests(unittest.TestCase):
             output = directory / "out"
             env = dict(os.environ, PATH=f"{directory}:{os.environ['PATH']}",
                        TEST_GOPATH=str(directory / "gopath"), TEST_ARCH=arch,
-                       GOBIN="/unexpected", OUTPUT_DIR=str(output))
+                       GOBIN="/unexpected", OUTPUT_DIR=str(output), TARGETARCH=arch,
+                       TOOL_RECORD_DIR=str(directory / "records"))
             if fail:
                 env["TEST_FAIL"] = "1"
             result = subprocess.run(
-                ["bash", str(ROOT / "docker/install-go-tool.sh"),
-                 "example.invalid/tool", "v1.0.0", "tool"],
+                ["bash", str(ROOT / "docker/install-go-tool.sh"), "gau"],
                 env=env, capture_output=True, text=True,
             )
-            artifact = output / "tool"
+            artifact = output / "gau"
             return result, artifact.read_text() if artifact.exists() else None
 
     def test_native_output(self):

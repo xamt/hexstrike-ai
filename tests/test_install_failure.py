@@ -17,6 +17,9 @@ class InstallFailureTests(unittest.TestCase):
     def test_first_package_failure_stops_category(self):
         self.check_failure(2)
 
+    def test_later_package_failure_does_not_record_failed_tool(self):
+        self.check_failure(3)
+
     def check_failure(self, fail_on):
         """在指定调用失败，并断言没有尝试安装后续工具。"""
         with tempfile.TemporaryDirectory() as temporary:
@@ -27,12 +30,16 @@ class InstallFailureTests(unittest.TestCase):
                             'exit 0\n')
             fake.chmod(0o755)
             log = directory / "calls"
+            records = directory / "records"
             env = dict(os.environ, PATH=f"{directory}:{os.environ['PATH']}",
-                       TEST_LOG=str(log), TEST_FAIL_ON=str(fail_on), NMAP_VERSION="fixed")
+                       TEST_LOG=str(log), TEST_FAIL_ON=str(fail_on), TARGETARCH="arm64",
+                       TOOL_RECORD_DIR=str(records))
             result = subprocess.run(["bash", str(ROOT / "docker/install-network.sh")],
                                     env=env, capture_output=True, text=True)
             self.assertEqual(37, result.returncode, result.stderr)
             self.assertEqual(fail_on, len(log.read_text().splitlines()))
+            expected = ["apt-nmap.tsv"] if fail_on == 3 else []
+            self.assertEqual(expected, sorted(path.name for path in records.glob("*.tsv")))
 
 
 if __name__ == "__main__":

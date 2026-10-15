@@ -1,96 +1,18 @@
 # syntax=docker/dockerfile:1.7
 
 # =============================================================================
-# 1. 配置区：镜像、包源和版本的唯一默认值来源
+# 1. 构建配置：只保留上游镜像、平台和软件源
 # =============================================================================
-# 修改版本只改本区。各阶段的无值 ARG 仅导入配置，不是第二份默认值。
-# BUILDPLATFORM/TARGETARCH 由 BuildKit 提供，不在全局重新声明以免覆盖为空。
+# 工具版本与安装命令一起维护在 docker/install-*.sh；此处不重复声明。
+# 安装成功后生成预期版本记录，最终阶段读取记录校验并生成 tool-versions.lock。
+# BUILDPLATFORM/TARGETARCH 由 BuildKit 提供，不在全局重声明以免覆盖为空。
 ARG KALI_BASE_IMAGE=kalilinux/kali-rolling:latest
 ARG GO_BUILD_IMAGE=golang:1.25-bookworm
 ARG RUST_BUILD_IMAGE=rust:1.85-bookworm
 ARG NIKTO_BUILD_IMAGE=debian:bookworm-slim
 ARG PYTHON_RUNTIME_IMAGE=python:3.11-slim-bookworm
-
-# 可通过 --build-arg 覆盖；始终保留 TLS 和 Kali 官方签名验证。
 ARG KALI_APT_MIRROR=https://mirrors.aliyun.com/kali
 ARG KALI_APT_SUITE=kali-rolling
-
-# 非 APT 工具。Rust 1.79.0 用于兼容 X8 锁定的 time 0.3.21，不升级工具依赖。
-ARG GAU_VERSION=v2.2.4
-ARG WAYBACKURLS_VERSION=v0.1.0
-ARG ANEW_VERSION=v0.1.1
-ARG X8_VERSION=4.3.0
-ARG RUST_TOOLCHAIN=1.79.0
-ARG NIKTO_VERSION=2.6.1
-ARG WPSCAN_VERSION=4.0.0
-ARG VOLATILITY3_VERSION=2.28.2
-
-# 独立 Python 3.11 运行时的安装工具，不替换 Kali 系统 Python。
-ARG PIP_VERSION=25.3
-ARG SETUPTOOLS_VERSION=80.9.0
-ARG WHEEL_VERSION=0.45.1
-
-# Kali 包版本锁（核对日期：2026-10-14）。缺包或版本不符立即失败，不回退最新版。
-# 只有 Masscan、Dirb、Ophcrack CLI、Foremost 存在架构重编译后缀差异。
-# 网络探测与信息收集（13 个包）
-ARG NMAP_VERSION=7.991+dfsg-1kali1
-ARG MASSCAN_VERSION_AMD64=2:1.3.2+ds1-2
-ARG MASSCAN_VERSION_ARM64=2:1.3.2+ds1-2+b1
-ARG RUSTSCAN_VERSION=2.4.1-0kali1
-ARG AMASS_VERSION=5.1.1-0kali3
-ARG SUBFINDER_VERSION=2.16.0-0kali1
-ARG NUCLEI_VERSION=3.11.1-0kali1
-ARG FIERCE_VERSION=1.6.0-2
-ARG DNSENUM_VERSION=1.3.2-1
-ARG AUTORECON_VERSION=0.0~git20251116.e7e98f6-0kali1
-ARG THEHARVESTER_VERSION=4.11.1-0kali2
-ARG RESPONDER_VERSION=3.2.2.0-0kali2
-ARG NETEXEC_VERSION=1.5.1-0kali2
-ARG ENUM4LINUX_NG_VERSION=1.3.10-0kali1
-
-# Web 检测与参数发现（16 个 APT 包）
-ARG GOBUSTER_VERSION=3.8.2-1
-ARG FEROXBUSTER_VERSION=2.13.1-0kali3
-ARG DIRSEARCH_VERSION=0.4.3-1
-ARG FFUF_VERSION=2.2.1-1
-ARG DIRB_VERSION_AMD64=2.22+dfsg-7
-ARG DIRB_VERSION_ARM64=2.22+dfsg-7+b1
-ARG HTTPX_TOOLKIT_VERSION=1.9.0-0kali2
-ARG KATANA_VERSION=1.7.0-0kali1
-ARG HAKRAWLER_VERSION=2.1-0kali1
-ARG SQLMAP_VERSION=1.10.9-1
-ARG ARJUN_VERSION=2.2.7-1
-ARG PARAMSPIDER_VERSION=1.0.1-3
-ARG DALFOX_VERSION=3.2.2-0kali1
-ARG WAFW00F_VERSION=2.4.2-1
-ARG QSREPLACE_VERSION=0.0.3-0kali1
-ARG URO_VERSION=1.0.2-0kali1
-ARG WFUZZ_VERSION=3.1.1-1
-
-# 口令与身份认证（9 个包）
-ARG HYDRA_VERSION=9.7-2
-ARG JOHN_VERSION=1.9.0-Jumbo-1+git20211102-0kali11
-ARG HASHCAT_VERSION=7.1.2+ds1-4
-ARG MEDUSA_VERSION=2.3-3
-ARG PATATOR_VERSION=1.1.0-1
-ARG CRACKMAPEXEC_VERSION=5.4.0-0kali7
-ARG EVIL_WINRM_VERSION=4.1-0kali1
-ARG HASH_IDENTIFIER_VERSION=1.2+git20180314-0kali3
-ARG OPHCRACK_CLI_VERSION_AMD64=3.8.0-4
-ARG OPHCRACK_CLI_VERSION_ARM64=3.8.0-4+b1
-
-# 二进制分析与取证（10 个包）
-ARG GDB_VERSION=17.2-1+b1
-ARG RADARE2_VERSION=6.0.4+dfsg-1
-ARG BINWALK_VERSION=2.4.3+dfsg1-3
-ARG GHIDRA_VERSION=12.1.4+ds-0kali1
-ARG CHECKSEC_VERSION=2.6.0-2
-ARG BINUTILS_VERSION=2.47-6
-ARG XXD_VERSION=2:9.2.0858-1
-ARG FOREMOST_VERSION_AMD64=1.5.7-12+b1
-ARG FOREMOST_VERSION_ARM64=1.5.7-12
-ARG STEGHIDE_VERSION=0.5.1+git20240220-2
-ARG EXIFTOOL_VERSION=13.55+dfsg-1
 
 # =============================================================================
 # 2. Go 工具：构建机运行编译器，产物面向目标架构
@@ -98,44 +20,44 @@ ARG EXIFTOOL_VERSION=13.55+dfsg-1
 FROM --platform=${BUILDPLATFORM} ${GO_BUILD_IMAGE} AS go-tools
 ARG TARGETOS
 ARG TARGETARCH
-ARG GAU_VERSION
-ARG WAYBACKURLS_VERSION
-ARG ANEW_VERSION
 ENV CGO_ENABLED=0 \
     GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH}
 
 # 每个工具单独一层；脚本负责处理 Go 本机/交叉编译输出目录。
 RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh github.com/lc/gau/v2/cmd/gau "${GAU_VERSION}" gau
+    bash /tmp/install-go-tool.sh gau
 RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh github.com/tomnomnom/waybackurls "${WAYBACKURLS_VERSION}" waybackurls
+    bash /tmp/install-go-tool.sh waybackurls
 RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh github.com/tomnomnom/anew "${ANEW_VERSION}" anew
+    bash /tmp/install-go-tool.sh anew
 
 # =============================================================================
 # 3. Rust 工具：目标架构编译 X8，编译器不进入最终镜像
 # =============================================================================
 FROM ${RUST_BUILD_IMAGE} AS rust-tools
-ARG RUST_TOOLCHAIN
-ARG X8_VERSION
+ARG TARGETARCH
 RUN --mount=type=bind,source=docker/install-rust-toolchain.sh,target=/tmp/install-rust-toolchain.sh \
     bash /tmp/install-rust-toolchain.sh
 RUN --mount=type=bind,source=docker/install-x8.sh,target=/tmp/install-x8.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     bash /tmp/install-x8.sh
 
 # =============================================================================
 # 4. Nikto：只获取固定标签的源码，不保留 Git 元数据
 # =============================================================================
 FROM --platform=${BUILDPLATFORM} ${NIKTO_BUILD_IMAGE} AS nikto-source
-ARG NIKTO_VERSION
 RUN --mount=type=bind,source=docker/install-nikto-source.sh,target=/tmp/install-nikto-source.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     bash /tmp/install-nikto-source.sh
 
 # =============================================================================
@@ -143,63 +65,10 @@ RUN --mount=type=bind,source=docker/install-nikto-source.sh,target=/tmp/install-
 # =============================================================================
 FROM ${PYTHON_RUNTIME_IMAGE} AS python-source
 FROM ${KALI_BASE_IMAGE} AS security-packages
-# 导入顶部配置，供安装脚本和后续继承阶段读取。
+# 平台和源地址传入安装脚本；工具版本在对应脚本内定义。
 ARG TARGETARCH
 ARG KALI_APT_MIRROR
 ARG KALI_APT_SUITE
-ARG WPSCAN_VERSION
-ARG NMAP_VERSION
-ARG MASSCAN_VERSION_AMD64
-ARG MASSCAN_VERSION_ARM64
-ARG RUSTSCAN_VERSION
-ARG AMASS_VERSION
-ARG SUBFINDER_VERSION
-ARG NUCLEI_VERSION
-ARG FIERCE_VERSION
-ARG DNSENUM_VERSION
-ARG AUTORECON_VERSION
-ARG THEHARVESTER_VERSION
-ARG RESPONDER_VERSION
-ARG NETEXEC_VERSION
-ARG ENUM4LINUX_NG_VERSION
-ARG GOBUSTER_VERSION
-ARG FEROXBUSTER_VERSION
-ARG DIRSEARCH_VERSION
-ARG FFUF_VERSION
-ARG DIRB_VERSION_AMD64
-ARG DIRB_VERSION_ARM64
-ARG HTTPX_TOOLKIT_VERSION
-ARG KATANA_VERSION
-ARG HAKRAWLER_VERSION
-ARG SQLMAP_VERSION
-ARG ARJUN_VERSION
-ARG PARAMSPIDER_VERSION
-ARG DALFOX_VERSION
-ARG WAFW00F_VERSION
-ARG QSREPLACE_VERSION
-ARG URO_VERSION
-ARG WFUZZ_VERSION
-ARG HYDRA_VERSION
-ARG JOHN_VERSION
-ARG HASHCAT_VERSION
-ARG MEDUSA_VERSION
-ARG PATATOR_VERSION
-ARG CRACKMAPEXEC_VERSION
-ARG EVIL_WINRM_VERSION
-ARG HASH_IDENTIFIER_VERSION
-ARG OPHCRACK_CLI_VERSION_AMD64
-ARG OPHCRACK_CLI_VERSION_ARM64
-ARG GDB_VERSION
-ARG RADARE2_VERSION
-ARG BINWALK_VERSION
-ARG GHIDRA_VERSION
-ARG CHECKSEC_VERSION
-ARG BINUTILS_VERSION
-ARG XXD_VERSION
-ARG FOREMOST_VERSION_AMD64
-ARG FOREMOST_VERSION_ARM64
-ARG STEGHIDE_VERSION
-ARG EXIFTOOL_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -215,42 +84,44 @@ RUN --mount=type=bind,source=docker/install-system.sh,target=/tmp/install-system
     bash /tmp/install-system.sh
 
 RUN --mount=type=bind,source=docker/install-network.sh,target=/tmp/install-network.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
     bash /tmp/install-network.sh
 
 COPY --from=nikto-source /opt/nikto/ /opt/nikto/
+COPY --from=nikto-source /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 
 RUN --mount=type=bind,source=docker/install-web.sh,target=/tmp/install-web.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
     bash /tmp/install-web.sh
 
 RUN --mount=type=bind,source=docker/install-password.sh,target=/tmp/install-password.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
     bash /tmp/install-password.sh
 
 RUN --mount=type=bind,source=docker/install-binary.sh,target=/tmp/install-binary.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
     bash /tmp/install-binary.sh
 
 # =============================================================================
-# 6. 工具组装：仅复制编译产物，生成清单并准备小型字典
+# 6. 工具组装：复制编译产物和安装记录，准备小型字典
 # =============================================================================
 FROM security-packages AS security-tools
-ARG GAU_VERSION
-ARG WAYBACKURLS_VERSION
-ARG ANEW_VERSION
-ARG X8_VERSION
-ARG NIKTO_VERSION
-COPY --from=go-tools /out/ /usr/local/bin/
+COPY --from=go-tools /out/bin/ /usr/local/bin/
+COPY --from=go-tools /out/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 COPY --from=rust-tools /out/bin/x8 /usr/local/bin/x8
+COPY --from=rust-tools /out/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 RUN --mount=type=bind,source=docker/prepare-tool-data.sh,target=/tmp/prepare-tool-data.sh \
     bash /tmp/prepare-tool-data.sh
 
@@ -258,13 +129,10 @@ RUN --mount=type=bind,source=docker/prepare-tool-data.sh,target=/tmp/prepare-too
 # 7. Python 运行时：固定安装工具，Volatility3 使用独立虚拟环境
 # =============================================================================
 FROM python-source AS python-runtime
-ARG PIP_VERSION
-ARG SETUPTOOLS_VERSION
-ARG WHEEL_VERSION
-ARG VOLATILITY3_VERSION
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
 RUN --mount=type=bind,source=docker/install-python-runtime.sh,target=/tmp/install-python-runtime.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     bash /tmp/install-python-runtime.sh
 
 # =============================================================================
@@ -272,12 +140,13 @@ RUN --mount=type=bind,source=docker/install-python-runtime.sh,target=/tmp/instal
 # =============================================================================
 FROM security-tools AS base
 ARG TARGETARCH
-ARG VOLATILITY3_VERSION
 COPY --from=python-runtime /usr/local/ /usr/local/
 COPY --from=python-runtime /opt/volatility3-venv/ /opt/volatility3-venv/
+COPY --from=python-runtime /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 RUN --mount=type=bind,source=docker/finalize-base.sh,target=/tmp/finalize-base.sh \
     bash /tmp/finalize-base.sh
 RUN --mount=type=bind,source=docker/verify-base.sh,target=/tmp/verify-base.sh \
+    --mount=type=bind,source=docker/verify-tool-versions.py,target=/tmp/verify-tool-versions.py \
     bash /tmp/verify-base.sh
 
 # 不安装项目依赖、不复制项目代码、不开放服务端口。
