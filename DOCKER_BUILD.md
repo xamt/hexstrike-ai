@@ -279,3 +279,26 @@ Kali 滚动仓库可能移除历史包，传递依赖和项目 Python 依赖也�
 X8 4.3.0 锁定的 time 0.3.21 需要 Rust 1.79.0；不升级 X8 或锁文件，编译器不进入最终镜像。
 大型字典、Nuclei 模板、彩虹表和 Volatility 符号表不内置，通过挂载或运行时准备。
 AutoRecon 依赖安装的 SecLists 数据只写入构建缓存；需要时挂载到 `/usr/share/seclists`，包元数据不代表数据已经可用。
+
+## 8. Agent 使用 HTTP 技能（无需本机 Python / MCP）
+
+应用容器启动后，可将本仓库的 `skills/pentest-tools/` **整个目录**导入支持技能和命令执行的 Agent。入口为 `SKILL.md`，`scripts/` 和 `references/` 需要一起保留；不再使用原来的 stdio MCP 配置。原 `hexstrike_mcp.py` 留作兼容与维护参考。
+
+运行环境需要 Node.js 22 或更高版本，不需要 Python、requests、MCP SDK 或 npm install。调用器使用 Node.js 内置 fetch 直接访问 HTTP API；工具仍在容器中执行。
+
+以下在仓库根目录执行，仅列出本地定义，不访问服务：
+
+```bash
+node "skills/pentest-tools/scripts/run.mjs" list
+node "skills/pentest-tools/scripts/run.mjs" describe nmap_scan
+```
+
+服务地址默认 `http://127.0.0.1:8888`，可用 `PENTEST_SERVER_URL` 或单次 `--server` 覆盖。注意地址相对于 Agent 后端，不是浏览器所在机器。下面仅请求健康接口，不执行扫描：
+
+```bash
+node "skills/pentest-tools/scripts/run.mjs" call server_health --server http://127.0.0.1:8888
+```
+
+技能保留原 150 个唯一工具名，并将第二个重复 HTTPx 定义命名为 `httpx_probe_extended`，共 151 个可调用入口。详细参数用 `describe` 按需读取。调用通过 `--input` 读取 JSON 文件或 `--input -` 读取 stdin；无需激活虚拟环境。
+
+本次仅完成离线参数/请求/返回对照及模拟 HTTP 验证，未运行镜像构建、真实服务联调或扫描。技能不是新的安全工具安装包，可选工具缺失仍会导致相应接口失败。

@@ -1,0 +1,35 @@
+{
+  "updatedAt": "2026-10-15T11:15:35.747Z",
+  "version": 2,
+  "source": "manual",
+  "originCommand": "",
+  "qaMode": "standard",
+  "qaFocus": [
+    "参数兼容",
+    "复合调用逻辑",
+    "HTTP失败",
+    "零运行时依赖"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}
