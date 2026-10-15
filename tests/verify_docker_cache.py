@@ -74,10 +74,10 @@ def main():
     args = parser.parse_args()
     inspect = ["docker", "image", "inspect", "--format", "{{.Id}}", args.base_image]
     before = command(inspect)
-    prefix = f"penttest-tools-cache-check-{uuid.uuid4().hex[:12]}"
+    prefix = f"pentest-tools-cache-check-{uuid.uuid4().hex[:12]}"
     tags = [f"{prefix}:{index}" for index in range(3)]
     try:
-        with tempfile.TemporaryDirectory(prefix="penttest-cache-") as temporary:
+        with tempfile.TemporaryDirectory(prefix="pentest-cache-") as temporary:
             verify(Path(temporary), args.base_image, args.arch, tags)
         if command(inspect) != before:
             raise AssertionError("缓存回归期间基础镜像发生变化")

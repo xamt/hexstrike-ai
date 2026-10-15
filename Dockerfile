@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # 正式发布通过 --build-arg BASE_IMAGE=仓库@sha256:摘要 固定已验收的基础镜像。
-ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/penttest-tools-base-multiarch:1.0.0
+ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0
 FROM ${BASE_IMAGE} AS runtime
 
 # 保留项目生成脚本使用 python3 时的原有应用依赖环境。

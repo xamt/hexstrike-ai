@@ -47,7 +47,7 @@ class DockerContractTests(unittest.TestCase):
 
     def test_application_layers_and_isolation(self):
         app = (ROOT / "Dockerfile").read_text()
-        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/penttest-tools-base-multiarch:1.0.0", app)
+        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0", app)
         self.assertIn("FROM ${BASE_IMAGE}", app)
         self.assertEqual(1, len(re.findall(r"^FROM ", app, re.M)))
         self.assertNotIn("apt-get", app)
@@ -59,6 +59,18 @@ class DockerContractTests(unittest.TestCase):
         self.assertIn("/opt/volatility3-venv", base)
         self.assertNotIn("/opt/hexstrike-venv", base)
         self.assertIn("RUN ldconfig", base)
+
+    def test_image_repository_names_are_consistent(self):
+        docs = (ROOT / "DOCKER_BUILD.md").read_text()
+        self.assertIn('APP_IMAGE="${REGISTRY}/pentest-tools:${APP_VERSION}-${ARCH}"', docs)
+        self.assertIn('BASE_IMAGE="${REGISTRY}/pentest-tools-base:${BASE_VERSION}-${ARCH}"', docs)
+        self.assertIn('"${REGISTRY}/pentest-tools:${APP_VERSION}"', docs)
+        self.assertIn('"${REGISTRY}/pentest-tools-base@${BASE_DIGEST}"', docs)
+        self.assertIn('pentest-tools-base:buildcache-${ARCH}', docs)
+        self.assertIn('pentest-tools:buildcache-${ARCH}', docs)
+        for path in (ROOT / "Dockerfile", ROOT / "DOCKER_BUILD.md",
+                     ROOT / "tests/verify_docker_cache.py"):
+            self.assertNotIn("penttest", path.read_text())
 
     def test_application_python_and_security_httpx_are_preserved(self):
         app = (ROOT / "Dockerfile").read_text()

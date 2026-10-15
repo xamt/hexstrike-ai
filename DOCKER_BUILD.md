@@ -11,16 +11,35 @@
 基础镜像不读取项目依赖文件和服务代码，不自动启动 HTTP 服务。
 应用只引用已构建的基础镜像，不执行 APT、Go、Cargo 或安全工具安装。
 
-保留现有镜像仓库的 `penttest` 拼写：
+应用仓库统一为 `harbor.everoffice.cn/harbor-cucc/pentest-tools`，基础仓库为
+`harbor.everoffice.cn/harbor-cucc/pentest-tools-base`。架构由标签区分，不再拆分架构仓库：
 
 | 架构 | 基础镜像 | 应用镜像 |
 | --- | --- | --- |
-| AMD64 | `penttest-tools-base-amd64` | `penttest-tools-amd64` |
-| ARM64 | `penttest-tools-base-arm64` | `penttest-tools-arm64` |
-| 多架构入口 | `penttest-tools-base-multiarch` | `penttest-tools-multiarch` |
+| AMD64 | `pentest-tools-base:1.0.0-amd64` | `pentest-tools:1.0.0-amd64` |
+| ARM64 | `pentest-tools-base:1.0.0-arm64` | `pentest-tools:1.0.0-arm64` |
+| 多架构入口 | `pentest-tools-base:1.0.0` | `pentest-tools:1.0.0` |
 
 仓库前缀统一为 `harbor.everoffice.cn/harbor-cucc/`。
 基础镜像和应用版本独立管理，首版均为 `1.0.0`；发布标签不可覆盖，不发布可变的 `latest`。
+修改构建定义不会自动重命名已存在的本地或仓库镜像；新名称需要按本文构建并完成验收后发布。
+
+### 基础镜像工具覆盖
+
+`Dockerfile.base` 中的 48 个 APT 工具包均有实际固定版本安装步骤，不只是 `ARG` 声明：
+
+| 安装脚本 | 工具包数量 | 范围 |
+| --- | --- | --- |
+| `docker/install-network.sh` | 13 | Nmap、Masscan、Rustscan、Amass、Subfinder、Nuclei、Fierce、Dnsenum、AutoRecon、theHarvester、Responder、NetExec、Enum4linux-ng |
+| `docker/install-web.sh` | 16 | Gobuster、Feroxbuster、Dirsearch、FFUF、Dirb、HTTPX Toolkit、Katana、Hakrawler、SQLMap、Arjun、ParamSpider、Dalfox、Wafw00f、Qsreplace、Uro、Wfuzz |
+| `docker/install-password.sh` | 9 | Hydra、John、Hashcat、Medusa、Patator、CrackMapExec、Evil-WinRM、Hash-Identifier、Ophcrack CLI |
+| `docker/install-binary.sh` | 10 | GDB、Radare2、Binwalk、Ghidra、Checksec、Binutils、XXD、Foremost、Steghide、ExifTool |
+
+Masscan、Dirb、Ophcrack CLI、Foremost 按目标架构选择对应版本；其余使用共同锁定版本。
+ExifTool 的包名为 `libimage-exiftool-perl`；NetExec 命令为 `nxc`；HTTPX Toolkit 提供 `httpx`；Binutils 提供 `strings` 和 `objdump`。
+构建末尾 `docker/verify-base.sh` 逐项核对 48 个包版本并检查工具命令，任何缺失或版本不符都会失败。
+此外还包含 Gau、Waybackurls、Anew、X8、Nikto、WPScan、Volatility3。
+工具安装不代表附属大型数据已内置：Nuclei 模板、SecLists、彩虹表和 Volatility 符号表仍需挂载或运行时准备。
 
 ## 2. 构建准备
 
@@ -47,8 +66,8 @@ ARCH=arm64
 REGISTRY=harbor.everoffice.cn/harbor-cucc
 BASE_VERSION=1.0.0
 APP_VERSION=1.0.0
-BASE_IMAGE="${REGISTRY}/penttest-tools-base-${ARCH}:${BASE_VERSION}"
-APP_IMAGE="${REGISTRY}/penttest-tools-${ARCH}:${APP_VERSION}"
+BASE_IMAGE="${REGISTRY}/pentest-tools-base:${BASE_VERSION}-${ARCH}"
+APP_IMAGE="${REGISTRY}/pentest-tools:${APP_VERSION}-${ARCH}"
 ```
 
 ### 3.1 基础镜像
@@ -88,7 +107,7 @@ docker buildx build \
 ```
 
 未覆盖时，`BASE_IMAGE` 默认指向：
-`harbor.everoffice.cn/harbor-cucc/penttest-tools-base-multiarch:1.0.0`。
+`harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0`。
 首次本地构建必须按上例传入已经加载的单架构基础镜像，不依赖多架构入口已经发布。
 
 ## 4. 运行验收
@@ -129,14 +148,14 @@ Volatility3 环境位于 `/opt/volatility3-venv`；项目环境位于 `/opt/hexs
 
 ```bash
 docker run --detach \
-  --name penttest-tools \
+  --name pentest-tools \
   --platform "linux/${ARCH}" \
   --publish 127.0.0.1:8888:8888 \
   "${APP_IMAGE}"
 
 curl --fail --silent --show-error http://127.0.0.1:8888/health
-docker inspect --format '{{.State.Health.Status}}' penttest-tools
-docker logs penttest-tools
+docker inspect --format '{{.State.Health.Status}}' pentest-tools
+docker logs pentest-tools
 ```
 
 等待容器健康状态为 `healthy`。健康接口包含未纳入镜像的可选工具，不要求全部标记可用。
@@ -145,8 +164,8 @@ docker logs penttest-tools
 测试结束后停止并移除本次创建的容器：
 
 ```bash
-docker stop penttest-tools
-docker rm penttest-tools
+docker stop pentest-tools
+docker rm pentest-tools
 ```
 
 ### 4.4 缓存验证
@@ -171,13 +190,13 @@ python3 tests/verify_docker_cache.py "${BASE_IMAGE}" "${ARCH}"
 ### 5.1 发布基础镜像
 
 ```bash
-docker push "${REGISTRY}/penttest-tools-base-amd64:${BASE_VERSION}"
-docker push "${REGISTRY}/penttest-tools-base-arm64:${BASE_VERSION}"
+docker push "${REGISTRY}/pentest-tools-base:${BASE_VERSION}-amd64"
+docker push "${REGISTRY}/pentest-tools-base:${BASE_VERSION}-arm64"
 docker buildx imagetools create \
-  --tag "${REGISTRY}/penttest-tools-base-multiarch:${BASE_VERSION}" \
-  "${REGISTRY}/penttest-tools-base-amd64:${BASE_VERSION}" \
-  "${REGISTRY}/penttest-tools-base-arm64:${BASE_VERSION}"
-docker buildx imagetools inspect "${REGISTRY}/penttest-tools-base-multiarch:${BASE_VERSION}"
+  --tag "${REGISTRY}/pentest-tools-base:${BASE_VERSION}" \
+  "${REGISTRY}/pentest-tools-base:${BASE_VERSION}-amd64" \
+  "${REGISTRY}/pentest-tools-base:${BASE_VERSION}-arm64"
+docker buildx imagetools inspect "${REGISTRY}/pentest-tools-base:${BASE_VERSION}"
 ```
 
 检查输出包含 `linux/amd64`、`linux/arm64`，记录多架构索引的 `Digest`。
@@ -190,7 +209,7 @@ docker buildx imagetools inspect "${REGISTRY}/penttest-tools-base-multiarch:${BA
 : "${BASE_DIGEST:?请设置已验收基础镜像的 sha256 摘要}"
 docker buildx build \
   --platform "linux/${ARCH}" \
-  --build-arg BASE_IMAGE="${REGISTRY}/penttest-tools-base-multiarch@${BASE_DIGEST}" \
+  --build-arg BASE_IMAGE="${REGISTRY}/pentest-tools-base@${BASE_DIGEST}" \
   --tag "${APP_IMAGE}" \
   --load --progress=plain .
 ```
@@ -198,23 +217,23 @@ docker buildx build \
 两个架构分别重建并重复第 4 节，再发布应用：
 
 ```bash
-docker push "${REGISTRY}/penttest-tools-amd64:${APP_VERSION}"
-docker push "${REGISTRY}/penttest-tools-arm64:${APP_VERSION}"
+docker push "${REGISTRY}/pentest-tools:${APP_VERSION}-amd64"
+docker push "${REGISTRY}/pentest-tools:${APP_VERSION}-arm64"
 docker buildx imagetools create \
-  --tag "${REGISTRY}/penttest-tools-multiarch:${APP_VERSION}" \
-  "${REGISTRY}/penttest-tools-amd64:${APP_VERSION}" \
-  "${REGISTRY}/penttest-tools-arm64:${APP_VERSION}"
-docker buildx imagetools inspect "${REGISTRY}/penttest-tools-multiarch:${APP_VERSION}"
+  --tag "${REGISTRY}/pentest-tools:${APP_VERSION}" \
+  "${REGISTRY}/pentest-tools:${APP_VERSION}-amd64" \
+  "${REGISTRY}/pentest-tools:${APP_VERSION}-arm64"
+docker buildx imagetools inspect "${REGISTRY}/pentest-tools:${APP_VERSION}"
 ```
 
-最终可以通过 `harbor.everoffice.cn/harbor-cucc/penttest-tools-multiarch:1.0.0` 启动应用。
+最终可以通过 `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0` 启动应用。
 正式部署保留应用摘要和基础镜像摘要，回滚直接部署上一版应用镜像。
 
 ## 6. 构建缓存与限制
 
 APT 缓存挂载按架构区分。基础镜像和应用镜像的远程缓存也必须分开：
-- 基础镜像：`penttest-tools-base-${ARCH}:buildcache`。
-- 应用镜像：`penttest-tools-${ARCH}:buildcache`。
+- 基础镜像：`pentest-tools-base:buildcache-${ARCH}`。
+- 应用镜像：`pentest-tools:buildcache-${ARCH}`。
 
 支持 registry 缓存的构建器可添加：
 
@@ -223,7 +242,7 @@ APT 缓存挂载按架构区分。基础镜像和应用镜像的远程缓存也�
 --cache-to "type=registry,ref=${CACHE_IMAGE},mode=max"
 ```
 
-`CACHE_IMAGE` 必须根据当前构建类型选择对应仓库。缓存标签可以更新，发布标签不能覆盖。
+`CACHE_IMAGE` 必须包含完整仓库前缀，并按构建类型和架构选择上述缓存标签。缓存标签可以更新，发布标签不能覆盖。
 不支持远程缓存时去掉这两个参数即可；应用继承基础镜像不依赖远程构建缓存。
 
 工具版本锁定不等于所有传递依赖均可重复解析。Kali 滚动仓库可能移除旧版本，项目 Python 依赖也仍采用既有版本范围。
