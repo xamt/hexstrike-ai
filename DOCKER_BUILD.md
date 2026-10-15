@@ -1,252 +1,256 @@
-# HexStrike AI 双镜像构建说明
+# 工具基础镜像与应用镜像构建说明
 
-## 1. 职责与更新规则
+## 1. 镜像与构建顺序
 
-| 镜像 | 内容 | 重建时机 |
+只构建 AMD64、ARM64 两种独立镜像，不创建多架构入口。每个架构先构建基础镜像，再构建应用镜像。
+
+| 用途 | AMD64 | ARM64 |
 | --- | --- | --- |
-| 基础镜像 | Kali、现有安全工具、字典、Python 3.11、独立 Volatility3 环境 | 工具、系统库或 Python 运行时变化 |
-| 应用镜像 | 基础镜像 + 项目 Python 依赖 + 服务代码 | 项目依赖或代码变化 |
+| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64` |
+| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64` |
 
-基础镜像入口为 `Dockerfile.base`，应用入口为 `Dockerfile`。
-基础镜像不读取项目依赖文件和服务代码，不自动启动 HTTP 服务。
-应用只引用已构建的基础镜像，不执行 APT、Go、Cargo 或安全工具安装。
+- 基础镜像：Kali、安全工具、小型字典、Python 3.11、独立 Volatility3 环境；默认进入 Bash，不启动服务。
+- 应用镜像：继承同架构基础镜像，安装项目依赖、复制代码、配置 8888 端口和健康检查，不重复安装安全工具。
+- 两类镜像版本独立管理；工具或运行时变化才重建基础镜像，仅代码或项目依赖变化只重建应用镜像。
+- 不使用 `latest`；已发布的版本标签不可覆盖。调整版本时直接修改对应命令中的完整镜像名。
 
-应用仓库统一为 `harbor.everoffice.cn/harbor-cucc/pentest-tools`，基础仓库为
-`harbor.everoffice.cn/harbor-cucc/pentest-tools-base`。架构由标签区分，不再拆分架构仓库：
+以下命令全部在项目根目录执行，不需要预先设置任何 Shell 变量。
+本地两步构建使用 Docker Desktop 的 `docker` 驱动，基础镜像通过 `--load` 保存到本机。
+`docker-container` 等独立构建器需要先从仓库获取基础镜像，不能假定可读取宿主机镜像存储。
+跨架构构建或运行需要模拟器支持；Docker Desktop 通常已提供。
 
-| 架构 | 基础镜像 | 应用镜像 |
+## 2. 构建基础镜像
+
+### 2.1 AMD64 基础镜像
+
+```bash
+docker buildx build \
+  --platform linux/amd64 \
+  --file "Dockerfile.base" \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64 \
+  --load \
+  --progress=plain \
+  "."
+```
+
+### 2.2 ARM64 基础镜像
+
+```bash
+docker buildx build \
+  --platform linux/arm64 \
+  --file "Dockerfile.base" \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64 \
+  --load \
+  --progress=plain \
+  "."
+```
+
+默认使用阿里云 Kali 源。需要切换到 Kali 官方分发地址时，在对应命令的 `--load` 前增加
+`--build-arg KALI_APT_MIRROR=http://http.kali.org/kali`；仍验证 Kali 官方签名。
+软件包版本不存在或下载失败时直接中止，不自动升级或跳过工具。
+
+## 3. 构建应用镜像
+
+### 3.1 AMD64 应用镜像
+
+先完成第 2.1 节。
+
+```bash
+docker buildx build \
+  --platform linux/amd64 \
+  --file "Dockerfile" \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64 \
+  --load \
+  --progress=plain \
+  "."
+```
+
+### 3.2 ARM64 应用镜像
+
+先完成第 2.2 节。
+
+```bash
+docker buildx build \
+  --platform linux/arm64 \
+  --file "Dockerfile" \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64 \
+  --load \
+  --progress=plain \
+  "."
+```
+
+命令显式指定基础镜像，避免选错架构。省略 `BASE_IMAGE` 时，Dockerfile 依据 BuildKit 的 `TARGETARCH`
+选择对应架构标签，不引用公共多架构标签。[Docker 参数说明](https://docs.docker.com/reference/dockerfile/#automatic-platform-args-in-the-global-scope)
+
+## 4. 验收与启动（由使用者执行）
+
+### 4.1 离线检查
+
+不调用 Docker、不访问网络：
+
+```bash
+python3 -m unittest discover -s "tests" -v
+```
+
+### 4.2 AMD64 镜像验收
+
+```bash
+bash "docker/test-images.sh" \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64 \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64 \
+  amd64
+```
+
+### 4.3 ARM64 镜像验收
+
+```bash
+bash "docker/test-images.sh" \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64 \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64 \
+  arm64
+```
+
+脚本检查架构、工具启动、Python 依赖隔离和 HTTP 健康状态，禁用容器网络并清理自己创建的测试容器。
+健康接口列出的可选工具不要求全部安装；验收不执行外部扫描。
+
+### 4.4 手动启动 AMD64 应用
+
+```bash
+docker run --detach \
+  --name pentest-tools-amd64 \
+  --platform linux/amd64 \
+  --publish 127.0.0.1:8888:8888 \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64
+curl --fail --silent --show-error http://127.0.0.1:8888/health
+docker inspect --format '{{.State.Health.Status}}' pentest-tools-amd64
+docker logs pentest-tools-amd64
+```
+
+### 4.5 手动启动 ARM64 应用
+
+```bash
+docker run --detach \
+  --name pentest-tools-arm64 \
+  --platform linux/arm64 \
+  --publish 127.0.0.1:8888:8888 \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64
+curl --fail --silent --show-error http://127.0.0.1:8888/health
+docker inspect --format '{{.State.Health.Status}}' pentest-tools-arm64
+docker logs pentest-tools-arm64
+```
+
+两条启动命令使用同一个宿主机端口，不要同时运行。等待健康状态变为 `healthy` 后再验收。
+停止时使用对应容器名执行 `docker stop`，再执行 `docker rm`。
+确需原始套接字或网络管理时才添加 `--cap-add NET_RAW --cap-add NET_ADMIN`，不要直接使用 `--privileged`。
+
+### 4.6 缓存回归
+
+AMD64：
+
+```bash
+python3 "tests/verify_docker_cache.py" \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64 amd64
+```
+
+ARM64：
+
+```bash
+python3 "tests/verify_docker_cache.py" \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64 arm64
+```
+
+该脚本会实际构建临时应用镜像：只改代码时复用依赖层，只改依赖时重新安装项目依赖，基础镜像保持不变。
+同时验证 Volatility3 不受影响；源码不变，临时标签在结束时清理。
+
+## 5. 发布独立镜像
+
+对应架构完成构建与验收后再推送，不合并镜像。若版本已发布，应先换用新版本。
+
+### 5.1 AMD64
+
+```bash
+docker push harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64
+docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64
+```
+
+### 5.2 ARM64
+
+```bash
+docker push harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64
+docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64
+```
+
+正式应用发布时，先推送并记录**同架构基础镜像**的真实摘要，将第 3 节 `BASE_IMAGE` 的值替换为
+`harbor.everoffice.cn/harbor-cucc/pentest-tools-base@sha256:<该架构的真实摘要>`，再重建、验收并推送应用。
+占位内容不能原样执行；不要把 ARM64 基础摘要用于 AMD64 构建。
+部署时记录应用摘要和基础摘要；回滚直接部署上一版应用，不覆盖旧基础镜像。
+
+## 6. Dockerfile 与脚本如何维护
+
+### 6.1 唯一配置入口
+
+`Dockerfile.base` 顶部配置区集中定义所有可覆盖的构建参数默认值：上游镜像、Kali 源、编译器和工具版本。
+顶部以下只允许无默认值的 `ARG`，用于把配置导入当前阶段；子阶段继承父阶段已导入的参数。
+这是 Docker 的作用域要求，不是重复维护版本。[ARG 与 FROM 的作用域](https://docs.docker.com/reference/dockerfile/#understand-how-arg-and-from-interact)
+
+脚本不再另设版本默认值，只使用传入参数。软件包名、目录、包装命令和架构选择属于安装实现，保留在脚本中。
+Go 安装器的 `OUTPUT_DIR` 只供离线测试隔离产物；镜像构建固定使用默认 `/out`。
+
+### 6.2 统一执行方式
+
+之前仅抽出了较长的 Kali 安装过程，较短的 Rust、Nikto、Python 安装仍内联在 Dockerfile，导致组织方式混杂。
+现在基础镜像的每个 `RUN` 都只挂载并执行职责明确的脚本；Dockerfile 负责参数、阶段、缓存与文件复制。
+脚本通过只读构建挂载使用，不复制到最终镜像中。不同工具类别仍保留独立安装层，不合并为一个大脚本。
+
+| 阶段 | 安装与校验入口 | 产物 |
 | --- | --- | --- |
-| AMD64 | `pentest-tools-base:1.0.0-amd64` | `pentest-tools:1.0.0-amd64` |
-| ARM64 | `pentest-tools-base:1.0.0-arm64` | `pentest-tools:1.0.0-arm64` |
-| 多架构入口 | `pentest-tools-base:1.0.0` | `pentest-tools:1.0.0` |
+| Go | `docker/install-go-tool.sh` | Gau、Waybackurls、Anew 目标架构二进制 |
+| Rust | `docker/install-rust-toolchain.sh`、`docker/install-x8.sh` | X8 二进制 |
+| Nikto | `docker/install-nikto-source.sh` | 固定标签源码 |
+| Kali | `docker/install-system.sh`、四类工具安装脚本 | 系统运行库和 APT 工具 |
+| 工具组装 | `docker/prepare-tool-data.sh` | 版本清单和小型字典 |
+| Python | `docker/install-python-runtime.sh` | Python 安装工具和独立 Volatility3 环境 |
+| 最终镜像 | `docker/finalize-base.sh`、`docker/verify-base.sh` | 动态库接入、vol 包装命令和最终校验 |
 
-仓库前缀统一为 `harbor.everoffice.cn/harbor-cucc/`。
-基础镜像和应用版本独立管理，首版均为 `1.0.0`；发布标签不可覆盖，不发布可变的 `latest`。
-修改构建定义不会自动重命名已存在的本地或仓库镜像；新名称需要按本文构建并完成验收后发布。
+### 6.3 工具清单与环境边界
 
-### 基础镜像工具覆盖
+48 个 APT 工具包均按固定版本实际安装，最终再次核对包版本和命令；不存在只声明 `ARG` 却未安装的工具。
 
-`Dockerfile.base` 中的 48 个 APT 工具包均有实际固定版本安装步骤，不只是 `ARG` 声明：
-
-| 安装脚本 | 工具包数量 | 范围 |
+| 脚本 | 包数量 | 工具 |
 | --- | --- | --- |
 | `docker/install-network.sh` | 13 | Nmap、Masscan、Rustscan、Amass、Subfinder、Nuclei、Fierce、Dnsenum、AutoRecon、theHarvester、Responder、NetExec、Enum4linux-ng |
 | `docker/install-web.sh` | 16 | Gobuster、Feroxbuster、Dirsearch、FFUF、Dirb、HTTPX Toolkit、Katana、Hakrawler、SQLMap、Arjun、ParamSpider、Dalfox、Wafw00f、Qsreplace、Uro、Wfuzz |
 | `docker/install-password.sh` | 9 | Hydra、John、Hashcat、Medusa、Patator、CrackMapExec、Evil-WinRM、Hash-Identifier、Ophcrack CLI |
 | `docker/install-binary.sh` | 10 | GDB、Radare2、Binwalk、Ghidra、Checksec、Binutils、XXD、Foremost、Steghide、ExifTool |
 
-Masscan、Dirb、Ophcrack CLI、Foremost 按目标架构选择对应版本；其余使用共同锁定版本。
-ExifTool 的包名为 `libimage-exiftool-perl`；NetExec 命令为 `nxc`；HTTPX Toolkit 提供 `httpx`；Binutils 提供 `strings` 和 `objdump`。
-构建末尾 `docker/verify-base.sh` 逐项核对 48 个包版本并检查工具命令，任何缺失或版本不符都会失败。
-此外还包含 Gau、Waybackurls、Anew、X8、Nikto、WPScan、Volatility3。
-工具安装不代表附属大型数据已内置：Nuclei 模板、SecLists、彩虹表和 Volatility 符号表仍需挂载或运行时准备。
+Masscan、Dirb、Ophcrack CLI、Foremost 按架构选择固定版本。
+ExifTool 包名为 `libimage-exiftool-perl`，NetExec 命令为 `nxc`，HTTPX Toolkit 提供 `httpx`，Binutils 提供 `strings`、`objdump`。
+另外安装 Gau、Waybackurls、Anew、X8、Nikto、WPScan、Volatility3；清单路径保持 `/opt/hexstrike/tool-versions.lock`。
 
-## 2. 构建准备
+Kali 系统 Python 保持不变；另提供 Python 3.11。Volatility3 使用 `/opt/volatility3-venv`，应用使用 `/opt/hexstrike-venv`。
+项目依赖仍排除 `pwntools`、`angr`、`bcrypt`。应用 venv 优先的 PATH 保持不变，只有同名 `httpx` 命令链接到安全工具。
+应用 Python 的 `httpx` 库导入不受影响；基础镜像固定版本 pip 通过 `--python` 管理应用环境。
 
-在项目根目录执行：
+## 7. 缓存与重建限制
 
-```bash
-docker version
-docker buildx version
-docker buildx ls
-python3 -m unittest discover -s tests -v
-```
+APT 索引、下载和 SecLists 缓存按架构隔离。最小 Kali 的 HTTPS 由官方 Python 镜像 CA 引导，显式配置 APT 信任路径；
+保留 TLS 和签名校验，索引失败立即中止，移除下载后清理钩子以复用包缓存。
 
-本地两步构建使用 Docker Desktop 的 `docker` 驱动。
-`docker-container` 等独立构建器不能假定能读取宿主机镜像存储，必须先将验证通过的基础镜像发布到仓库。
-非本机架构执行安装或运行检查需要 QEMU；Docker Desktop 通常自带。
-首次基础镜像构建会安装完整工具链，占用较多时间、磁盘和网络资源。
+可选远程缓存使用以下四个独立引用，不与发布标签混用：
 
-## 3. 本地两步构建
+| 用途 | 完整缓存引用 |
+| --- | --- |
+| AMD64 基础 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:buildcache-amd64` |
+| ARM64 基础 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:buildcache-arm64` |
+| AMD64 应用 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:buildcache-amd64` |
+| ARM64 应用 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:buildcache-arm64` |
 
-先验证 ARM64；验证 AMD64 时仅将 `ARCH` 改为 `amd64`，重复本节和第 4 节。
+仅在构建器支持 registry 缓存时，才向对应构建命令添加 `--cache-from` / `--cache-to` 并使用表中完整引用。
+缓存标签允许更新；普通本地两步构建不依赖远程缓存。
 
-```bash
-ARCH=arm64
-REGISTRY=harbor.everoffice.cn/harbor-cucc
-BASE_VERSION=1.0.0
-APP_VERSION=1.0.0
-BASE_IMAGE="${REGISTRY}/pentest-tools-base:${BASE_VERSION}-${ARCH}"
-APP_IMAGE="${REGISTRY}/pentest-tools:${APP_VERSION}-${ARCH}"
-```
-
-### 3.1 基础镜像
-
-```bash
-docker buildx build \
-  --platform "linux/${ARCH}" \
-  --file Dockerfile.base \
-  --tag "${BASE_IMAGE}" \
-  --load --progress=plain .
-```
-
-保留精确工具版本；版本不可用时构建失败，不自动升级或跳过。
-默认 Kali 源为阿里云；可显式换为官方镜像分发地址：
-
-```bash
-docker buildx build \
-  --platform "linux/${ARCH}" \
-  --file Dockerfile.base \
-  --build-arg KALI_APT_MIRROR=http://http.kali.org/kali \
-  --tag "${BASE_IMAGE}" \
-  --load --progress=plain .
-```
-
-该覆盖仍要求 Kali 官方签名验证。HTTPS 引导使用官方 Python 镜像的 CA 信任链，然后由 Kali 的证书包接管；不关闭证书校验。
-最小 Kali 尚未建立 OpenSSL 默认信任路径，因此显式设置 APT 的 CA 文件路径。下载缓存由 BuildKit 管理，移除镜像自带的下载后清理钩子，以便重试复用软件包。
-APT 索引更新失败立即中止，不使用不完整索引继续安装。
-
-### 3.2 应用镜像
-
-```bash
-docker buildx build \
-  --platform "linux/${ARCH}" \
-  --build-arg BASE_IMAGE="${BASE_IMAGE}" \
-  --tag "${APP_IMAGE}" \
-  --load --progress=plain .
-```
-
-未覆盖时，`BASE_IMAGE` 默认指向：
-`harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0`。
-首次本地构建必须按上例传入已经加载的单架构基础镜像，不依赖多架构入口已经发布。
-
-## 4. 运行验收
-
-可以直接执行自动验收脚本（检查镜像架构、环境隔离和 HTTP 健康状态，退出时清理自己的测试容器）：
-
-```bash
-bash docker/test-images.sh "${BASE_IMAGE}" "${APP_IMAGE}" "${ARCH}"
-```
-
-以下分项命令用于人工排查。
-
-### 4.1 基础镜像
-
-```bash
-docker run --rm --platform "linux/${ARCH}" "${BASE_IMAGE}" \
-  /bin/bash -ec 'python3.11 --version; nmap --version; x8 --version; vol -h; cat /opt/hexstrike/tool-versions.lock'
-```
-
-构建末尾已经检查全部承诺工具命令、Go/Rust 二进制架构、Python 动态库、Volatility3 版本和依赖。
-默认运行基础镜像进入 Bash，不提供 HTTP 端口或健康检查。
-
-### 4.2 应用依赖与工具隔离
-
-```bash
-docker run --rm --platform "linux/${ARCH}" "${APP_IMAGE}" \
-  /bin/bash -ec '/usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python check; /opt/volatility3-venv/bin/python -m pip check; vol -h; command -v httpx'
-```
-
-Volatility3 环境位于 `/opt/volatility3-venv`；项目环境位于 `/opt/hexstrike-venv`。
-应用依赖仍排除 `pwntools`、`angr`、`bcrypt`，与拆分前一致。
-基础镜像的固定版本 pip 通过 `--python` 管理应用环境；应用环境不要求独立安装 pip。
-应用虚拟环境仍位于 `PATH` 首位，保留项目生成脚本通过 `python3` 使用项目依赖的行为。
-安装依赖后，将应用环境的同名 `httpx` 命令链接到基础镜像安全工具；Python 的 `httpx` 库导入不受影响。
-服务启动和健康检查显式使用 `/opt/hexstrike-venv/bin/python`，工具 Volatility3 则始终使用自己的解释器。
-
-### 4.3 启动与健康检查
-
-```bash
-docker run --detach \
-  --name pentest-tools \
-  --platform "linux/${ARCH}" \
-  --publish 127.0.0.1:8888:8888 \
-  "${APP_IMAGE}"
-
-curl --fail --silent --show-error http://127.0.0.1:8888/health
-docker inspect --format '{{.State.Health.Status}}' pentest-tools
-docker logs pentest-tools
-```
-
-等待容器健康状态为 `healthy`。健康接口包含未纳入镜像的可选工具，不要求全部标记可用。
-验收仅验证本机启动，不执行外部扫描。确需原始套接字或网络管理时才添加
-`--cap-add NET_RAW --cap-add NET_ADMIN`，不使用 `--privileged`。
-测试结束后停止并移除本次创建的容器：
-
-```bash
-docker stop pentest-tools
-docker rm pentest-tools
-```
-
-### 4.4 缓存验证
-
-自动验证使用临时工作副本与唯一镜像标签，不修改源码；结束后清理临时标签：
-
-```bash
-python3 tests/verify_docker_cache.py "${BASE_IMAGE}" "${ARCH}"
-```
-
-在临时工作副本验证，不修改待发布源码：
-1. 基于同一基础镜像构建应用，保存 `--progress=plain` 输出。
-2. 仅在服务代码追加注释再构建：依赖安装步骤应为 `CACHED`，代码复制与检查重新执行。
-3. 仅在依赖文件追加注释再构建：依赖安装步骤重新执行；基础镜像摘要不变，不执行工具安装。
-4. 对两次产物执行依赖检查与 `vol -h`，证明应用依赖安装不影响工具环境。
-
-## 5. 发布与摘要固定
-
-只有两个架构完成实际构建和运行验收后才执行发布；以下命令不会由本次开发自动执行。
-若 `1.0.0` 已发布，先改为新版本，禁止覆盖。
-
-### 5.1 发布基础镜像
-
-```bash
-docker push "${REGISTRY}/pentest-tools-base:${BASE_VERSION}-amd64"
-docker push "${REGISTRY}/pentest-tools-base:${BASE_VERSION}-arm64"
-docker buildx imagetools create \
-  --tag "${REGISTRY}/pentest-tools-base:${BASE_VERSION}" \
-  "${REGISTRY}/pentest-tools-base:${BASE_VERSION}-amd64" \
-  "${REGISTRY}/pentest-tools-base:${BASE_VERSION}-arm64"
-docker buildx imagetools inspect "${REGISTRY}/pentest-tools-base:${BASE_VERSION}"
-```
-
-检查输出包含 `linux/amd64`、`linux/arm64`，记录多架构索引的 `Digest`。
-
-### 5.2 固定摘要重建并验收应用
-
-将上一步的真实索引摘要设置到 `BASE_DIGEST`，不可使用占位值：
-
-```bash
-: "${BASE_DIGEST:?请设置已验收基础镜像的 sha256 摘要}"
-docker buildx build \
-  --platform "linux/${ARCH}" \
-  --build-arg BASE_IMAGE="${REGISTRY}/pentest-tools-base@${BASE_DIGEST}" \
-  --tag "${APP_IMAGE}" \
-  --load --progress=plain .
-```
-
-两个架构分别重建并重复第 4 节，再发布应用：
-
-```bash
-docker push "${REGISTRY}/pentest-tools:${APP_VERSION}-amd64"
-docker push "${REGISTRY}/pentest-tools:${APP_VERSION}-arm64"
-docker buildx imagetools create \
-  --tag "${REGISTRY}/pentest-tools:${APP_VERSION}" \
-  "${REGISTRY}/pentest-tools:${APP_VERSION}-amd64" \
-  "${REGISTRY}/pentest-tools:${APP_VERSION}-arm64"
-docker buildx imagetools inspect "${REGISTRY}/pentest-tools:${APP_VERSION}"
-```
-
-最终可以通过 `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0` 启动应用。
-正式部署保留应用摘要和基础镜像摘要，回滚直接部署上一版应用镜像。
-
-## 6. 构建缓存与限制
-
-APT 缓存挂载按架构区分。基础镜像和应用镜像的远程缓存也必须分开：
-- 基础镜像：`pentest-tools-base:buildcache-${ARCH}`。
-- 应用镜像：`pentest-tools:buildcache-${ARCH}`。
-
-支持 registry 缓存的构建器可添加：
-
-```bash
---cache-from "type=registry,ref=${CACHE_IMAGE}" \
---cache-to "type=registry,ref=${CACHE_IMAGE},mode=max"
-```
-
-`CACHE_IMAGE` 必须包含完整仓库前缀，并按构建类型和架构选择上述缓存标签。缓存标签可以更新，发布标签不能覆盖。
-不支持远程缓存时去掉这两个参数即可；应用继承基础镜像不依赖远程构建缓存。
-
-工具版本锁定不等于所有传递依赖均可重复解析。Kali 滚动仓库可能移除旧版本，项目 Python 依赖也仍采用既有版本范围。
-X8 4.3.0 锁定的 time 0.3.21 与 Rust 1.80 及以上不兼容，其独立构建阶段固定使用 Rust 1.79；不更新 X8 或 Cargo 锁文件，编译器不进入基础镜像。
-基础镜像已发布后，日常应用构建不再依赖 Kali、Go 或 Rust 安装源，但项目依赖安装仍需要 Python 包源。
-不把 Nuclei 模板、彩虹表、大型字典、Volatility 符号表固化到镜像，继续通过卷或运行时更新提供。
-AutoRecon 的包依赖可能在构建时下载 SecLists；其安装目录挂载为独立构建缓存，不写入镜像层。需要这套字典时，将已有数据只读挂载到容器的 `/usr/share/seclists`。包版本元数据保留，但不能将它视为字典数据已经可用。
+Kali 滚动仓库可能移除历史包，传递依赖和项目 Python 依赖也并非全部固定，锁定工具版本不代表任意时间都能重建。
+X8 4.3.0 锁定的 time 0.3.21 需要 Rust 1.79.0；不升级 X8 或锁文件，编译器不进入最终镜像。
+大型字典、Nuclei 模板、彩虹表和 Volatility 符号表不内置，通过挂载或运行时准备。
+AutoRecon 依赖安装的 SecLists 数据只写入构建缓存；需要时挂载到 `/usr/share/seclists`，包元数据不代表数据已经可用。

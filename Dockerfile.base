@@ -1,111 +1,38 @@
 # syntax=docker/dockerfile:1.7
 
-# 独立工具基础镜像，构建说明见 DOCKER_BUILD.md。
-# BuildKit 自动提供平台参数，不在首个 FROM 前重声明。
+# =============================================================================
+# 1. 配置区：镜像、包源和版本的唯一默认值来源
+# =============================================================================
+# 修改版本只改本区。各阶段的无值 ARG 仅导入配置，不是第二份默认值。
+# BUILDPLATFORM/TARGETARCH 由 BuildKit 提供，不在全局重新声明以免覆盖为空。
 ARG KALI_BASE_IMAGE=kalilinux/kali-rolling:latest
+ARG GO_BUILD_IMAGE=golang:1.25-bookworm
+ARG RUST_BUILD_IMAGE=rust:1.85-bookworm
+ARG NIKTO_BUILD_IMAGE=debian:bookworm-slim
+ARG PYTHON_RUNTIME_IMAGE=python:3.11-slim-bookworm
+
+# 可通过 --build-arg 覆盖；始终保留 TLS 和 Kali 官方签名验证。
+ARG KALI_APT_MIRROR=https://mirrors.aliyun.com/kali
+ARG KALI_APT_SUITE=kali-rolling
+
+# 非 APT 工具。Rust 1.79.0 用于兼容 X8 锁定的 time 0.3.21，不升级工具依赖。
 ARG GAU_VERSION=v2.2.4
 ARG WAYBACKURLS_VERSION=v0.1.0
 ARG ANEW_VERSION=v0.1.1
 ARG X8_VERSION=4.3.0
+ARG RUST_TOOLCHAIN=1.79.0
 ARG NIKTO_VERSION=2.6.1
-
-FROM --platform=${BUILDPLATFORM} golang:1.25-bookworm AS go-tools
-
-ARG TARGETOS
-ARG TARGETARCH
-
-ENV CGO_ENABLED=0
-
-# 在构建机架构上运行 Go 编译器，但输出目标镜像架构的静态二进制。
-ENV GOOS=${TARGETOS} \
-    GOARCH=${TARGETARCH}
-
-# 工具: Gau
-# 分类: Web Application Security / URL 发现
-# 描述: 从 Wayback、Common Crawl、OTX、URLScan 等来源收集历史 URL。
-# 安装: 使用官方 Go 模块固定到 v2.2.4。
-ARG GAU_VERSION
-RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
-    --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh github.com/lc/gau/v2/cmd/gau "${GAU_VERSION}" gau
-
-# 工具: Waybackurls
-# 分类: Web Application Security / URL 发现
-# 描述: 从 Internet Archive Wayback Machine 收集目标域名的历史 URL。
-# 安装: 使用官方 Go 模块固定到 v0.1.0。
-ARG WAYBACKURLS_VERSION
-RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
-    --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh github.com/tomnomnom/waybackurls "${WAYBACKURLS_VERSION}" waybackurls
-
-# 工具: Anew
-# 分类: Web Application Security / 数据处理
-# 描述: 只输出并追加尚未存在的文本行，便于扫描管道去重。
-# 安装: 使用官方 Go 模块固定到 v0.1.1。
-ARG ANEW_VERSION
-RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
-    --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh github.com/tomnomnom/anew "${ANEW_VERSION}" anew
-
-
-# =============================================================================
-# 非 Kali 工具构建阶段：Rust 工具
-# =============================================================================
-# X8 4.3.0 的锁文件包含 time 0.3.21，与 Rust >=1.80 不兼容。
-# 固定兼容编译器，不更新工具或锁定依赖；编译器不进入最终镜像。
-FROM rust:1.85-bookworm AS rust-tools
-
-# 复用现有构建镜像，只增加明确版本的兼容工具链。
-RUN rustup toolchain install 1.79.0 --profile minimal
-
-# 工具: X8
-# 分类: Web Application Security / 参数发现
-# 描述: 根据响应差异发现隐藏的 HTTP 参数。
-# 安装: 使用 crates.io 的 x8 4.3.0，并使用锁定依赖。
-ARG X8_VERSION
-RUN cargo +1.79.0 install x8 --version ${X8_VERSION} --locked --root /out
-
-
-# =============================================================================
-# 非 Kali 工具构建阶段：Nikto 源码
-# =============================================================================
-FROM --platform=${BUILDPLATFORM} debian:bookworm-slim AS nikto-source
-
-# 工具: Nikto
-# 分类: Web Application Security / Web 服务器检查
-# 描述: 检查 Web 服务器危险文件、错误配置和已知风险。
-# 安装: 保留原有源码安装方式，固定克隆官方 2.6.1 标签。
-ARG NIKTO_VERSION
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates git && \
-    git clone --depth 1 --branch ${NIKTO_VERSION} \
-      https://github.com/sullo/nikto.git /opt/nikto && \
-    rm -rf /opt/nikto/.git /var/lib/apt/lists/*
-
-
-# =============================================================================
-# Kali 工具层：先安装全部外部工具，暂不复制 HexStrike 项目代码
-# =============================================================================
-FROM python:3.11-slim-bookworm AS python-source
-
-FROM ${KALI_BASE_IMAGE} AS security-packages
-
-ARG TARGETARCH
 ARG WPSCAN_VERSION=4.0.0
+ARG VOLATILITY3_VERSION=2.28.2
 
-# Kali APT 镜像源
-# 默认使用阿里云中国区镜像；可在构建时覆盖为官方负载均衡地址：
-#   --build-arg KALI_APT_MIRROR=http://http.kali.org/kali
-# 仍使用 Kali 官方 keyring 校验 Release/InRelease 签名。
-ARG KALI_APT_MIRROR=https://mirrors.aliyun.com/kali
-ARG KALI_APT_SUITE=kali-rolling
+# 独立 Python 3.11 运行时的安装工具，不替换 Kali 系统 Python。
+ARG PIP_VERSION=25.3
+ARG SETUPTOOLS_VERSION=80.9.0
+ARG WHEEL_VERSION=0.45.1
 
-# Kali 安全工具包版本锁（核对日期：2026-10-14）。
-# 规则：APT 始终使用 package=${VERSION}；镜像站未同步或移除该版本时直接失败，
-# 绝不退回到“安装当前最新版”。仅存在 Debian 架构重编译后缀差异的包分架构锁定。
+# Kali 包版本锁（核对日期：2026-10-14）。缺包或版本不符立即失败，不回退最新版。
+# 只有 Masscan、Dirb、Ophcrack CLI、Foremost 存在架构重编译后缀差异。
+# 网络探测与信息收集（13 个包）
 ARG NMAP_VERSION=7.991+dfsg-1kali1
 ARG MASSCAN_VERSION_AMD64=2:1.3.2+ds1-2
 ARG MASSCAN_VERSION_ARM64=2:1.3.2+ds1-2+b1
@@ -120,6 +47,8 @@ ARG THEHARVESTER_VERSION=4.11.1-0kali2
 ARG RESPONDER_VERSION=3.2.2.0-0kali2
 ARG NETEXEC_VERSION=1.5.1-0kali2
 ARG ENUM4LINUX_NG_VERSION=1.3.10-0kali1
+
+# Web 检测与参数发现（16 个 APT 包）
 ARG GOBUSTER_VERSION=3.8.2-1
 ARG FEROXBUSTER_VERSION=2.13.1-0kali3
 ARG DIRSEARCH_VERSION=0.4.3-1
@@ -137,6 +66,8 @@ ARG WAFW00F_VERSION=2.4.2-1
 ARG QSREPLACE_VERSION=0.0.3-0kali1
 ARG URO_VERSION=1.0.2-0kali1
 ARG WFUZZ_VERSION=3.1.1-1
+
+# 口令与身份认证（9 个包）
 ARG HYDRA_VERSION=9.7-2
 ARG JOHN_VERSION=1.9.0-Jumbo-1+git20211102-0kali11
 ARG HASHCAT_VERSION=7.1.2+ds1-4
@@ -147,6 +78,8 @@ ARG EVIL_WINRM_VERSION=4.1-0kali1
 ARG HASH_IDENTIFIER_VERSION=1.2+git20180314-0kali3
 ARG OPHCRACK_CLI_VERSION_AMD64=3.8.0-4
 ARG OPHCRACK_CLI_VERSION_ARM64=3.8.0-4+b1
+
+# 二进制分析与取证（10 个包）
 ARG GDB_VERSION=17.2-1+b1
 ARG RADARE2_VERSION=6.0.4+dfsg-1
 ARG BINWALK_VERSION=2.4.3+dfsg1-3
@@ -158,6 +91,115 @@ ARG FOREMOST_VERSION_AMD64=1.5.7-12+b1
 ARG FOREMOST_VERSION_ARM64=1.5.7-12
 ARG STEGHIDE_VERSION=0.5.1+git20240220-2
 ARG EXIFTOOL_VERSION=13.55+dfsg-1
+
+# =============================================================================
+# 2. Go 工具：构建机运行编译器，产物面向目标架构
+# =============================================================================
+FROM --platform=${BUILDPLATFORM} ${GO_BUILD_IMAGE} AS go-tools
+ARG TARGETOS
+ARG TARGETARCH
+ARG GAU_VERSION
+ARG WAYBACKURLS_VERSION
+ARG ANEW_VERSION
+ENV CGO_ENABLED=0 \
+    GOOS=${TARGETOS} \
+    GOARCH=${TARGETARCH}
+
+# 每个工具单独一层；脚本负责处理 Go 本机/交叉编译输出目录。
+RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    bash /tmp/install-go-tool.sh github.com/lc/gau/v2/cmd/gau "${GAU_VERSION}" gau
+RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    bash /tmp/install-go-tool.sh github.com/tomnomnom/waybackurls "${WAYBACKURLS_VERSION}" waybackurls
+RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    bash /tmp/install-go-tool.sh github.com/tomnomnom/anew "${ANEW_VERSION}" anew
+
+# =============================================================================
+# 3. Rust 工具：目标架构编译 X8，编译器不进入最终镜像
+# =============================================================================
+FROM ${RUST_BUILD_IMAGE} AS rust-tools
+ARG RUST_TOOLCHAIN
+ARG X8_VERSION
+RUN --mount=type=bind,source=docker/install-rust-toolchain.sh,target=/tmp/install-rust-toolchain.sh \
+    bash /tmp/install-rust-toolchain.sh
+RUN --mount=type=bind,source=docker/install-x8.sh,target=/tmp/install-x8.sh \
+    bash /tmp/install-x8.sh
+
+# =============================================================================
+# 4. Nikto：只获取固定标签的源码，不保留 Git 元数据
+# =============================================================================
+FROM --platform=${BUILDPLATFORM} ${NIKTO_BUILD_IMAGE} AS nikto-source
+ARG NIKTO_VERSION
+RUN --mount=type=bind,source=docker/install-nikto-source.sh,target=/tmp/install-nikto-source.sh \
+    bash /tmp/install-nikto-source.sh
+
+# =============================================================================
+# 5. Kali 工具：按类别安装，保留独立缓存层
+# =============================================================================
+FROM ${PYTHON_RUNTIME_IMAGE} AS python-source
+FROM ${KALI_BASE_IMAGE} AS security-packages
+# 导入顶部配置，供安装脚本和后续继承阶段读取。
+ARG TARGETARCH
+ARG KALI_APT_MIRROR
+ARG KALI_APT_SUITE
+ARG WPSCAN_VERSION
+ARG NMAP_VERSION
+ARG MASSCAN_VERSION_AMD64
+ARG MASSCAN_VERSION_ARM64
+ARG RUSTSCAN_VERSION
+ARG AMASS_VERSION
+ARG SUBFINDER_VERSION
+ARG NUCLEI_VERSION
+ARG FIERCE_VERSION
+ARG DNSENUM_VERSION
+ARG AUTORECON_VERSION
+ARG THEHARVESTER_VERSION
+ARG RESPONDER_VERSION
+ARG NETEXEC_VERSION
+ARG ENUM4LINUX_NG_VERSION
+ARG GOBUSTER_VERSION
+ARG FEROXBUSTER_VERSION
+ARG DIRSEARCH_VERSION
+ARG FFUF_VERSION
+ARG DIRB_VERSION_AMD64
+ARG DIRB_VERSION_ARM64
+ARG HTTPX_TOOLKIT_VERSION
+ARG KATANA_VERSION
+ARG HAKRAWLER_VERSION
+ARG SQLMAP_VERSION
+ARG ARJUN_VERSION
+ARG PARAMSPIDER_VERSION
+ARG DALFOX_VERSION
+ARG WAFW00F_VERSION
+ARG QSREPLACE_VERSION
+ARG URO_VERSION
+ARG WFUZZ_VERSION
+ARG HYDRA_VERSION
+ARG JOHN_VERSION
+ARG HASHCAT_VERSION
+ARG MEDUSA_VERSION
+ARG PATATOR_VERSION
+ARG CRACKMAPEXEC_VERSION
+ARG EVIL_WINRM_VERSION
+ARG HASH_IDENTIFIER_VERSION
+ARG OPHCRACK_CLI_VERSION_AMD64
+ARG OPHCRACK_CLI_VERSION_ARM64
+ARG GDB_VERSION
+ARG RADARE2_VERSION
+ARG BINWALK_VERSION
+ARG GHIDRA_VERSION
+ARG CHECKSEC_VERSION
+ARG BINUTILS_VERSION
+ARG XXD_VERSION
+ARG FOREMOST_VERSION_AMD64
+ARG FOREMOST_VERSION_ARM64
+ARG STEGHIDE_VERSION
+ARG EXIFTOOL_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -198,57 +240,47 @@ RUN --mount=type=bind,source=docker/install-binary.sh,target=/tmp/install-binary
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
     bash /tmp/install-binary.sh
 
+# =============================================================================
+# 6. 工具组装：仅复制编译产物，生成清单并准备小型字典
+# =============================================================================
 FROM security-packages AS security-tools
-COPY --from=go-tools /out/ /usr/local/bin/
-COPY --from=rust-tools /out/bin/x8 /usr/local/bin/x8
-
 ARG GAU_VERSION
 ARG WAYBACKURLS_VERSION
 ARG ANEW_VERSION
 ARG X8_VERSION
 ARG NIKTO_VERSION
+COPY --from=go-tools /out/ /usr/local/bin/
+COPY --from=rust-tools /out/bin/x8 /usr/local/bin/x8
 RUN --mount=type=bind,source=docker/prepare-tool-data.sh,target=/tmp/prepare-tool-data.sh \
     bash /tmp/prepare-tool-data.sh
 
+# =============================================================================
+# 7. Python 运行时：固定安装工具，Volatility3 使用独立虚拟环境
+# =============================================================================
 FROM python-source AS python-runtime
-
-ARG PIP_VERSION=25.3
-ARG SETUPTOOLS_VERSION=80.9.0
-ARG WHEEL_VERSION=0.45.1
-
+ARG PIP_VERSION
+ARG SETUPTOOLS_VERSION
+ARG WHEEL_VERSION
+ARG VOLATILITY3_VERSION
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
+RUN --mount=type=bind,source=docker/install-python-runtime.sh,target=/tmp/install-python-runtime.sh \
+    bash /tmp/install-python-runtime.sh
 
-RUN python3 -m venv /opt/volatility3-venv && \
-    /opt/volatility3-venv/bin/python -m pip install \
-      "pip==${PIP_VERSION}" \
-      "setuptools==${SETUPTOOLS_VERSION}" \
-      "wheel==${WHEEL_VERSION}"
-
-# 工具: Volatility3
-# 分类: Binary Analysis & Reverse Engineering / 内存取证
-# 描述: 从 Windows、Linux 等内存镜像中提取进程、模块、网络和其他取证信息。
-# MCP 参数契约: 使用 2.28.2 的 vol -f IMAGE [-o DIR] PLUGIN 语法；
-#               不使用 Volatility2 的 profile 参数或 volatility 命令名。
-# 安装: Kali 主仓库没有 volatility3 包，使用 PyPI 固定安装 2.28.2；符号表不内置。
-ARG VOLATILITY3_VERSION=2.28.2
-RUN /opt/volatility3-venv/bin/python -m pip install \
-      "volatility3==${VOLATILITY3_VERSION}"
-
-# 固定安装工具版本，供应用创建独立环境时使用。
-RUN python3 -m pip install "pip==${PIP_VERSION}" "setuptools==${SETUPTOOLS_VERSION}" "wheel==${WHEEL_VERSION}"
-
+# =============================================================================
+# 8. 最终基础镜像：接入 Python、校验全部工具，默认进入 Bash
+# =============================================================================
 FROM security-tools AS base
 ARG TARGETARCH
-ARG VOLATILITY3_VERSION=2.28.2
+ARG VOLATILITY3_VERSION
 COPY --from=python-runtime /usr/local/ /usr/local/
 COPY --from=python-runtime /opt/volatility3-venv/ /opt/volatility3-venv/
-RUN ldconfig && \
-    printf '%s\n' '#!/bin/sh' 'exec /opt/volatility3-venv/bin/vol "$@"' \
-      > /usr/local/bin/vol && chmod 0755 /usr/local/bin/vol
+RUN --mount=type=bind,source=docker/finalize-base.sh,target=/tmp/finalize-base.sh \
+    bash /tmp/finalize-base.sh
 RUN --mount=type=bind,source=docker/verify-base.sh,target=/tmp/verify-base.sh \
     bash /tmp/verify-base.sh
 
+# 不安装项目依赖、不复制项目代码、不开放服务端口。
 WORKDIR /opt/hexstrike
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/bin/bash"]

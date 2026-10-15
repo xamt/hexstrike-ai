@@ -44,8 +44,3 @@ apt-get -o APT::Update::Error-Mode=any update && \
       libreadline8t64 libncursesw6 libgdbm6t64 libgdbm-compat4t64 \
       libexpat1 libuuid1 libnsl2 libtirpc3t64 zlib1g
 )
-
-
-# -----------------------------------------------------------------------------
-# Network & Reconnaissance
-# -----------------------------------------------------------------------------

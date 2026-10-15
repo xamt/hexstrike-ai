@@ -47,7 +47,7 @@ class DockerContractTests(unittest.TestCase):
 
     def test_application_layers_and_isolation(self):
         app = (ROOT / "Dockerfile").read_text()
-        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0", app)
+        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-${TARGETARCH}", app)
         self.assertIn("FROM ${BASE_IMAGE}", app)
         self.assertEqual(1, len(re.findall(r"^FROM ", app, re.M)))
         self.assertNotIn("apt-get", app)
@@ -58,16 +58,18 @@ class DockerContractTests(unittest.TestCase):
         base = (ROOT / "Dockerfile.base").read_text()
         self.assertIn("/opt/volatility3-venv", base)
         self.assertNotIn("/opt/hexstrike-venv", base)
-        self.assertIn("RUN ldconfig", base)
+        self.assertIn("ldconfig", (ROOT / "docker/finalize-base.sh").read_text())
 
     def test_image_repository_names_are_consistent(self):
         docs = (ROOT / "DOCKER_BUILD.md").read_text()
-        self.assertIn('APP_IMAGE="${REGISTRY}/pentest-tools:${APP_VERSION}-${ARCH}"', docs)
-        self.assertIn('BASE_IMAGE="${REGISTRY}/pentest-tools-base:${BASE_VERSION}-${ARCH}"', docs)
-        self.assertIn('"${REGISTRY}/pentest-tools:${APP_VERSION}"', docs)
-        self.assertIn('"${REGISTRY}/pentest-tools-base@${BASE_DIGEST}"', docs)
-        self.assertIn('pentest-tools-base:buildcache-${ARCH}', docs)
-        self.assertIn('pentest-tools:buildcache-${ARCH}', docs)
+        for arch in ("amd64", "arm64"):
+            self.assertIn(f'--platform linux/{arch}', docs)
+            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-{arch}', docs)
+            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-{arch}', docs)
+            self.assertIn(f'--build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-{arch}', docs)
+        self.assertNotIn("${", docs)
+        self.assertNotIn("imagetools", docs)
+        self.assertNotRegex(docs, r'pentest-tools(?:-base)?:1\.0\.0(?!-)')
         for path in (ROOT / "Dockerfile", ROOT / "DOCKER_BUILD.md",
                      ROOT / "tests/verify_docker_cache.py"):
             self.assertNotIn("penttest", path.read_text())
