@@ -127,6 +127,13 @@ COPY --from=rust-tools /out/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 RUN --mount=type=bind,source=docker/prepare-tool-data.sh,target=/tmp/prepare-tool-data.sh \
     bash /tmp/prepare-tool-data.sh
 
+# 补齐 TLS、Web 指纹、凭据泄漏及网络证据能力，原工具安装层保持不变。
+RUN --mount=type=bind,source=docker/install-security-extras.sh,target=/tmp/install-security-extras.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
+    bash /tmp/install-security-extras.sh
+
 # 数据库客户端独立安装层：版本与双架构摘要均在各安装脚本中维护。
 # 不配置或启动数据库服务；ClickHouse common-static 是客户端必需的公共二进制。
 RUN --mount=type=bind,source=docker/install-database-apt.sh,target=/tmp/install-database-apt.sh \
@@ -148,7 +155,7 @@ RUN --mount=type=bind,source=docker/install-database-mongodb.sh,target=/tmp/inst
     bash /tmp/install-database-mongodb.sh
 
 # =============================================================================
-# 7. Python 运行时：固定安装工具，Volatility3 使用独立虚拟环境
+# 7. Python 运行时：Volatility3 与 JWT-Tool 分别使用独立虚拟环境
 # =============================================================================
 FROM python-source AS python-runtime
 ARG PIP_INDEX_URL
@@ -157,6 +164,9 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
 RUN --mount=type=bind,source=docker/install-python-runtime.sh,target=/tmp/install-python-runtime.sh \
     --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     bash /tmp/install-python-runtime.sh
+RUN --mount=type=bind,source=docker/install-jwt-tool.sh,target=/tmp/install-jwt-tool.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    bash /tmp/install-jwt-tool.sh
 
 # =============================================================================
 # 8. 最终基础镜像：接入 Python、校验全部工具，默认进入 Bash
@@ -165,6 +175,8 @@ FROM security-tools AS base
 ARG TARGETARCH
 COPY --from=python-runtime /usr/local/ /usr/local/
 COPY --from=python-runtime /opt/volatility3-venv/ /opt/volatility3-venv/
+COPY --from=python-runtime /opt/jwt-tool-venv/ /opt/jwt-tool-venv/
+COPY --from=python-runtime /opt/jwt-tool/ /opt/jwt-tool/
 COPY --from=python-runtime /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 RUN --mount=type=bind,source=docker/finalize-base.sh,target=/tmp/finalize-base.sh \
     bash /tmp/finalize-base.sh

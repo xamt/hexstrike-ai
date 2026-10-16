@@ -59,10 +59,10 @@ class DockerLayoutTests(unittest.TestCase):
             architecture = command[command.index("--platform") + 1].split("/")[1]
             recipe = command[command.index("--file") + 1]
             tag = command[command.index("--tag") + 1]
-            self.assertTrue(tag.endswith(f":1.1.0-{architecture}"))
+            self.assertTrue(tag.endswith(f":1.2.0-{architecture}"))
             if recipe == "Dockerfile":
                 base = command[command.index("--build-arg") + 1]
-                self.assertTrue(base.endswith(f"pentest-tools-base:1.1.0-{architecture}"))
+                self.assertTrue(base.endswith(f"pentest-tools-base:1.2.0-{architecture}"))
             pairs.add((recipe, architecture))
         self.assertEqual({(recipe, arch) for recipe in ("Dockerfile", "Dockerfile.base")
                           for arch in ("amd64", "arm64")}, pairs)

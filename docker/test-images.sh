@@ -32,11 +32,19 @@ docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/b
     timeout 30 redis-cli --version
     timeout 30 psql --version
     timeout 30 mongosh --version
+    timeout 30 testssl --version
+    timeout 30 whatweb --version
+    timeout 30 trufflehog --version
+    timeout 30 tcpdump --version
+    timeout 30 jwt_tool -h >/dev/null
+    /opt/jwt-tool-venv/bin/python -m pip check
     test -s /opt/hexstrike/tool-versions.lock
 '
 docker run --rm --platform "linux/${arch}" --network none "${app_image}" /bin/bash -ec '
     /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python check
     /opt/volatility3-venv/bin/python -m pip check
+    /opt/jwt-tool-venv/bin/python -m pip check
+    timeout 30 jwt_tool -h >/dev/null
     test "$(command -v python3)" = /opt/hexstrike-venv/bin/python3
     python3 -c "import requests, httpx"
     test "$(readlink -f "$(command -v httpx)")" = /usr/bin/httpx-toolkit
@@ -65,7 +73,8 @@ import requests
 response = requests.get("http://127.0.0.1:8888/health", timeout=10)
 response.raise_for_status()
 tools = response.json()["tools_status"]
-required = ("nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat")
+required = ("nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat",
+            "testssl", "whatweb", "jwt_tool", "trufflehog", "tcpdump")
 assert all(tools.get(name) for name in required), tools
 '
         echo "镜像运行验证通过: ${arch}"

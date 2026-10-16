@@ -1,0 +1,21 @@
+{
+  "versions": {
+    "TESTSSL_VERSION": "3.2.4+dfsg-2",
+    "WHATWEB_VERSION": "0.6.4-1",
+    "TRUFFLEHOG_VERSION": "3.97.9-0kali1",
+    "TCPDUMP_VERSION": "4.99.6-2",
+    "JWT_TOOL_VERSION": "2.3.0",
+    "JWT_TERMCOLOR_VERSION": "3.3.0",
+    "JWT_CPRINT_VERSION": "1.2.2",
+    "JWT_PYCRYPTODOMEX_VERSION": "3.24.1",
+    "JWT_REQUESTS_VERSION": "2.34.2",
+    "JWT_RATELIMIT_VERSION": "2.2.1"
+  },
+  "aptPackages": {
+    "testssl.sh": "TESTSSL_VERSION",
+    "whatweb": "WHATWEB_VERSION",
+    "trufflehog": "TRUFFLEHOG_VERSION",
+    "tcpdump": "TCPDUMP_VERSION"
+  },
+  "commands": ["testssl", "whatweb", "jwt_tool", "trufflehog", "tcpdump"]
+}

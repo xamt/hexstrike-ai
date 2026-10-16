@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = json.loads((ROOT / "tests/fixtures/docker-tool-contract.json").read_text())
 DATABASE = json.loads((ROOT / "tests/fixtures/database-client-contract.json").read_text())
+SECURITY = json.loads((ROOT / "tests/fixtures/security-tool-contract.json").read_text())
 
 
 class DockerContractTests(unittest.TestCase):
@@ -27,12 +28,12 @@ class DockerContractTests(unittest.TestCase):
         entries = re.findall(r"^\s*(\w+_VERSION(?:_AMD64|_ARM64)?)=([^\s]+)$", scripts, re.M)
         versions = dict(entries)
         self.assertEqual(len(entries), len(versions), "每个版本只能有一个定义")
-        self.assertEqual(CONTRACT["versions"] | DATABASE["versions"], versions)
+        self.assertEqual(CONTRACT["versions"] | DATABASE["versions"] | SECURITY["versions"], versions)
 
     def test_command_coverage_is_preserved(self):
         script = (ROOT / "docker/verify-base.sh").read_text()
         array = re.search(r"expected_commands=\(([\s\S]*?)\)", script)[1]
-        self.assertEqual(set(CONTRACT["commands"] + DATABASE["commands"]), set(array.split()))
+        self.assertEqual(set(CONTRACT["commands"] + DATABASE["commands"] + SECURITY["commands"]), set(array.split()))
 
     def test_all_locked_packages_are_installed_and_verified(self):
         scripts = "\n".join(path.read_text() for path in (ROOT / "docker").glob("install-*.sh"))
@@ -51,7 +52,7 @@ class DockerContractTests(unittest.TestCase):
 
     def test_application_layers_and_isolation(self):
         app = (ROOT / "Dockerfile").read_text()
-        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-${TARGETARCH}", app)
+        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-${TARGETARCH}", app)
         self.assertIn("FROM ${BASE_IMAGE}", app)
         self.assertEqual(1, len(re.findall(r"^FROM ", app, re.M)))
         self.assertNotIn("apt-get", app)
@@ -68,12 +69,12 @@ class DockerContractTests(unittest.TestCase):
         docs = (ROOT / "DOCKER_BUILD.md").read_text()
         for arch in ("amd64", "arm64"):
             self.assertIn(f'--platform linux/{arch}', docs)
-            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-{arch}', docs)
-            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-{arch}', docs)
-            self.assertIn(f'--build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-{arch}', docs)
+            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-{arch}', docs)
+            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-{arch}', docs)
+            self.assertIn(f'--build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-{arch}', docs)
         self.assertNotIn("${", docs)
         self.assertNotIn("imagetools", docs)
-        self.assertNotRegex(docs, r'pentest-tools(?:-base)?:1\.1\.0(?!-)')
+        self.assertNotRegex(docs, r'pentest-tools(?:-base)?:1\.2\.0(?!-)')
         for path in (ROOT / "Dockerfile", ROOT / "DOCKER_BUILD.md",
                      ROOT / "tests/verify_docker_cache.py"):
             self.assertNotIn("penttest", path.read_text())

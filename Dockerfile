@@ -2,7 +2,7 @@
 
 # 默认按目标架构选择独立基础镜像，不依赖多架构入口。
 # 正式发布可通过 BASE_IMAGE=仓库@sha256:摘要固定同架构基础镜像。
-ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-${TARGETARCH}
+ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-${TARGETARCH}
 FROM ${BASE_IMAGE} AS runtime
 
 # 保留项目生成脚本使用 python3 时的原有应用依赖环境。
@@ -32,9 +32,10 @@ RUN sed -E '/^(pwntools|angr|bcrypt)([<=>]|$)/d' requirements.txt \
 # 代码变化不触发前面的依赖安装。
 COPY hexstrike_server.py hexstrike_mcp.py ./
 COPY database_tools/ ./database_tools/
+COPY security_tools/ ./security_tools/
 RUN /opt/hexstrike-venv/bin/python -c 'import aiohttp, bs4, flask, mcp, mitmproxy, psutil, requests, selenium' && \
     /opt/hexstrike-venv/bin/python -m py_compile hexstrike_server.py hexstrike_mcp.py && \
-    /opt/hexstrike-venv/bin/python -m compileall -q database_tools
+    /opt/hexstrike-venv/bin/python -m compileall -q database_tools security_tools
 
 EXPOSE 8888
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \

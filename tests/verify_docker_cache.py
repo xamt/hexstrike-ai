@@ -39,11 +39,12 @@ def check_dependency_cache(log, expected):
 
 
 def check_isolation(tag):
-    """验证重建应用未破坏 Volatility3 独立环境。"""
+    """验证重建应用未破坏 Volatility3 与 JWT-Tool 独立环境。"""
     command([
         "docker", "run", "--rm", "--entrypoint", "/bin/bash", tag, "-ec",
         "/usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python check; "
         "/opt/volatility3-venv/bin/python -m pip check; vol -h >/dev/null; "
+        "/opt/jwt-tool-venv/bin/python -m pip check; jwt_tool -h >/dev/null; "
         "test \"$(command -v python3)\" = /opt/hexstrike-venv/bin/python3; "
         "python3 -c 'import requests, httpx'",
     ])
@@ -53,6 +54,9 @@ def verify(context, base, arch, tags):
     """依次验证首次构建、代码变化和依赖输入变化。"""
     for name in ("Dockerfile", "requirements.txt", "hexstrike_server.py", "hexstrike_mcp.py"):
         shutil.copy2(ROOT / name, context / name)
+    for name in ("database_tools", "security_tools"):
+        shutil.copytree(ROOT / name, context / name,
+                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     build(context, base, arch, tags[0])
     with (context / "hexstrike_server.py").open("a", encoding="utf-8") as source:
         source.write("\n# 缓存回归：仅代码发生变化。\n")

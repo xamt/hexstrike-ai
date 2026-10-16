@@ -16,17 +16,19 @@ REQUIRED = {
         hash-identifier ophcrack-cli gdb radare2 binwalk ghidra checksec binutils xxd
         foremost steghide libimage-exiftool-perl mariadb-client mariadb-client-core
         mariadb-client-compat redis-tools postgresql-client-18 clickhouse-client
-        clickhouse-common-static mongodb-mongosh""".split(),
+        clickhouse-common-static mongodb-mongosh testssl.sh whatweb trufflehog tcpdump""".split(),
     "gem": ["wpscan"],
     "go": ["gau", "waybackurls", "anew"],
     "rust": ["x8"],
-    "source": ["nikto"],
+    "source": ["nikto", "jwt_tool"],
     "python": ["pip", "setuptools", "wheel"],
     "vol-python": ["pip", "setuptools", "wheel", "volatility3"],
+    "jwt-python": ["termcolor", "cprint", "pycryptodomex", "requests", "ratelimit"],
 }
 PYTHON_EXECUTABLES = {
     "python": "/usr/local/bin/python3.11",
     "vol-python": "/opt/volatility3-venv/bin/python",
+    "jwt-python": "/opt/jwt-tool-venv/bin/python",
 }
 
 

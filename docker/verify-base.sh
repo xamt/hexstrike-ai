@@ -18,6 +18,7 @@ expected_commands=(
     ghidra analyzeHeadless checksec strings objdump xxd vol foremost
     steghide exiftool
     mysql clickhouse-client redis-cli psql mongosh
+    testssl whatweb jwt_tool trufflehog tcpdump
 )
 for command_name in "${expected_commands[@]}"; do
     command -v "${command_name}" >/dev/null || {
@@ -31,6 +32,8 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 /usr/local/bin/python3.11 "${script_dir}/verify-tool-versions.py" --arch "${TARGETARCH}"
 /usr/local/bin/python3.11 -c 'import ssl, sqlite3, bz2, lzma, ctypes, readline, dbm.gnu, uuid; import sys; assert sys.version_info[:2] == (3, 11)'
 /opt/volatility3-venv/bin/python -m pip check
+/opt/jwt-tool-venv/bin/python -m pip check
+/opt/jwt-tool-venv/bin/python -c 'import Cryptodome, termcolor, cprint, requests, ratelimit'
 
 # ELF 头验证架构，不依赖编译器进入最终镜像。
 /usr/local/bin/python3.11 - <<'PY'
@@ -57,3 +60,10 @@ timeout 30 clickhouse-client --version
 timeout 30 redis-cli --version
 timeout 30 psql --version
 timeout 30 mongosh --version
+
+# 只查询版本/帮助，不抓包、不连接目标、不扫描本地内容。
+timeout 30 testssl --version
+timeout 30 whatweb --version
+timeout 30 trufflehog --version
+timeout 30 tcpdump --version
+timeout 30 jwt_tool -h >/dev/null

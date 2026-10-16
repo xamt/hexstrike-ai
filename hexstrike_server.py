@@ -98,6 +98,10 @@ app.config['JSON_SORT_KEYS'] = False
 from database_tools.http import register_database_routes
 register_database_routes(app)
 
+# 专项工具使用结构化参数及有界执行器，不替换现有内置分析器。
+from security_tools.http import register_security_routes
+register_security_routes(app)
+
 # API Configuration
 API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
@@ -3646,7 +3650,7 @@ class CTFToolManager:
             "compress": "uncompress",
 
             # Modern Web Technologies
-            "jwt-tool": "python3 /opt/jwt_tool/jwt_tool.py",
+            "jwt-tool": "jwt_tool",
             "jwt-cracker": "jwt-cracker",
             "graphql-voyager": "graphql-voyager",
             "graphql-playground": "graphql-playground",
@@ -9041,11 +9045,11 @@ def health_check():
     web_security_tools = [
         "ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
         "gau", "waybackurls", "arjun", "paramspider", "x8", "jaeles", "dalfox",
-        "httpx", "wafw00f", "burpsuite", "zaproxy", "katana", "hakrawler"
+        "httpx", "wafw00f", "burpsuite", "zaproxy", "katana", "hakrawler", "whatweb"
     ]
 
     vuln_scanning_tools = [
-        "nuclei", "wpscan", "graphql-scanner", "jwt-analyzer"
+        "nuclei", "wpscan", "graphql-scanner", "jwt-analyzer", "testssl", "jwt_tool", "trufflehog"
     ]
 
     password_tools = [
