@@ -98,10 +98,6 @@ app.config['JSON_SORT_KEYS'] = False
 from database_tools.http import register_database_routes
 register_database_routes(app)
 
-# 专项工具使用结构化参数及有界执行器，不替换现有内置分析器。
-from security_tools.http import register_security_routes
-register_security_routes(app)
-
 # API Configuration
 API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')

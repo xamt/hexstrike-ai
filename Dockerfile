@@ -32,10 +32,9 @@ RUN sed -E '/^(pwntools|angr|bcrypt)([<=>]|$)/d' requirements.txt \
 # 代码变化不触发前面的依赖安装。
 COPY hexstrike_server.py hexstrike_mcp.py ./
 COPY database_tools/ ./database_tools/
-COPY security_tools/ ./security_tools/
 RUN /opt/hexstrike-venv/bin/python -c 'import aiohttp, bs4, flask, mcp, mitmproxy, psutil, requests, selenium' && \
     /opt/hexstrike-venv/bin/python -m py_compile hexstrike_server.py hexstrike_mcp.py && \
-    /opt/hexstrike-venv/bin/python -m compileall -q database_tools security_tools
+    /opt/hexstrike-venv/bin/python -m compileall -q database_tools
 
 EXPOSE 8888
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \

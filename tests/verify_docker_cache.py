@@ -54,9 +54,8 @@ def verify(context, base, arch, tags):
     """依次验证首次构建、代码变化和依赖输入变化。"""
     for name in ("Dockerfile", "requirements.txt", "hexstrike_server.py", "hexstrike_mcp.py"):
         shutil.copy2(ROOT / name, context / name)
-    for name in ("database_tools", "security_tools"):
-        shutil.copytree(ROOT / name, context / name,
-                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    shutil.copytree(ROOT / "database_tools", context / "database_tools",
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     build(context, base, arch, tags[0])
     with (context / "hexstrike_server.py").open("a", encoding="utf-8") as source:
         source.write("\n# 缓存回归：仅代码发生变化。\n")

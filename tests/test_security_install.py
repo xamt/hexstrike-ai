@@ -86,9 +86,18 @@ class SecurityInstallTests(unittest.TestCase):
                 self.assertEqual(expected, result.returncode, result.stderr)
                 self.assertFalse((root / "calls").exists())
 
-    def test_cache_validation_copies_both_application_modules(self):
+    def test_application_keeps_database_module_without_security_api(self):
+        app = (ROOT / "Dockerfile").read_text()
+        server = (ROOT / "hexstrike_server.py").read_text()
         script = (ROOT / "tests/verify_docker_cache.py").read_text()
-        self.assertIn('("database_tools", "security_tools")', script)
+        self.assertIn("COPY database_tools/ ./database_tools/", app)
+        self.assertIn("from database_tools.http import register_database_routes", server)
+        self.assertIn('"jwt-tool": "jwt_tool"', server)
+        self.assertIn('@app.route("/api/tools/jwt_analyzer", methods=["POST"])', server)
+        self.assertFalse((ROOT / "security_tools").exists())
+        for content in (app, server, script):
+            self.assertNotIn("security_tools/", content)
+            self.assertNotIn("register_security_routes", content)
         self.assertIn("shutil.copytree", script)
         self.assertIn("/opt/jwt-tool-venv/bin/python -m pip check", script)
 

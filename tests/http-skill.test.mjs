@@ -115,7 +115,7 @@ test('CLI 发现和说明完全离线；错误输入不连接真实服务', () =
   const run = args => spawnSync(process.execPath, [cli.pathname, ...args], { encoding: 'utf8', env: { ...process.env, PENTEST_SERVER_URL: 'invalid' } });
   const list = run(['list']);
   assert.equal(list.status, 0, list.stderr);
-  assert.equal(JSON.parse(list.stdout).length, 161);
+  assert.equal(JSON.parse(list.stdout).length, 156);
   const describe = run(['describe', 'nmap_scan']);
   assert.equal(describe.status, 0);
   assert.equal(JSON.parse(describe.stdout).parameters.scan_type.default, '-sV');

@@ -7,23 +7,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "hexstrike_mcp.py"
 DATABASE_SOURCE = ROOT / "database_tools/contracts.json"
-SECURITY_SOURCE = ROOT / "security_tools/contracts.json"
 
 
 def database_definitions():
     """从服务端共享契约生成直接 POST 声明，不发出网络请求。"""
-    return contract_definitions(DATABASE_SOURCE)
-
-
-def security_definitions():
-    """从五项安全工具契约生成声明，不导入或执行扫描工具。"""
-    return contract_definitions(SECURITY_SOURCE)
-
-
-def contract_definitions(path):
-    """将共享 HTTP 契约转换成原工具导出器可处理的语法树。"""
     result = []
-    contracts = json.loads(path.read_text(encoding="utf-8"))
+    contracts = json.loads(DATABASE_SOURCE.read_text(encoding="utf-8"))
     for name, spec in contracts.items():
         params = spec["parameters"]
         ordered = sorted(params, key=lambda key: not params[key]["required"])
@@ -39,7 +28,7 @@ def contract_definitions(path):
                   f"    {spec['description']!r}\n"
                   f"    return hexstrike_client.safe_post({spec['endpoint']!r}, {{{payload}}})\n")
         node = ast.parse(source).body[0]
-        node.source_file = str(path.relative_to(ROOT))
+        node.source_file = str(DATABASE_SOURCE.relative_to(ROOT))
         result.append(node)
     return result
 
@@ -63,11 +52,9 @@ def definitions():
         seen.add(original)
         node.source_file = str(SOURCE.relative_to(ROOT))
         result.append(node)
-    extra = database_definitions() + security_definitions()
-    for node in extra:
-        if node.name in seen:
-            raise ValueError("共享契约工具名冲突: " + node.name)
-        seen.add(node.name)
+    extra = database_definitions()
+    if seen.intersection(node.name for node in extra):
+        raise ValueError("数据库工具名与原工具冲突")
     return result + extra
 
 
