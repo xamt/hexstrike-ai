@@ -27,6 +27,11 @@ docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/b
     timeout 30 httpx -version
     timeout 30 wpscan --version
     vol -h >/dev/null
+    timeout 30 mysql --version
+    timeout 30 clickhouse-client --version
+    timeout 30 redis-cli --version
+    timeout 30 psql --version
+    timeout 30 mongosh --version
     test -s /opt/hexstrike/tool-versions.lock
 '
 docker run --rm --platform "linux/${arch}" --network none "${app_image}" /bin/bash -ec '

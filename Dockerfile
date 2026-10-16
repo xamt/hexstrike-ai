@@ -2,7 +2,7 @@
 
 # 默认按目标架构选择独立基础镜像，不依赖多架构入口。
 # 正式发布可通过 BASE_IMAGE=仓库@sha256:摘要固定同架构基础镜像。
-ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-${TARGETARCH}
+ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-${TARGETARCH}
 FROM ${BASE_IMAGE} AS runtime
 
 # 保留项目生成脚本使用 python3 时的原有应用依赖环境。

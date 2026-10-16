@@ -1,0 +1,15 @@
+{
+  "versions": {
+    "MARIADB_CLIENT_VERSION": "1:11.8.9+ds-2",
+    "REDIS_TOOLS_VERSION": "5:8.0.6-3",
+    "POSTGRESQL_CLIENT_VERSION": "18.6-3",
+    "CLICKHOUSE_CLIENT_VERSION": "25.8.20.4",
+    "MONGOSH_VERSION": "2.13.0"
+  },
+  "aptPackages": [
+    "mariadb-client", "mariadb-client-core", "mariadb-client-compat",
+    "redis-tools", "postgresql-client-18", "clickhouse-client",
+    "clickhouse-common-static", "mongodb-mongosh"
+  ],
+  "commands": ["mysql", "clickhouse-client", "redis-cli", "psql", "mongosh"]
+}

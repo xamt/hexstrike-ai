@@ -17,6 +17,7 @@ expected_commands=(
     crackmapexec evil-winrm hash-identifier ophcrack-cli gdb r2 radare2 binwalk
     ghidra analyzeHeadless checksec strings objdump xxd vol foremost
     steghide exiftool
+    mysql clickhouse-client redis-cli psql mongosh
 )
 for command_name in "${expected_commands[@]}"; do
     command -v "${command_name}" >/dev/null || {
@@ -49,3 +50,10 @@ PY
 timeout 30 nmap --version
 timeout 30 x8 --version
 timeout 30 vol -h >/dev/null
+
+# 仅检查客户端版本与动态链接，不连接数据库、不执行 SQL 或脚本。
+timeout 30 mysql --version
+timeout 30 clickhouse-client --version
+timeout 30 redis-cli --version
+timeout 30 psql --version
+timeout 30 mongosh --version

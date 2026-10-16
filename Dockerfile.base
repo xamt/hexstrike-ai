@@ -127,6 +127,26 @@ COPY --from=rust-tools /out/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 RUN --mount=type=bind,source=docker/prepare-tool-data.sh,target=/tmp/prepare-tool-data.sh \
     bash /tmp/prepare-tool-data.sh
 
+# 数据库客户端独立安装层：版本与双架构摘要均在各安装脚本中维护。
+# 不配置或启动数据库服务；ClickHouse common-static 是客户端必需的公共二进制。
+RUN --mount=type=bind,source=docker/install-database-apt.sh,target=/tmp/install-database-apt.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
+    bash /tmp/install-database-apt.sh
+RUN --mount=type=bind,source=docker/install-database-clickhouse.sh,target=/tmp/install-database-clickhouse.sh \
+    --mount=type=bind,source=docker/install-database-deb.sh,target=/tmp/install-database-deb.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
+    bash /tmp/install-database-clickhouse.sh
+RUN --mount=type=bind,source=docker/install-database-mongodb.sh,target=/tmp/install-database-mongodb.sh \
+    --mount=type=bind,source=docker/install-database-deb.sh,target=/tmp/install-database-deb.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
+    bash /tmp/install-database-mongodb.sh
+
 # =============================================================================
 # 7. Python 运行时：固定安装工具，Volatility3 使用独立虚拟环境
 # =============================================================================

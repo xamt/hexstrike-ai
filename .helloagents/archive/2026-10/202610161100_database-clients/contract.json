@@ -1,0 +1,36 @@
+{
+  "updatedAt": "2026-10-16T03:08:40.915Z",
+  "version": 2,
+  "source": "manual",
+  "originCommand": "",
+  "qaMode": "deep",
+  "qaFocus": [
+    "双架构客户端安装元数据",
+    "固定版本和摘要校验",
+    "下载及安装失败停止",
+    "原工具版本保持不变",
+    "仅镜像配置范围和接口回退"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}

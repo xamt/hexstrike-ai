@@ -14,7 +14,9 @@ REQUIRED = {
         ffuf dirb httpx-toolkit katana hakrawler sqlmap arjun paramspider dalfox wafw00f
         qsreplace uro wfuzz hydra john hashcat medusa patator crackmapexec evil-winrm
         hash-identifier ophcrack-cli gdb radare2 binwalk ghidra checksec binutils xxd
-        foremost steghide libimage-exiftool-perl""".split(),
+        foremost steghide libimage-exiftool-perl mariadb-client mariadb-client-core
+        mariadb-client-compat redis-tools postgresql-client-18 clickhouse-client
+        clickhouse-common-static mongodb-mongosh""".split(),
     "gem": ["wpscan"],
     "go": ["gau", "waybackurls", "anew"],
     "rust": ["x8"],

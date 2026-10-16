@@ -28,14 +28,16 @@ class ToolVersionVerifierTests(unittest.TestCase):
 
     def test_required_apt_names_match_original_contract(self):
         fixture = json.loads((ROOT / "tests/fixtures/docker-tool-contract.json").read_text())
-        self.assertEqual(set(fixture["aptPackages"]), set(VERIFIER.REQUIRED["apt"]))
+        database = json.loads((ROOT / "tests/fixtures/database-client-contract.json").read_text())
+        self.assertEqual(set(fixture["aptPackages"]) | set(database["aptPackages"]),
+                         set(VERIFIER.REQUIRED["apt"]))
 
     def test_complete_records_load_for_both_architectures(self):
         for arch in ("amd64", "arm64"):
             with self.subTest(arch=arch), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
                 write_fixture(root, arch)
-                self.assertEqual(61, len(VERIFIER.load_records(root, arch)))
+                self.assertEqual(69, len(VERIFIER.load_records(root, arch)))
 
     def test_missing_record_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -6,10 +6,10 @@
 
 | 用途 | AMD64 | ARM64 |
 | --- | --- | --- |
-| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64` |
-| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64` |
+| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-arm64` |
+| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-arm64` |
 
-- 基础镜像：Kali、安全工具、小型字典、Python 3.11、独立 Volatility3 环境；默认进入 Bash，不启动服务。
+- 基础镜像：Kali、安全工具、五类数据库客户端、小型字典、Python 3.11、独立 Volatility3 环境；默认进入 Bash，不启动服务。
 - 应用镜像：继承同架构基础镜像，安装项目依赖、复制代码、配置 8888 端口和健康检查，不重复安装安全工具。
 - 两类镜像版本独立管理；工具或运行时变化才重建基础镜像，仅代码或项目依赖变化只重建应用镜像。
 - 不使用 `latest`；已发布的版本标签不可覆盖。调整版本时直接修改对应命令中的完整镜像名。
@@ -27,7 +27,7 @@
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-amd64 \
   --load \
   --progress=plain \
   "."
@@ -39,7 +39,7 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-arm64 \
   --load \
   --progress=plain \
   "."
@@ -67,8 +67,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-amd64 \
   --load \
   --progress=plain \
   "."
@@ -82,8 +82,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-arm64 \
   --load \
   --progress=plain \
   "."
@@ -98,6 +98,7 @@ docker buildx build \
 
 不调用 Docker、不访问网络：
 
+
 ```bash
 python3 -m unittest discover -s "tests" -v
 ```
@@ -106,8 +107,8 @@ python3 -m unittest discover -s "tests" -v
 
 ```bash
 bash "docker/test-images.sh" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64 \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-amd64 \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-amd64 \
   amd64
 ```
 
@@ -115,8 +116,8 @@ bash "docker/test-images.sh" \
 
 ```bash
 bash "docker/test-images.sh" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64 \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-arm64 \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-arm64 \
   arm64
 ```
 
@@ -130,7 +131,7 @@ docker run --detach \
   --name pentest-tools-amd64 \
   --platform linux/amd64 \
   --publish 127.0.0.1:8888:8888 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-amd64
 curl --fail --silent --show-error http://127.0.0.1:8888/health
 docker inspect --format '{{.State.Health.Status}}' pentest-tools-amd64
 docker logs pentest-tools-amd64
@@ -143,7 +144,7 @@ docker run --detach \
   --name pentest-tools-arm64 \
   --platform linux/arm64 \
   --publish 127.0.0.1:8888:8888 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-arm64
 curl --fail --silent --show-error http://127.0.0.1:8888/health
 docker inspect --format '{{.State.Health.Status}}' pentest-tools-arm64
 docker logs pentest-tools-arm64
@@ -159,14 +160,14 @@ AMD64：
 
 ```bash
 python3 "tests/verify_docker_cache.py" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64 amd64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-amd64 amd64
 ```
 
 ARM64：
 
 ```bash
 python3 "tests/verify_docker_cache.py" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64 arm64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-arm64 arm64
 ```
 
 该脚本会实际构建临时应用镜像：只改代码时复用依赖层，只改依赖时重新安装项目依赖，基础镜像保持不变。
@@ -179,15 +180,15 @@ python3 "tests/verify_docker_cache.py" \
 ### 5.1 AMD64
 
 ```bash
-docker push harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-amd64
-docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-amd64
+docker push harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-amd64
+docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-amd64
 ```
 
 ### 5.2 ARM64
 
 ```bash
-docker push harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.0.0-arm64
-docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64
+docker push harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.1.0-arm64
+docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.1.0-arm64
 ```
 
 正式应用发布时，先推送并记录**同架构基础镜像**的真实摘要，将第 3 节 `BASE_IMAGE` 的值替换为
@@ -211,6 +212,9 @@ docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.0.0-arm64
 | Nikto | `docker/install-nikto-source.sh` |
 | WPScan | `docker/install-web.sh` |
 | pip、setuptools、wheel、Volatility3 | `docker/install-python-runtime.sh` |
+| MySQL（MariaDB 兼容）、Redis、PostgreSQL 客户端 | `docker/install-database-apt.sh` |
+| ClickHouse 客户端及双架构摘要 | `docker/install-database-clickhouse.sh` |
+| MongoDB Shell 及双架构摘要 | `docker/install-database-mongodb.sh` |
 
 修改工具版本时直接编辑上述脚本；不再通过 `--build-arg NMAP_VERSION=...` 等参数覆盖。
 源地址和上游镜像仍可通过 Dockerfile 中的构建参数覆盖。现有工具版本及架构差异均未改变。
@@ -235,6 +239,7 @@ Go/X8 二进制及 Nikto 主程序还会比对构建阶段记录的 SHA256，防
 | Rust | `docker/install-rust-toolchain.sh`、`docker/install-x8.sh` | X8 二进制 |
 | Nikto | `docker/install-nikto-source.sh` | 固定标签源码 |
 | Kali | `docker/install-system.sh`、四类工具安装脚本 | 系统运行库和 APT 工具 |
+| 数据库客户端 | `docker/install-database-apt.sh`、`install-database-clickhouse.sh`、`install-database-mongodb.sh` | 五类客户端；公共下载校验由 `install-database-deb.sh` 负责 |
 | 工具组装 | `docker/prepare-tool-data.sh` | 小型字典；安装记录由各工具脚本产生 |
 | Python | `docker/install-python-runtime.sh` | Python 安装工具和独立 Volatility3 环境 |
 | 最终镜像 | `docker/finalize-base.sh`、`docker/verify-base.sh`、`docker/verify-tool-versions.py` | 动态库接入、vol 包装命令、版本核对与清单生成 |
@@ -253,6 +258,33 @@ Go/X8 二进制及 Nikto 主程序还会比对构建阶段记录的 SHA256，防
 Masscan、Dirb、Ophcrack CLI、Foremost 按架构选择固定版本。
 ExifTool 包名为 `libimage-exiftool-perl`，NetExec 命令为 `nxc`，HTTPX Toolkit 提供 `httpx`，Binutils 提供 `strings`、`objdump`。
 另外安装 Gau、Waybackurls、Anew、X8、Nikto、WPScan、Volatility3；清单路径保持 `/opt/hexstrike/tool-versions.lock`。
+
+### 6.4 数据库客户端（1.1.0 新增）
+
+本次仅增加镜像内客户端环境，不新增 HTTP/MCP 接口，也不修改现有 `/health` 检查清单。
+
+原安全工具版本不变；基础镜像和应用镜像使用新的 `1.1.0-amd64` / `1.1.0-arm64` 标签，应用通过继承新版基础镜像获得客户端，旧基础镜像不包含本次新增环境。
+
+| 客户端命令 | 固定版本 | 安装来源 |
+| --- | --- | --- |
+| `mysql` | MariaDB `1:11.8.9+ds-2` | Kali 签名仓库，client/core/compat 三个包同步锁定 |
+| `redis-cli` | `5:8.0.6-3` | Kali `redis-tools` |
+| `psql` | `18.6-3` | Kali `postgresql-client-18` |
+| `clickhouse-client` | `25.8.20.4` | ClickHouse 官方固定版本客户端及 `clickhouse-common-static` |
+| `mongosh` | `2.13.0` | MongoDB 官方独立 Shell 包 |
+
+`mysql` 是用户选定的 MariaDB 兼容客户端，不是 Oracle MySQL 官方客户端，也不是 Python 的 mysqlclient 驱动。
+不新增 MySQL、Redis、PostgreSQL、MongoDB 或 ClickHouse 的服务端包，不配置或启动数据库服务。
+ClickHouse 官方客户端必须依赖公共多功能二进制，因此其底层二进制仍包含服务端子命令能力；这里不安装 `clickhouse-server` 服务包。
+MongoDB 仅提供 `mongosh`，不包含旧 `mongo` 命令或数据库备份工具套件。
+
+五类客户端均提供 AMD64、ARM64 安装路径；Kali 包沿用阿里云镜像和官方签名验证。
+ClickHouse、MongoDB 通过 HTTPS 下载官方固定版本 `.deb`，先核对安装脚本锁定的 SHA256、包名、版本、架构再安装；不添加第三方全局 APT 源、不使用未经验证的下载代理。
+摘要来自 [ClickHouse 官方 AMD64 索引](https://packages.clickhouse.com/deb/dists/stable/main/binary-amd64/Packages)、[ARM64 索引](https://packages.clickhouse.com/deb/dists/stable/main/binary-arm64/Packages)，以及 [MongoDB 官方发行](https://github.com/mongodb-js/mongosh/releases/tag/v2.13.0)（并与官方 APT 索引交叉核对）。
+官方来源不可达、固定包消失、摘要不符均直接失败，不静默换版本或跳过客户端。
+
+最终构建校验新增五个命令及 `--version` 检查，版本清单记录八个新增客户端/支撑包；不连接数据库、不执行查询。
+该修改只完成离线检查，实际双架构构建、客户端连接与数据库操作验收由使用者执行。
 
 Kali 系统 Python 保持不变；另提供 Python 3.11。Volatility3 使用 `/opt/volatility3-venv`，应用使用 `/opt/hexstrike-venv`。
 项目依赖仍排除 `pwntools`、`angr`、`bcrypt`。应用 venv 优先的 PATH 保持不变，只有同名 `httpx` 命令链接到安全工具。
