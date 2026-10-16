@@ -58,48 +58,6 @@ test('业务失败不篡改响应；组合工具保留原聚合但记录子请�
   assert.equal(client.failures.length, 2);
 });
 
-test('非 2xx 数据库错误保留结构化诊断并强制失败，不重试', async () => {
-  for (const [status, code, message] of [[503, 'tool_missing', '客户端缺失'],
-    [403, 'operation_not_allowed', '数据库保护策略拒绝执行']]) {
-    let calls = 0;
-    const body = { success: false, error: message, error_code: code, stderr: '' };
-    const client = createClient({ fetchImpl: async () => {
-      calls++;
-      return new Response(JSON.stringify(body), { status });
-    } });
-    assert.deepEqual(await client.safe_post('api/tools/mysql', {}), { ...body, http_status: status });
-    assert.equal(calls, 1);
-    assert.equal(client.failures.length, 1);
-  }
-});
-
-test('五类数据库入口保留参数、默认值和服务端结果，不转为 shell 命令', async () => {
-  const cases = [
-    ['mysql_query', 'mysql', { host: 'db.example.test', query: 'SELECT 1' }, 3306],
-    ['clickhouse_query', 'clickhouse', { host: 'db.example.test', query: 'SELECT 1' }, 9000],
-    ['redis_command', 'redis', { host: 'db.example.test', command: ['PING'] }, 6379],
-    ['postgresql_query', 'postgresql', { host: 'db.example.test', query: 'SELECT 1' }, 5432],
-    ['mongodb_command', 'mongodb', { host: 'db.example.test', command: { ping: 1 } }, 27017],
-  ];
-  for (const [name, route, params, port] of cases) {
-    const response = { success: false, timed_out: true, truncated: false };
-    const client = createClient({ fetchImpl: async (url, options) => {
-      assert.equal(url.pathname, `/api/tools/${route}`);
-      assert.equal(options.method, 'POST');
-      const data = JSON.parse(options.body);
-      for (const [key, value] of Object.entries(params)) assert.deepEqual(data[key], value);
-      assert.equal(data.port, port);
-      assert.equal(data.timeout, 30);
-      assert.equal(data.max_output_bytes, 65536);
-      assert.equal(data.password, '"$(never-run);中文');
-      return new Response(JSON.stringify(response));
-    } });
-    const args = validateArguments(name, { ...params, password: '"$(never-run);中文' });
-    assert.deepEqual(await createTools(client)[name](...args), response);
-    assert.equal(client.failures.length, 1);
-  }
-});
-
 test('参数名、类型、必填、默认 null 与服务地址校验', () => {
   assert.throws(() => validateArguments('unknown', {}), /未知工具/);
   assert.throws(() => validateArguments('nmap_scan', {}), /缺少参数/);
@@ -115,22 +73,13 @@ test('CLI 发现和说明完全离线；错误输入不连接真实服务', () =
   const run = args => spawnSync(process.execPath, [cli.pathname, ...args], { encoding: 'utf8', env: { ...process.env, PENTEST_SERVER_URL: 'invalid' } });
   const list = run(['list']);
   assert.equal(list.status, 0, list.stderr);
-  assert.equal(JSON.parse(list.stdout).length, 156);
+  assert.equal(JSON.parse(list.stdout).length, 151);
   const describe = run(['describe', 'nmap_scan']);
   assert.equal(describe.status, 0);
   assert.equal(JSON.parse(describe.stdout).parameters.scan_type.default, '-sV');
   const invalid = run(['call', 'nmap_scan']);
   assert.equal(invalid.status, 1);
   assert.match(invalid.stderr, /缺少参数/);
-});
-
-test('CLI 无效 JSON 不在错误信息中回显数据库凭据', () => {
-  const result = spawnSync(process.execPath, [cli.pathname, 'call', 'mysql_query', '--input', '-'], {
-    encoding: 'utf8', input: '{"password":"offline-sensitive-value", broken}',
-  });
-  assert.equal(result.status, 1);
-  assert.doesNotMatch(result.stderr, /offline-sensitive-value/);
-  assert.match(result.stderr, /参数输入不是有效 JSON/);
 });
 
 test('复合工具前两步成功、最后一步失败时 CLI 退出 1', () => {

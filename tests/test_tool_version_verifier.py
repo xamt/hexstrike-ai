@@ -26,11 +26,27 @@ def write_fixture(directory, arch="arm64"):
 class ToolVersionVerifierTests(unittest.TestCase):
     """缺项、版本漂移和架构错误都必须使校验失败。"""
 
+    def test_required_non_apt_records_are_frozen(self):
+        expected = {
+            "gem": {"wpscan"},
+            "go": {"gau", "waybackurls", "anew"},
+            "rust": {"x8"},
+            "source": {"nikto", "jwt_tool", "paramspider", "python2", "volatility2"},
+            "python": {"pip", "setuptools", "wheel"},
+            "vol-python": {"pip", "setuptools", "wheel", "volatility3"},
+            "jwt-python": {"termcolor", "cprint", "pycryptodomex", "requests", "ratelimit"},
+            "param-python": {"requests", "urllib3", "charset-normalizer", "idna", "certifi"},
+            "legacy-python": {"pip", "setuptools", "wheel", "pycryptodome", "distorm3",
+                              "yara-python", "pefile", "future", "capstone", "pillow"},
+        }
+        actual = {kind: set(names) for kind, names in VERIFIER.REQUIRED.items() if kind != "apt"}
+        self.assertEqual(expected, actual)
+
     def test_required_apt_names_match_original_contract(self):
         fixture = json.loads((ROOT / "tests/fixtures/docker-tool-contract.json").read_text())
-        database = json.loads((ROOT / "tests/fixtures/database-client-contract.json").read_text())
         security = json.loads((ROOT / "tests/fixtures/security-tool-contract.json").read_text())
-        self.assertEqual(set(fixture["aptPackages"]) | set(database["aptPackages"]) | set(security["aptPackages"]),
+        container = json.loads((ROOT / "tests/fixtures/container-tool-contract.json").read_text())
+        self.assertEqual(set(fixture["aptPackages"]) | set(security["aptPackages"]) | set(container["aptPackages"]),
                          set(VERIFIER.REQUIRED["apt"]))
 
     def test_complete_records_load_for_both_architectures(self):
@@ -38,7 +54,7 @@ class ToolVersionVerifierTests(unittest.TestCase):
             with self.subTest(arch=arch), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
                 write_fixture(root, arch)
-                self.assertEqual(79, len(VERIFIER.load_records(root, arch)))
+                self.assertEqual(91, len(VERIFIER.load_records(root, arch)))
 
     def test_missing_record_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:

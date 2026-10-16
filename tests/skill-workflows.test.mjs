@@ -41,5 +41,5 @@ test('场景中的参数示例符合真实工具参数类型和必填项，不�
       count++;
     }
   }
-  assert.equal(count, 8);
+  assert.equal(count, 3);
 });

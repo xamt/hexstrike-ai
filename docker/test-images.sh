@@ -27,16 +27,19 @@ docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/b
     timeout 30 httpx -version
     timeout 30 wpscan --version
     vol -h >/dev/null
-    timeout 30 mysql --version
-    timeout 30 clickhouse-client --version
-    timeout 30 redis-cli --version
-    timeout 30 psql --version
-    timeout 30 mongosh --version
+    timeout 30 volatility -h >/dev/null
+    timeout 30 vol.py -h >/dev/null
+    timeout 30 paramspider -h >/dev/null
+    /opt/paramspider-venv/bin/python -m pip check
+    volatility2-python -m pip check
     timeout 30 testssl --version
     timeout 30 whatweb --version
     timeout 30 trufflehog --version
     timeout 30 tcpdump --version
     timeout 30 jwt_tool -h >/dev/null
+    timeout 30 docker --version
+    timeout 30 kubectl version --client=true --output=json
+    timeout 30 trivy --version
     /opt/jwt-tool-venv/bin/python -m pip check
     test -s /opt/hexstrike/tool-versions.lock
 '
@@ -49,6 +52,11 @@ docker run --rm --platform "linux/${arch}" --network none "${app_image}" /bin/ba
     python3 -c "import requests, httpx"
     test "$(readlink -f "$(command -v httpx)")" = /usr/bin/httpx-toolkit
     vol -h >/dev/null
+    timeout 30 volatility -h >/dev/null
+    timeout 30 vol.py -h >/dev/null
+    timeout 30 paramspider -h >/dev/null
+    /opt/paramspider-venv/bin/python -m pip check
+    volatility2-python -m pip check
 '
 
 container_id="$(docker run --detach --platform "linux/${arch}" --network none "${app_image}")"

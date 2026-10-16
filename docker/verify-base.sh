@@ -17,8 +17,9 @@ expected_commands=(
     crackmapexec evil-winrm hash-identifier ophcrack-cli gdb r2 radare2 binwalk
     ghidra analyzeHeadless checksec strings objdump xxd vol foremost
     steghide exiftool
-    mysql clickhouse-client redis-cli psql mongosh
+    volatility volatility2-python vol.py
     testssl whatweb jwt_tool trufflehog tcpdump
+    docker kubectl trivy
 )
 for command_name in "${expected_commands[@]}"; do
     command -v "${command_name}" >/dev/null || {
@@ -42,24 +43,28 @@ import struct
 from pathlib import Path
 
 machine = {"amd64": 62, "arm64": 183}[os.environ["TARGETARCH"]]
-for name in ("gau", "waybackurls", "anew", "x8"):
-    with Path("/usr/local/bin", name).open("rb") as binary:
+executables = [Path("/usr/local/bin", name) for name in ("gau", "waybackurls", "anew", "x8")]
+executables.append(Path("/opt/python2/bin/python2.7"))
+for executable in executables:
+    with executable.open("rb") as binary:
         header = binary.read(20)
-    assert header[:4] == b"\x7fELF", f"{name}: 非 ELF 文件"
-    assert header[5] == 1, f"{name}: 非小端 ELF"
-    assert struct.unpack("<H", header[18:20])[0] == machine, f"{name}: 架构不匹配"
+    assert header[:4] == b"\x7fELF", f"{executable}: 非 ELF 文件"
+    assert header[5] == 1, f"{executable}: 非小端 ELF"
+    assert struct.unpack("<H", header[18:20])[0] == machine, f"{executable}: 架构不匹配"
 PY
 
 timeout 30 nmap --version
 timeout 30 x8 --version
 timeout 30 vol -h >/dev/null
 
-# 仅检查客户端版本与动态链接，不连接数据库、不执行 SQL 或脚本。
-timeout 30 mysql --version
-timeout 30 clickhouse-client --version
-timeout 30 redis-cli --version
-timeout 30 psql --version
-timeout 30 mongosh --version
+# 原接口的隔离环境与兼容入口；不读取内存样本，不访问目标。
+/opt/paramspider-venv/bin/python -m pip check
+volatility2-python -m pip check
+volatility2-python -c 'import ssl, sqlite3, bz2, ctypes, Crypto, distorm3, yara, pefile, capstone, PIL; import sys; assert sys.version_info[:3] == (2, 7, 18)'
+timeout 30 volatility -h >/dev/null
+timeout 30 vol.py -h >/dev/null
+timeout 30 /usr/local/bin/python3.11 /opt/volatility3/vol.py -h >/dev/null
+timeout 30 paramspider -h >/dev/null
 
 # 只查询版本/帮助，不抓包、不连接目标、不扫描本地内容。
 timeout 30 testssl --version
@@ -67,3 +72,8 @@ timeout 30 whatweb --version
 timeout 30 trufflehog --version
 timeout 30 tcpdump --version
 timeout 30 jwt_tool -h >/dev/null
+
+# 只读取客户端版本；不访问 Docker socket、Kubernetes 集群或漏洞数据库。
+timeout 30 docker --version
+timeout 30 kubectl version --client=true --output=json
+timeout 30 trivy --version

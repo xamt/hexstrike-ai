@@ -15,7 +15,8 @@ class DockerLayoutTests(unittest.TestCase):
         content = (ROOT / "Dockerfile.base").read_text()
         header, stages = content.split("\nFROM ", 1)
         defaults = re.findall(r"^ARG (\w+)=(.+)$", header, re.M)
-        self.assertEqual(10, len(defaults))
+        self.assertEqual(11, len(defaults))
+        self.assertIn("LEGACY_PYTHON_RUNTIME_IMAGE", dict(defaults))
         self.assertEqual(len(defaults), len(dict(defaults)))
         self.assertNotRegex(stages, r"(?m)^ARG \w+=")
         self.assertNotIn("ARG BUILDPLATFORM", header)
@@ -62,7 +63,7 @@ class DockerLayoutTests(unittest.TestCase):
         self.assertIn("verify-tool-versions.py", (ROOT / "docker/verify-base.sh").read_text())
 
     def test_documented_commands_are_standalone_and_architecture_matched(self):
-        docs = (ROOT / "DOCKER_BUILD.md").read_text()
+        docs = (ROOT / "docs/DOCKER_BUILD.md").read_text()
         blocks = re.findall(r"```bash\n([\s\S]*?)```", docs)
         builds = []
         for block in blocks:
@@ -75,10 +76,10 @@ class DockerLayoutTests(unittest.TestCase):
             architecture = command[command.index("--platform") + 1].split("/")[1]
             recipe = command[command.index("--file") + 1]
             tag = command[command.index("--tag") + 1]
-            self.assertTrue(tag.endswith(f":1.2.0-{architecture}"))
+            self.assertTrue(tag.endswith(f":1.3.0-{architecture}"))
             if recipe == "Dockerfile":
                 base = command[command.index("--build-arg") + 1]
-                self.assertTrue(base.endswith(f"pentest-tools-base:1.2.0-{architecture}"))
+                self.assertTrue(base.endswith(f"pentest-tools-base:1.3.0-{architecture}"))
             pairs.add((recipe, architecture))
         self.assertEqual({(recipe, arch) for recipe in ("Dockerfile", "Dockerfile.base")
                           for arch in ("amd64", "arm64")}, pairs)

@@ -1,0 +1,34 @@
+{
+  "versions": {
+    "DOCKER_CLI_VERSION": "28.5.2+dfsg4-5",
+    "KUBECTL_VERSION": "1.33.4+ds-1",
+    "TRIVY_VERSION": "0.66.0-0kali1"
+  },
+  "aptPackages": {
+    "docker-cli": "DOCKER_CLI_VERSION",
+    "kubectl": "KUBECTL_VERSION",
+    "trivy": "TRIVY_VERSION"
+  },
+  "commands": ["docker", "kubectl", "trivy"],
+  "excludedPackages": ["docker.io", "docker-ce", "containerd", "containerd.io", "awscli", "azure-cli"],
+  "metadataCheckedOn": "2026-10-16",
+  "packageSizes": {
+    "amd64": {
+      "docker-cli": {"installedKiB": 32823, "downloadBytes": 8260348},
+      "kubectl": {"installedKiB": 81696, "downloadBytes": 16680560},
+      "trivy": {"installedKiB": 234896, "downloadBytes": 47148196}
+    },
+    "arm64": {
+      "docker-cli": {"installedKiB": 30803, "downloadBytes": 7053844},
+      "kubectl": {"installedKiB": 79465, "downloadBytes": 14527400},
+      "trivy": {"installedKiB": 223950, "downloadBytes": 40755516}
+    }
+  },
+  "sources": [
+    "https://http.kali.org/kali/dists/kali-rolling/main/binary-amd64/Packages.gz",
+    "https://mirrors.aliyun.com/kali/dists/kali-rolling/main/binary-arm64/Packages.gz",
+    "https://http.kali.org/kali/pool/main/d/docker.io/",
+    "https://http.kali.org/kali/pool/main/k/kubernetes/",
+    "https://http.kali.org/kali/pool/main/t/trivy/"
+  ]
+}

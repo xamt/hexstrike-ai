@@ -6,13 +6,18 @@
 
 | 用途 | AMD64 | ARM64 |
 | --- | --- | --- |
-| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-arm64` |
-| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-arm64` |
+| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-arm64` |
+| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-arm64` |
 
-- 基础镜像：Kali、安全工具、五类数据库客户端、小型字典、Python 3.11、独立 Volatility3/JWT-Tool 环境；默认进入 Bash，不启动服务。
+- 基础镜像：Kali、安全工具、小型字典、Python 3.11，以及隔离的 Volatility 2/3、JWT-Tool、ParamSpider 环境；默认进入 Bash，不启动服务。
 - 应用镜像：继承同架构基础镜像，安装项目依赖、复制代码、配置 8888 端口和健康检查，不重复安装安全工具。
 - 两类镜像版本独立管理，应用镜像引用同架构的基础镜像。
-- 不使用 `latest`；已发布的版本标签不可覆盖。调整版本时直接修改对应命令中的完整镜像名。
+- 本项目发布标签不使用 `latest`；已发布的版本标签不可覆盖。调整版本时直接修改对应命令中的完整镜像名。
+
+本版撤回新增数据库接口、技能声明与 MySQL/MariaDB、ClickHouse、Redis、PostgreSQL、MongoDB 客户端的专门安装步骤。
+保留原有 SQLMap 等安全工具自身的数据库测试能力；其间接依赖不作为独立数据库客户端能力承诺。
+恢复以 `1c865493^` 为基准的 MCP 参数契约，优先由固定工具版本、隔离运行时和命令入口适配原接口；
+不以新版工具的参数替换原有接口。五个补充工具 testssl.sh、WhatWeb、JWT-Tool、TruffleHog、tcpdump 及其版本保持不变。
 
 以下命令全部在项目根目录执行，不需要预先设置任何 Shell 变量。
 本地两步构建使用 Docker Desktop 的 `docker` 驱动，基础镜像通过 `--load` 保存到本机。
@@ -27,7 +32,7 @@
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-amd64 \
   --load \
   --progress=plain \
   "."
@@ -39,7 +44,7 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-arm64 \
   --load \
   --progress=plain \
   "."
@@ -57,8 +62,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-amd64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-amd64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-amd64 \
   --load \
   --progress=plain \
   "."
@@ -72,8 +77,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-arm64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-arm64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-arm64 \
   --load \
   --progress=plain \
   "."
@@ -91,7 +96,7 @@ docker run --detach \
   --name pentest-tools-amd64 \
   --platform linux/amd64 \
   --publish 127.0.0.1:8888:8888 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-amd64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-amd64
 ```
 
 ### 4.2 ARM64 应用
@@ -101,7 +106,7 @@ docker run --detach \
   --name pentest-tools-arm64 \
   --platform linux/arm64 \
   --publish 127.0.0.1:8888:8888 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-arm64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-arm64
 ```
 
 服务地址为 `http://127.0.0.1:8888`。两条命令使用相同的宿主机端口，不要同时运行。
@@ -121,7 +126,7 @@ docker run --detach \
 | 基础镜像及应用镜像的 Python 包 | 清华 PyPI 镜像 `https://pypi.tuna.tsinghua.edu.cn/simple` | `PIP_INDEX_URL` |
 | Gau、Waybackurls、Anew 的 Go 模块 | `https://goproxy.cn` | `GOPROXY` |
 | Go 模块校验数据 | `sum.golang.org https://goproxy.cn/sumdb/sum.golang.org` | `GOSUMDB` |
-| Rust、RubyGems、GitHub 源码及数据库客户端独立安装包 | 各自配置的上游来源 | 不由上述参数覆盖 |
+| Rust、RubyGems、GitHub 固定源码归档 | 各自配置的上游来源 | 不由上述参数覆盖 |
 
 需要切换来源时，在对应构建命令的 `--load` 前添加参数：
 
@@ -137,7 +142,7 @@ Kali 和 Go 参数只用于基础镜像构建，PyPI 参数可用于两种镜像
 
 ## 6. 基础镜像包含的工具
 
-以下按基础镜像 1.2.0 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
+以下按基础镜像 1.3.0 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
 AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不同，表中以实际命令入口为准。
 
 ### 6.1 网络发现与资产收集
@@ -170,7 +175,7 @@ AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不�
 | Gau | `gau` | 从多个公开数据源收集历史 URL。 |
 | Waybackurls | `waybackurls` | 从 Wayback Machine 收集历史 URL。 |
 | Arjun | `arjun` | 发现 GET、POST、JSON 请求中的隐藏参数。 |
-| ParamSpider | `paramspider` | 从历史 URL 中提取带参数的端点。 |
+| ParamSpider | `paramspider` | 从历史 URL 中提取带参数的端点；固定官方旧提交 `3add9faf11fa269624a2a9e92ea12be90338cb02`，保留 `--exclude/-o/-l` 参数。 |
 | X8 | `x8` | 根据响应差异发现隐藏 HTTP 参数。 |
 | Anew | `anew` | 对文本行去重，仅追加尚未出现的结果。 |
 | QSReplace | `qsreplace` | 批量替换 URL 查询参数值，准备测试输入。 |
@@ -224,21 +229,25 @@ AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不�
 | Foremost | `foremost` | 根据文件特征从磁盘镜像或原始数据中恢复文件。 |
 | Steghide | `steghide` | 在图片、音频等载体中嵌入或提取隐藏数据。 |
 | ExifTool | `exiftool` | 读取、修改和比较文件元数据。 |
-| Volatility3 | `vol` | 分析内存镜像中的进程、模块及其他取证信息。 |
+| Volatility 2.6.1 | `volatility` | 分析旧版系统内存镜像，保留 `--profile`、`imageinfo` 等旧接口能力。 |
+| Volatility 3（2.28.2） | `vol`、`vol.py` | 使用新版插件与符号机制分析内存；另保留 `/opt/volatility3/vol.py` Python 入口。 |
 
-### 6.6 数据库客户端
+### 6.6 通用容器与 Kubernetes
 
-| 客户端 | 命令 | 主要用途 |
-| --- | --- | --- |
-| MariaDB 兼容客户端 | `mysql` | 连接 MySQL/MariaDB，执行 SQL、查看数据库结构和权限。 |
-| ClickHouse 客户端 | `clickhouse-client` | 连接 ClickHouse，执行 SQL 并查看数据库及表信息。 |
-| Redis 客户端 | `redis-cli` | 连接 Redis，执行键值、配置及状态查询等命令。 |
-| PostgreSQL 客户端 | `psql` | 连接 PostgreSQL，执行 SQL 及查看数据库对象。 |
-| MongoDB Shell | `mongosh` | 连接 MongoDB，执行数据库命令及集合操作。 |
+| 工具 | 固定版本 | 命令 | 主要用途 |
+| --- | --- | --- | --- |
+| Docker CLI | 28.5.2+dfsg4-5 | `docker` | 连接授权的 Docker 服务，读取镜像、容器、网络与运行配置；不包含守护进程。 |
+| kubectl | 1.33.4+ds-1 | `kubectl` | 使用授权的 kubeconfig 访问 Kubernetes API，检查资源配置、RBAC 与暴露面；不安装集群。 |
+| Trivy | 0.66.0-0kali1 | `trivy` | 检查镜像、文件系统及配置中的漏洞、敏感信息和错误配置，复用原有 Trivy 接口。 |
 
-这里提供客户端环境，不配置或启动数据库服务。`mysql` 是 MariaDB 兼容客户端，不是 Oracle MySQL 官方客户端或 Python 的 mysqlclient 驱动。
-MongoDB 提供 `mongosh`，不包含旧 `mongo` 命令或独立备份工具套件。
-ClickHouse 客户端依赖公共多功能二进制，该二进制仍带有服务端子命令，但不安装 `clickhouse-server` 服务包。
+三个工具均从现有国内 Kali 镜像安装，不引入 AWS/Azure CLI。
+Docker CLI 和 kubectl 不新增专用 HTTP 接口；安装客户端不等于已获得宿主机或集群访问权限。
+不自动挂载 Docker socket、kubeconfig 或服务账号，也不默认提高容器权限。
+
+按 2026-10-16 包索引的安装体积合计，三个组件约增加 AMD64 **341 MiB**、ARM64 **326 MiB**，其中大部分来自 Trivy；
+安装包下载量约为 **69 MiB / 59 MiB**。这是包元数据估算，不是镜像层实测，也不包含 Trivy 后续下载的漏洞数据库。
+[AMD64 包索引](https://http.kali.org/kali/dists/kali-rolling/main/binary-amd64/Packages.gz)、
+[ARM64 包索引](https://mirrors.aliyun.com/kali/dists/kali-rolling/main/binary-arm64/Packages.gz)。
 
 ### 6.7 基础环境与辅助工具
 
@@ -249,7 +258,8 @@ ClickHouse 客户端依赖公共多功能二进制，该二进制仍带有服务
 | Git | 获取源码、读取和管理版本库。 |
 | Perl、Ruby 及相关依赖 | 支持 Nikto、WPScan 等工具运行。 |
 | Python 3.11、pip、venv | 提供 Python 运行与虚拟环境能力，不替换 Kali 系统 Python。 |
-| 独立 Volatility3/JWT-Tool 环境 | 隔离工具依赖，避免受应用 Python 依赖影响。 |
+| 独立 Volatility3/JWT-Tool/ParamSpider 环境 | 各自隔离 Python 3 依赖，不使用应用虚拟环境。 |
+| Python 2.7.18 专用运行时 | 只服务 Volatility 2；安装在 `/opt/python2`，不替换系统或应用解释器，不带入构建阶段编译器。 |
 | tini | 作为容器轻量入口管理子进程与信号。 |
 | CA 证书和系统动态库 | 支持 HTTPS 访问及各工具运行。 |
 | 小型目录与参数字典 | 提供 Dirb、Dirsearch、X8 使用的基本输入数据。 |
@@ -262,3 +272,10 @@ ClickHouse 客户端依赖公共多功能二进制，该二进制仍带有服务
 - Katana 的无头浏览器模式需要可用浏览器；Hashcat 的 GPU 模式需要宿主机驱动与设备透传。
 - tcpdump 实时采集需要可见网卡和相应权限，读取离线 PCAP 不需要抓包权限。
 - TruffleHog 的凭据验证及 JWT-Tool 的主动测试会产生外部请求，使用时应明确选择相应模式。
+- Volatility 2 与 Python 2 已停止维护，此处保留是为兼容旧接口和旧内存样本；不能视为仍受维护的通用 Python 环境。Volatility 3 不支持 Volatility 2 的 profile，两个命令不互相冒充；自定义 Linux/macOS profile、符号表与可选 XLSX 输出依赖仍需按需准备。
+- ParamSpider 原接口的整数 `level` 明确为两档：`1` 普通提取，`2` 对应上游 `high` 提取；不是任意爬取深度，其他值返回参数错误。`output` 与另一旧入口的 `output_file` 均映射到旧工具 `-o`；无目录文件名遵循旧工具的 `output/` 目录规则。
+- Volatility 3 的 `output_file` 保存成功命令的标准输出文本，而不是映射到含义不同的 `-o` 产物目录；HTTP 响应仍保留原命令输出。
+- 服务端仅保留原接口无法靠工具版本纠正的必要修复：CTF 目标占位符和缺失参数、HTTPX 两个原入口的字段传递、ParamSpider 输出字段与两档参数、Volatility 3 报告文件语义。Arjun、Fierce 的旧参数及 JWT-Tool 的旧路径由基础镜像兼容入口处理，不修改原调用代码；Arjun 原 GET+POST 意图分别转为两次明确调用，任一步失败即返回失败。未增加上述五个工具的新专用接口。
+- 工具选择以实际渗透复用为准：调试、逆向与内存取证工具保留其漏洞分析用途，不为了补齐 CTF 清单增加仅限赛题的工具；云与容器限定 Docker、Kubernetes 等通用环境，不增加 AWS/Azure 专用组件。
+- Trivy 不内置漏洞数据库或 Java 数据库；扫描前需具备下载条件或预先准备的数据缓存，数据库缺失不能视为无漏洞。
+- kubectl 1.33.x 应配合受支持的 Kubernetes API 版本使用，不能保证兼容所有旧集群；连接前核对服务端版本与官方版本偏差范围。[Kubernetes 版本偏差策略](https://kubernetes.io/releases/version-skew-policy/#kubectl)

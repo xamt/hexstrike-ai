@@ -14,7 +14,6 @@ HAKRAWLER_VERSION=2.1-0kali1
 SQLMAP_VERSION=1.10.9-1
 WPSCAN_VERSION=4.0.0
 ARJUN_VERSION=2.2.7-1
-PARAMSPIDER_VERSION=1.0.1-3
 DALFOX_VERSION=3.2.2-0kali1
 WAFW00F_VERSION=2.4.2-1
 QSREPLACE_VERSION=0.0.3-0kali1
@@ -153,17 +152,7 @@ apt-get install -y --no-install-recommends \
     bash "${script_dir}/record-tool-version.sh" apt arjun "${ARJUN_VERSION}" "${TARGETARCH}"
 )
 
-# 工具: ParamSpider
-# 分类: Web Application Security / 参数发现
-# 描述: 从历史 URL 数据中提取包含参数的端点。
-# MCP 参数契约: 固定使用 1.0.1 的 -d/-s/--proxy/-p；该版本的 -l 表示
-#               “域名列表文件”，因此代码不再把 -l 错当成扫描层级。
-# 安装: Kali 软件包 paramspider。
-(
-apt-get install -y --no-install-recommends \
-      "paramspider=${PARAMSPIDER_VERSION}" && \
-    bash "${script_dir}/record-tool-version.sh" apt paramspider "${PARAMSPIDER_VERSION}" "${TARGETARCH}"
-)
+# ParamSpider 在独立 Python 运行时阶段安装兼容原接口的固定源码。
 
 # 工具: Dalfox
 # 分类: Web Application Security / XSS

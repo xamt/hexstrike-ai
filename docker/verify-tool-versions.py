@@ -11,24 +11,28 @@ from typing import NamedTuple
 REQUIRED = {
     "apt": """nmap masscan rustscan amass subfinder nuclei fierce dnsenum autorecon
         theharvester responder netexec enum4linux-ng gobuster feroxbuster dirsearch
-        ffuf dirb httpx-toolkit katana hakrawler sqlmap arjun paramspider dalfox wafw00f
+        ffuf dirb httpx-toolkit katana hakrawler sqlmap arjun dalfox wafw00f
         qsreplace uro wfuzz hydra john hashcat medusa patator crackmapexec evil-winrm
         hash-identifier ophcrack-cli gdb radare2 binwalk ghidra checksec binutils xxd
-        foremost steghide libimage-exiftool-perl mariadb-client mariadb-client-core
-        mariadb-client-compat redis-tools postgresql-client-18 clickhouse-client
-        clickhouse-common-static mongodb-mongosh testssl.sh whatweb trufflehog tcpdump""".split(),
+        foremost steghide libimage-exiftool-perl testssl.sh whatweb trufflehog tcpdump
+        docker-cli kubectl trivy""".split(),
     "gem": ["wpscan"],
     "go": ["gau", "waybackurls", "anew"],
     "rust": ["x8"],
-    "source": ["nikto", "jwt_tool"],
+    "source": ["nikto", "jwt_tool", "paramspider", "python2", "volatility2"],
     "python": ["pip", "setuptools", "wheel"],
     "vol-python": ["pip", "setuptools", "wheel", "volatility3"],
     "jwt-python": ["termcolor", "cprint", "pycryptodomex", "requests", "ratelimit"],
+    "legacy-python": ["pip", "setuptools", "wheel", "pycryptodome", "distorm3",
+                      "yara-python", "pefile", "future", "capstone", "pillow"],
+    "param-python": ["requests", "urllib3", "charset-normalizer", "idna", "certifi"],
 }
 PYTHON_EXECUTABLES = {
     "python": "/usr/local/bin/python3.11",
     "vol-python": "/opt/volatility3-venv/bin/python",
     "jwt-python": "/opt/jwt-tool-venv/bin/python",
+    "legacy-python": "/usr/local/bin/volatility2-python",
+    "param-python": "/opt/paramspider-venv/bin/python",
 }
 
 
@@ -96,11 +100,10 @@ def verify_record(record):
         command_output(["gem", "list", "--local", "--exact", record.name,
                         "--version", record.version, "--installed"])
     elif record.kind in PYTHON_EXECUTABLES:
-        actual = command_output([
-            PYTHON_EXECUTABLES[record.kind], "-c",
-            "import sys; from importlib.metadata import version; print(version(sys.argv[1]))",
-            record.name,
-        ])
+        query = "import sys; from importlib.metadata import version; print(version(sys.argv[1]))"
+        if record.kind == "legacy-python":
+            query = "import sys, pkg_resources; print(pkg_resources.get_distribution(sys.argv[1]).version)"
+        actual = command_output([PYTHON_EXECUTABLES[record.kind], "-c", query, record.name])
         if actual != record.version:
             raise ValueError(f"Python 包版本不符: {record.kind}/{record.name}: {actual} != {record.version}")
     elif record.kind in ("go", "rust", "source"):

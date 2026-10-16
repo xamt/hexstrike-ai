@@ -1,36 +1,10 @@
 """仅读取原始工具声明；不导入 MCP、requests，也不运行服务。"""
 import ast
 import copy
-import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "hexstrike_mcp.py"
-DATABASE_SOURCE = ROOT / "database_tools/contracts.json"
-
-
-def database_definitions():
-    """从服务端共享契约生成直接 POST 声明，不发出网络请求。"""
-    result = []
-    contracts = json.loads(DATABASE_SOURCE.read_text(encoding="utf-8"))
-    for name, spec in contracts.items():
-        params = spec["parameters"]
-        ordered = sorted(params, key=lambda key: not params[key]["required"])
-        arguments = []
-        for key in ordered:
-            item = params[key]
-            argument = f"{key}: {item['type']}"
-            if not item["required"]:
-                argument += f" = {item['default']!r}"
-            arguments.append(argument)
-        payload = ", ".join(f"{key!r}: {key}" for key in ordered)
-        source = (f"def {name}({', '.join(arguments)}):\n"
-                  f"    {spec['description']!r}\n"
-                  f"    return hexstrike_client.safe_post({spec['endpoint']!r}, {{{payload}}})\n")
-        node = ast.parse(source).body[0]
-        node.source_file = str(DATABASE_SOURCE.relative_to(ROOT))
-        result.append(node)
-    return result
 
 
 def definitions():
@@ -52,10 +26,7 @@ def definitions():
         seen.add(original)
         node.source_file = str(SOURCE.relative_to(ROOT))
         result.append(node)
-    extra = database_definitions()
-    if seen.intersection(node.name for node in extra):
-        raise ValueError("数据库工具名与原工具冲突")
-    return result + extra
+    return result
 
 
 class StripLogging(ast.NodeTransformer):

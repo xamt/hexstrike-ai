@@ -94,10 +94,6 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
-# 数据库工具使用独立、有界、无缓存重试的客户端执行器。
-from database_tools.http import register_database_routes
-register_database_routes(app)
-
 # API Configuration
 API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
@@ -3506,7 +3502,7 @@ class CTFToolManager:
             "gobuster": "gobuster dir -u {} -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt,js",
             "dirsearch": "dirsearch -u {} -e php,html,js,txt,xml,json -t 50",
             "feroxbuster": "feroxbuster -u {} -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,js,txt",
-            "arjun": "arjun -u {} -m GET",
+            "arjun": "arjun -u {} --get --post",
             "paramspider": "paramspider -d {}",
             "wpscan": "wpscan --url {} --enumerate ap,at,cb,dbe",
             "nikto": "nikto -h {} -C all",
@@ -3569,8 +3565,8 @@ class CTFToolManager:
             "zsteg": "zsteg -a",
             "outguess": "outguess -r",
             "jsteg": "jsteg reveal",
-            "volatility": "vol -f {} windows.info",
-            "volatility3": "vol -f {} windows.info",
+            "volatility": "volatility -f {} imageinfo",
+            "volatility3": "python3 /opt/volatility3/vol.py -f",
             "rekall": "rekall -f",
             "wireshark": "tshark -r",
             "tcpdump": "tcpdump -r",
@@ -3615,7 +3611,7 @@ class CTFToolManager:
             "nslookup": "nslookup",
             "host": "host",
             "dnsrecon": "dnsrecon -d",
-            "fierce": "fierce --domain",
+            "fierce": "fierce -dns",
             "sublist3r": "sublist3r -d",
             "amass": "amass enum -d",
             "assetfinder": "assetfinder",
@@ -3646,7 +3642,7 @@ class CTFToolManager:
             "compress": "uncompress",
 
             # Modern Web Technologies
-            "jwt-tool": "jwt_tool",
+            "jwt-tool": "python3 /opt/jwt_tool/jwt_tool.py",
             "jwt-cracker": "jwt-cracker",
             "graphql-voyager": "graphql-voyager",
             "graphql-playground": "graphql-playground",
@@ -11873,11 +11869,12 @@ def responder():
 
 @app.route("/api/tools/volatility", methods=["POST"])
 def volatility():
-    """Execute the pinned Volatility3 CLI for memory forensics."""
+    """Execute Volatility for memory forensics with enhanced logging"""
     try:
         params = request.json
         memory_file = params.get("memory_file", "")
         plugin = params.get("plugin", "")
+        profile = params.get("profile", "")
         additional_args = params.get("additional_args", "")
 
         if not memory_file:
@@ -11892,9 +11889,12 @@ def volatility():
                 "error": "Plugin parameter is required"
             }), 400
 
-        # The Docker image pins Volatility3 2.28.2, whose console command is
-        # `vol`; Volatility2 profiles and the `volatility` command do not apply.
-        command = f"vol -f {memory_file} {plugin}"
+        command = f"volatility -f {memory_file}"
+
+        if profile:
+            command += f" --profile={profile}"
+
+        command += f" {plugin}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -12990,25 +12990,27 @@ def paramspider():
     try:
         params = request.json
         domain = params.get("domain", "")
-        stream = params.get("stream", True)
-        proxy = params.get("proxy", "")
-        placeholder = params.get("placeholder", "FUZZ")
+        level = params.get("level", 2)
+        exclude = params.get("exclude", "png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico")
+        output = params.get("output", "") or params.get("output_file", "")
         additional_args = params.get("additional_args", "")
 
         if not domain:
             logger.warning("🌐 ParamSpider called without domain parameter")
             return jsonify({"error": "Domain parameter is required"}), 400
 
-        # ParamSpider 1.0.1: -l/--list means a domain-list file, not crawl level.
-        # This endpoint handles one domain, so use -d and only expose flags that
-        # exist in the pinned Kali package.
-        command = f"paramspider -d {domain} -p {placeholder}"
+        # 旧版上游只有普通/high 两档，不支持任意爬取深度。
+        if type(level) is not int or level not in (1, 2):
+            return jsonify({"error": "level must be 1 (normal) or 2 (high)"}), 400
+        command = f"paramspider -d {domain}"
+        if level == 2:
+            command += " -l high"
 
-        if stream:
-            command += " -s"
+        if exclude:
+            command += f" --exclude {exclude}"
 
-        if proxy:
-            command += f" --proxy {proxy}"
+        if output:
+            command += f" -o {output}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -15265,7 +15267,7 @@ def volatility3():
         params = request.json
         memory_file = params.get("memory_file", "")
         plugin = params.get("plugin", "")
-        output_dir = params.get("output_dir", "")
+        output_file = params.get("output_file", "")
         additional_args = params.get("additional_args", "")
 
         if not memory_file:
@@ -15280,18 +15282,16 @@ def volatility3():
                 "error": "Plugin parameter is required"
             }), 400
 
-        command = f"vol -f {memory_file}"
-
-        if output_dir:
-            command += f" -o {output_dir}"
-
-        command += f" {plugin}"
+        command = f"vol.py -f {memory_file} {plugin}"
 
         if additional_args:
             command += f" {additional_args}"
 
         logger.info(f"🧠 Starting Volatility3 analysis: {plugin}")
-        result = execute_command(command)
+        result = execute_command(command, use_cache=not bool(output_file))
+        # -o 是插件产物目录；原接口 output_file 应保存报告文本。
+        if output_file and result.get("success"):
+            Path(output_file).write_text(result.get("stdout", ""), encoding="utf-8")
         logger.info(f"📊 Volatility3 analysis completed")
         return jsonify(result)
     except Exception as e:

@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts/skill-export"))
-from source import definitions, parameters, StripLogging, database_definitions
+from source import definitions, parameters, StripLogging
 
 
 class MockClient:
@@ -91,30 +91,6 @@ class SkillParityTests(unittest.TestCase):
                                    input=json.dumps(cases), capture_output=True, text=True)
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertEqual(json.loads(completed.stdout)["checked"], 6 * len(definitions()))
-
-    def test_database_routes_and_parameters(self):
-        routes = {"mysql_query": "mysql", "clickhouse_query": "clickhouse",
-                  "redis_command": "redis", "postgresql_query": "postgresql",
-                  "mongodb_command": "mongodb"}
-        nodes = database_definitions()
-        self.assertEqual({n.name for n in nodes}, set(routes))
-        for node in nodes:
-            client = MockClient({"success": True})
-            funcs = reference_functions(client)
-            funcs[node.name](**inputs(node))
-            self.assertEqual(client.calls[0][:2], ["POST", "api/tools/" + routes[node.name]])
-            self.assertEqual(set(client.calls[0][2]), set(parameters(node)))
-            self.assertTrue(parameters(node)["host"]["required"])
-
-    def test_database_catalog_and_image_use_shared_contract(self):
-        contract = json.loads((ROOT / "database_tools/contracts.json").read_text())
-        catalog = json.loads((ROOT / "skills/pentest-tools/scripts/tools.json").read_text())
-        for name, spec in contract.items():
-            self.assertEqual(catalog[name]["parameters"], spec["parameters"])
-            self.assertEqual(catalog[name]["sourceFile"], "database_tools/contracts.json")
-        dockerfile = (ROOT / "Dockerfile").read_text()
-        self.assertIn("COPY database_tools/ ./database_tools/", dockerfile)
-        self.assertIn("compileall -q database_tools", dockerfile)
 
     def test_export_is_current(self):
         result = subprocess.run([sys.executable, str(ROOT / "scripts/skill-export/export.py"), "--check"], capture_output=True, text=True)
