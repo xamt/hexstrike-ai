@@ -1,0 +1,35 @@
+{
+  "updatedAt": "2026-10-16T03:51:04.577Z",
+  "version": 2,
+  "source": "manual",
+  "originCommand": "build",
+  "qaMode": "standard",
+  "qaFocus": [
+    "真实接口契约",
+    "先规划",
+    "验证与深挖",
+    "离线回归"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}

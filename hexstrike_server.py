@@ -94,6 +94,10 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
+# 数据库工具使用独立、有界、无缓存重试的客户端执行器。
+from database_tools.http import register_database_routes
+register_database_routes(app)
+
 # API Configuration
 API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')

@@ -261,7 +261,21 @@ ExifTool 包名为 `libimage-exiftool-perl`，NetExec 命令为 `nxc`，HTTPX To
 
 ### 6.4 数据库客户端（1.1.0 新增）
 
-本次仅增加镜像内客户端环境，不新增 HTTP/MCP 接口，也不修改现有 `/health` 检查清单。
+基础镜像 1.1.0 提供客户端环境；应用代码另提供下列五个 HTTP 接口及技能入口，不新增 MCP 注册，也不修改原 `/health` 检查清单。
+
+| POST 接口 | 技能工具 | 执行内容 |
+| --- | --- | --- |
+| `/api/tools/mysql` | `mysql_query` | MySQL/MariaDB SQL |
+| `/api/tools/clickhouse` | `clickhouse_query` | ClickHouse SQL（默认原生协议端口 9000） |
+| `/api/tools/redis` | `redis_command` | 字符串数组形式的单条 Redis 命令 |
+| `/api/tools/postgresql` | `postgresql_query` | PostgreSQL SQL |
+| `/api/tools/mongodb` | `mongodb_command` | MongoDB 数据库命令对象 |
+
+这些是通用 SQL/数据库命令入口，不限于连通性检测，不强制只读。请求参数的唯一维护源为 `database_tools/contracts.json`；技能参数表由它生成。Agent 无需本机数据库客户端，命令在应用容器中执行。
+
+新接口不使用原来的缓存/自动重试执行器，也不拼接 Shell。应用镜像已增加 `database_tools/` 包复制；部署新接口需要用更新后的代码构建应用镜像并发布新标签，已有基础镜像 1.1.0 可继续复用。本次不执行构建或真实数据库连接。
+
+详细参数、凭据处理与使用边界见 `skills/pentest-tools/references/workflows/database-validation.md`。HTTP 服务没有新增鉴权，数据库连接未增加 TLS 配置，不能直接暴露到不可信网络或将未受保护的链路当作安全凭据通道；写入/管理命令会按实际数据库账号权限执行。
 
 原安全工具版本不变；基础镜像和应用镜像使用新的 `1.1.0-amd64` / `1.1.0-arm64` 标签，应用通过继承新版基础镜像获得客户端，旧基础镜像不包含本次新增环境。
 
@@ -323,8 +337,11 @@ AutoRecon 依赖安装的 SecLists 数据只写入构建缓存；需要时挂载
 | 资产清单 | 输入定界 → 候选发现 → 归属/解析复核 → 存活与服务识别 → 可追溯资产清单 |
 | Web / API 渗透 | 基线与身份 → 应用建模 → 具体假设 → 最小复核 → 发现、覆盖矩阵与复测条件 |
 | 容器安全 | 区分镜像/部署/运行时/集群 → 检查真实能力 → 分层验证 → 风险及未覆盖项 |
+| 数据库验证 | 固定目标与身份 → 最小基线 → 执行 SQL/命令验证假设 → 根因/实际权限深化 → 证据与复测 |
 
-用户可直接说“梳理指定域名的资产清单，不做漏洞扫描”或“评估这份 Kubernetes 配置，暂不连接集群”。技能按边界执行，不自动把清单任务升级成漏洞验证，也不因容器工具缺失而安装工具或扩大权限。详细阶段见 `skills/pentest-tools/references/workflows/`。
+技能先输出包含假设、优先级、方法、证明/证伪标准、预算和停止条件的可执行计划；已有授权充分时直接执行，不额外等待确认。发现疑点及时复核，已确认问题沿同一根因、相邻对象与有证据的关联深化影响，不把多个告警拼成已验证漏洞链。
+
+用户可直接说“梳理指定域名的资产清单，不做漏洞扫描”或“评估这份 Kubernetes 配置，暂不连接集群”。技能按边界执行，不自动把清单任务升级成漏洞验证，也不因工具缺失而安装工具或扩大权限。详细阶段见 `skills/pentest-tools/references/workflows/`，共 156 个调用入口，保留此前 151 个工具契约。
 
 运行环境需要 Node.js 22 或更高版本，不需要 Python、requests、MCP SDK 或 npm install。调用器使用 Node.js 内置 fetch 直接访问 HTTP API；工具仍在容器中执行。
 

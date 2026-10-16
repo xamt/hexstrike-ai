@@ -6,3 +6,4 @@
 | 2026-10-15 | [HTTP 工具技能](2026-10/20261015_http-skill/plan.md) | 151 工具入口、906 组离线对照及 9 项 HTTP/CLI 模拟测试通过；运行仅需 Node.js，无 Python/MCP；未执行镜像构建或扫描。 |
 | 2026-10-16 | [场景化渗透测试技能](2026-10/20261016_pentest-workflows/plan.md) | 资产、Web/API、容器/Kubernetes 三方向与证据规范；11 项 Node、2 项契约测试及独立情境评审通过；未构建镜像或扫描。 |
 | 2026-10-16 | [数据库客户端镜像环境](2026-10/202610161100_database-clients/plan.md) | 新增 MariaDB 兼容 mysql、ClickHouse、Redis、PostgreSQL、mongosh 安装及固定版本校验；47 项离线回归通过。按用户最新要求仅保留镜像配置，接口改动撤回；未构建镜像或连接数据库。 |
+| 2026-10-16 | [数据库接口与技能测试闭环](2026-10/20261016_skill-planning-tools/plan.md) | 用户确认新增五个 SQL/数据库命令 HTTP 接口；156 技能入口、先规划/复核/深挖流程；76 项 Python、14 项 Node、936 组对照通过，未构建或真实扫描/连接。 |

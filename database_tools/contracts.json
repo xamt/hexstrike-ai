@@ -1,0 +1,227 @@
+{
+  "mysql_query": {
+    "endpoint": "api/tools/mysql",
+    "description": "MySQL/MariaDB SQL 查询",
+    "parameters": {
+      "host": {
+        "type": "str",
+        "required": true
+      },
+      "port": {
+        "type": "int",
+        "required": false,
+        "default": 3306
+      },
+      "username": {
+        "type": "str",
+        "required": false,
+        "default": "root"
+      },
+      "password": {
+        "type": "str",
+        "required": false,
+        "default": ""
+      },
+      "database": {
+        "type": "str",
+        "required": false,
+        "default": ""
+      },
+      "query": {
+        "type": "str",
+        "required": true
+      },
+      "timeout": {
+        "type": "int",
+        "required": false,
+        "default": 30
+      },
+      "max_output_bytes": {
+        "type": "int",
+        "required": false,
+        "default": 65536
+      }
+    }
+  },
+  "clickhouse_query": {
+    "endpoint": "api/tools/clickhouse",
+    "description": "ClickHouse SQL 查询",
+    "parameters": {
+      "host": {
+        "type": "str",
+        "required": true
+      },
+      "port": {
+        "type": "int",
+        "required": false,
+        "default": 9000
+      },
+      "username": {
+        "type": "str",
+        "required": false,
+        "default": "default"
+      },
+      "password": {
+        "type": "str",
+        "required": false,
+        "default": ""
+      },
+      "database": {
+        "type": "str",
+        "required": false,
+        "default": "default"
+      },
+      "query": {
+        "type": "str",
+        "required": true
+      },
+      "timeout": {
+        "type": "int",
+        "required": false,
+        "default": 30
+      },
+      "max_output_bytes": {
+        "type": "int",
+        "required": false,
+        "default": 65536
+      }
+    }
+  },
+  "redis_command": {
+    "endpoint": "api/tools/redis",
+    "description": "Redis 单条命令",
+    "parameters": {
+      "host": {
+        "type": "str",
+        "required": true
+      },
+      "port": {
+        "type": "int",
+        "required": false,
+        "default": 6379
+      },
+      "username": {
+        "type": "str",
+        "required": false,
+        "default": ""
+      },
+      "password": {
+        "type": "str",
+        "required": false,
+        "default": ""
+      },
+      "database": {
+        "type": "int",
+        "required": false,
+        "default": 0
+      },
+      "command": {
+        "type": "list",
+        "required": true
+      },
+      "timeout": {
+        "type": "int",
+        "required": false,
+        "default": 30
+      },
+      "max_output_bytes": {
+        "type": "int",
+        "required": false,
+        "default": 65536
+      }
+    }
+  },
+  "postgresql_query": {
+    "endpoint": "api/tools/postgresql",
+    "description": "PostgreSQL SQL 查询",
+    "parameters": {
+      "host": {
+        "type": "str",
+        "required": true
+      },
+      "port": {
+        "type": "int",
+        "required": false,
+        "default": 5432
+      },
+      "username": {
+        "type": "str",
+        "required": false,
+        "default": "postgres"
+      },
+      "password": {
+        "type": "str",
+        "required": false,
+        "default": ""
+      },
+      "database": {
+        "type": "str",
+        "required": false,
+        "default": "postgres"
+      },
+      "query": {
+        "type": "str",
+        "required": true
+      },
+      "timeout": {
+        "type": "int",
+        "required": false,
+        "default": 30
+      },
+      "max_output_bytes": {
+        "type": "int",
+        "required": false,
+        "default": 65536
+      }
+    }
+  },
+  "mongodb_command": {
+    "endpoint": "api/tools/mongodb",
+    "description": "MongoDB JSON 命令",
+    "parameters": {
+      "host": {
+        "type": "str",
+        "required": true
+      },
+      "port": {
+        "type": "int",
+        "required": false,
+        "default": 27017
+      },
+      "username": {
+        "type": "str",
+        "required": false,
+        "default": ""
+      },
+      "password": {
+        "type": "str",
+        "required": false,
+        "default": ""
+      },
+      "database": {
+        "type": "str",
+        "required": false,
+        "default": "admin"
+      },
+      "command": {
+        "type": "dict",
+        "required": true
+      },
+      "timeout": {
+        "type": "int",
+        "required": false,
+        "default": 30
+      },
+      "max_output_bytes": {
+        "type": "int",
+        "required": false,
+        "default": 65536
+      },
+      "auth_database": {
+        "type": "str",
+        "required": false,
+        "default": "admin"
+      }
+    }
+  }
+}
