@@ -11,7 +11,7 @@ source_path="${5:--}"
 target_path="${6:--}"
 record_dir="${TOOL_RECORD_DIR:-/opt/hexstrike/tool-versions.d}"
 
-case "${kind}" in apt|gem|go|rust|source|python|vol-python|jwt-python|legacy-python|param-python) ;; *) exit 2 ;; esac
+case "${kind}" in apt|gem|go|rust|source|python|vol-python|jwt-python|legacy-python|param-python|hunter-python) ;; *) exit 2 ;; esac
 case "${arch}" in amd64|arm64|all) ;; *) exit 2 ;; esac
 [[ "${name}" =~ ^[a-z0-9][a-z0-9.+_-]*$ ]] || exit 2
 [[ "${version}" != *$'\t'* && "${version}" != *$'\n'* ]] || exit 2

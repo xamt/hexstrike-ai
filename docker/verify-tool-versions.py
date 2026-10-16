@@ -15,17 +15,21 @@ REQUIRED = {
         qsreplace uro wfuzz hydra john hashcat medusa patator crackmapexec evil-winrm
         hash-identifier ophcrack-cli gdb radare2 binwalk ghidra checksec binutils xxd
         foremost steghide libimage-exiftool-perl testssl.sh whatweb trufflehog tcpdump
-        docker-cli kubectl trivy""".split(),
+        docker-cli kubectl kubernetes-helm""".split(),
     "gem": ["wpscan"],
     "go": ["gau", "waybackurls", "anew"],
     "rust": ["x8"],
-    "source": ["nikto", "jwt_tool", "paramspider", "python2", "volatility2"],
+    "source": ["nikto", "jwt_tool", "paramspider", "python2", "volatility2", "kube-bench", "kube-bench-config"],
     "python": ["pip", "setuptools", "wheel"],
     "vol-python": ["pip", "setuptools", "wheel", "volatility3"],
     "jwt-python": ["termcolor", "cprint", "pycryptodomex", "requests", "ratelimit"],
     "legacy-python": ["pip", "setuptools", "wheel", "pycryptodome", "distorm3",
                       "yara-python", "pefile", "future", "capstone", "pillow"],
     "param-python": ["requests", "urllib3", "charset-normalizer", "idna", "certifi"],
+    "hunter-python": """pip setuptools wheel kube-hunter netaddr netifaces requests prettytable
+        urllib3 ruamel.yaml ruamel.yaml.clib future packaging dataclasses pluggy kubernetes
+        certifi charset-normalizer idna wcwidth six python-dateutil pyyaml google-auth
+        websocket-client requests-oauthlib oauthlib cachetools pyasn1 pyasn1-modules rsa""".split(),
 }
 PYTHON_EXECUTABLES = {
     "python": "/usr/local/bin/python3.11",
@@ -33,6 +37,7 @@ PYTHON_EXECUTABLES = {
     "jwt-python": "/opt/jwt-tool-venv/bin/python",
     "legacy-python": "/usr/local/bin/volatility2-python",
     "param-python": "/opt/paramspider-venv/bin/python",
+    "hunter-python": "/opt/kube-hunter-venv/bin/python",
 }
 
 
@@ -123,7 +128,7 @@ def write_lock(records, output):
     rows = []
     for record in records.values():
         version, arch = verify_record(record)
-        if record.kind in PYTHON_EXECUTABLES and record.name != "volatility3":
+        if record.kind in PYTHON_EXECUTABLES and record.name not in ("volatility3", "kube-hunter"):
             continue
         rows.append(f"{record.name}\t{version}\t{arch}\n")
     output.parent.mkdir(parents=True, exist_ok=True)

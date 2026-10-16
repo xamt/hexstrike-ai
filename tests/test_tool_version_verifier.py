@@ -31,11 +31,15 @@ class ToolVersionVerifierTests(unittest.TestCase):
             "gem": {"wpscan"},
             "go": {"gau", "waybackurls", "anew"},
             "rust": {"x8"},
-            "source": {"nikto", "jwt_tool", "paramspider", "python2", "volatility2"},
+            "source": {"nikto", "jwt_tool", "paramspider", "python2", "volatility2", "kube-bench", "kube-bench-config"},
             "python": {"pip", "setuptools", "wheel"},
             "vol-python": {"pip", "setuptools", "wheel", "volatility3"},
             "jwt-python": {"termcolor", "cprint", "pycryptodomex", "requests", "ratelimit"},
             "param-python": {"requests", "urllib3", "charset-normalizer", "idna", "certifi"},
+            "hunter-python": set("""pip setuptools wheel kube-hunter netaddr netifaces requests prettytable
+                urllib3 ruamel.yaml ruamel.yaml.clib future packaging dataclasses pluggy kubernetes
+                certifi charset-normalizer idna wcwidth six python-dateutil pyyaml google-auth
+                websocket-client requests-oauthlib oauthlib cachetools pyasn1 pyasn1-modules rsa""".split()),
             "legacy-python": {"pip", "setuptools", "wheel", "pycryptodome", "distorm3",
                               "yara-python", "pefile", "future", "capstone", "pillow"},
         }
@@ -54,7 +58,7 @@ class ToolVersionVerifierTests(unittest.TestCase):
             with self.subTest(arch=arch), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
                 write_fixture(root, arch)
-                self.assertEqual(91, len(VERIFIER.load_records(root, arch)))
+                self.assertEqual(124, len(VERIFIER.load_records(root, arch)))
 
     def test_missing_record_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:

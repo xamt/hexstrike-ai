@@ -144,17 +144,23 @@ RUN --mount=type=bind,source=docker/install-security-extras.sh,target=/tmp/insta
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     bash /tmp/install-security-extras.sh
 
-# 通用容器环境：仅 Docker CLI、kubectl 与 Trivy，不安装 daemon 或专有云工具。
+# 通用容器环境：Docker CLI、kubectl、Helm；不安装 daemon 或专有云工具。
 RUN --mount=type=bind,source=docker/install-container-tools.sh,target=/tmp/install-container-tools.sh \
     --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
-    bash /tmp/install-container-tools.sh
+    bash /tmp/install-container-tools.sh apt
+
+# Kube-Bench 使用官方双架构固定发布包，附带 CIS 配置，不通过不明代理获取。
+RUN --mount=type=bind,source=docker/install-container-tools.sh,target=/tmp/install-container-tools.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    bash /tmp/install-container-tools.sh bench
 
 # =============================================================================
-# 7. Python 3 运行时：Volatility3、JWT-Tool、旧 ParamSpider 各自隔离
+# 7. Python 3 运行时：Volatility3、JWT-Tool、旧 ParamSpider、Kube-Hunter 各自隔离
 # =============================================================================
 FROM python-source AS python-runtime
+ARG TARGETARCH
 ARG PIP_INDEX_URL
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
@@ -170,6 +176,11 @@ RUN --mount=type=bind,source=docker/install-paramspider-legacy.sh,target=/tmp/in
     bash /tmp/install-paramspider-legacy.sh
 RUN --mount=type=bind,source=docker/install-volatility3-compat.sh,target=/tmp/install-volatility3-compat.sh \
     bash /tmp/install-volatility3-compat.sh
+
+# netifaces 编译依赖只留在本构建阶段，最终镜像仅复制隔离环境与运行时。
+RUN --mount=type=bind,source=docker/install-container-tools.sh,target=/tmp/install-container-tools.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    bash /tmp/install-container-tools.sh python
 
 # =============================================================================
 # 8. 旧取证运行时：真实 Volatility 2，避免把 profile 接口映射至 Volatility 3
@@ -195,6 +206,7 @@ COPY --from=python-runtime /opt/jwt-tool/ /opt/jwt-tool/
 COPY --from=python-runtime /opt/paramspider/ /opt/paramspider/
 COPY --from=python-runtime /opt/paramspider-venv/ /opt/paramspider-venv/
 COPY --from=python-runtime /opt/volatility3/ /opt/volatility3/
+COPY --from=python-runtime /opt/kube-hunter-venv/ /opt/kube-hunter-venv/
 COPY --from=legacy-python-runtime /out/ /
 COPY --from=python-runtime /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 RUN --mount=type=bind,source=docker/install-cli-compat.sh,target=/tmp/install-cli-compat.sh \

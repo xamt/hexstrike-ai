@@ -53,7 +53,7 @@ class DockerContractTests(unittest.TestCase):
 
     def test_application_layers_and_isolation(self):
         app = (ROOT / "Dockerfile").read_text()
-        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-${TARGETARCH}", app)
+        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-${TARGETARCH}", app)
         self.assertIn("FROM ${BASE_IMAGE}", app)
         self.assertEqual(1, len(re.findall(r"^FROM ", app, re.M)))
         self.assertNotIn("apt-get", app)
@@ -70,12 +70,12 @@ class DockerContractTests(unittest.TestCase):
         docs = (ROOT / "docs/DOCKER_BUILD.md").read_text()
         for arch in ("amd64", "arm64"):
             self.assertIn(f'--platform linux/{arch}', docs)
-            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-{arch}', docs)
-            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-{arch}', docs)
-            self.assertIn(f'--build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-{arch}', docs)
+            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-{arch}', docs)
+            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-{arch}', docs)
+            self.assertIn(f'--build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-{arch}', docs)
         self.assertNotIn("${", docs)
         self.assertNotIn("imagetools", docs)
-        self.assertNotRegex(docs, r'pentest-tools(?:-base)?:1\.3\.0(?!-)')
+        self.assertNotRegex(docs, r'pentest-tools(?:-base)?:1\.3\.1(?!-)')
         for path in (ROOT / "Dockerfile", ROOT / "docs/DOCKER_BUILD.md",
                      ROOT / "tests/verify_docker_cache.py"):
             self.assertNotIn("penttest", path.read_text())
@@ -97,6 +97,21 @@ class DockerContractTests(unittest.TestCase):
             content = script.read_text()
             self.assertNotIn("apt-get update", content)
             self.assertNotIn("Verify-Peer=false", content)
+
+    def test_container_tools_span_only_required_build_stages(self):
+        base = (ROOT / "Dockerfile.base").read_text()
+        security = base.split("FROM security-packages AS security-tools", 1)[1].split("FROM python-source", 1)[0]
+        runtime = base.split("FROM python-source AS python-runtime", 1)[1].split("FROM ${LEGACY_PYTHON", 1)[0]
+        for mode in ("apt", "bench"):
+            self.assertIn(f"bash /tmp/install-container-tools.sh {mode}", security)
+        self.assertIn("ARG TARGETARCH", runtime)
+        self.assertIn("bash /tmp/install-container-tools.sh python", runtime)
+        self.assertIn("COPY --from=python-runtime /opt/kube-hunter-venv/ /opt/kube-hunter-venv/", base)
+        self.assertNotIn("COPY --from=python-runtime /usr/bin", base)
+        verification = (ROOT / "docker/verify-base.sh").read_text()
+        self.assertIn("sha256sum -c /opt/kube-bench/cfg.sha256", verification)
+        self.assertIn("/opt/kube-hunter-venv/bin/python -m pip check", verification)
+        self.assertIn('Path("/opt/kube-bench/kube-bench")', verification)
 
     def test_shell_syntax(self):
         scripts = list((ROOT / "docker").glob("*.sh"))

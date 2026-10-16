@@ -39,7 +39,10 @@ docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/b
     timeout 30 jwt_tool -h >/dev/null
     timeout 30 docker --version
     timeout 30 kubectl version --client=true --output=json
-    timeout 30 trivy --version
+    timeout 30 helm version --short
+    timeout 30 kube-bench version
+    timeout 30 kube-hunter --help >/dev/null
+    /opt/kube-hunter-venv/bin/python -m pip check
     /opt/jwt-tool-venv/bin/python -m pip check
     test -s /opt/hexstrike/tool-versions.lock
 '

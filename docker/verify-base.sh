@@ -19,7 +19,7 @@ expected_commands=(
     steghide exiftool
     volatility volatility2-python vol.py
     testssl whatweb jwt_tool trufflehog tcpdump
-    docker kubectl trivy
+    docker kubectl helm kube-bench kube-hunter
 )
 for command_name in "${expected_commands[@]}"; do
     command -v "${command_name}" >/dev/null || {
@@ -35,6 +35,10 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 /opt/volatility3-venv/bin/python -m pip check
 /opt/jwt-tool-venv/bin/python -m pip check
 /opt/jwt-tool-venv/bin/python -c 'import Cryptodome, termcolor, cprint, requests, ratelimit'
+/opt/kube-hunter-venv/bin/python -m pip check
+/opt/kube-hunter-venv/bin/python -c 'import kube_hunter, kubernetes, netifaces, netaddr, requests, ruamel.yaml'
+# 同时验证固定发布包中的 CIS 配置内容，不只校验清单文件自身。
+sha256sum -c /opt/kube-bench/cfg.sha256 >/dev/null
 
 # ELF 头验证架构，不依赖编译器进入最终镜像。
 /usr/local/bin/python3.11 - <<'PY'
@@ -45,6 +49,7 @@ from pathlib import Path
 machine = {"amd64": 62, "arm64": 183}[os.environ["TARGETARCH"]]
 executables = [Path("/usr/local/bin", name) for name in ("gau", "waybackurls", "anew", "x8")]
 executables.append(Path("/opt/python2/bin/python2.7"))
+executables.append(Path("/opt/kube-bench/kube-bench"))
 for executable in executables:
     with executable.open("rb") as binary:
         header = binary.read(20)
@@ -76,4 +81,6 @@ timeout 30 jwt_tool -h >/dev/null
 # 只读取客户端版本；不访问 Docker socket、Kubernetes 集群或漏洞数据库。
 timeout 30 docker --version
 timeout 30 kubectl version --client=true --output=json
-timeout 30 trivy --version
+timeout 30 helm version --short
+timeout 30 kube-bench version
+timeout 30 kube-hunter --help >/dev/null

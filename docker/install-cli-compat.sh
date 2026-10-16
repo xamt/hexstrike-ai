@@ -53,3 +53,104 @@ import sys
 os.execv("/usr/local/bin/jwt_tool", ["jwt_tool"] + sys.argv[1:])
 PY
 chmod 0755 /usr/local/bin/arjun /usr/local/bin/fierce /opt/jwt_tool/jwt_tool.py
+
+# 原接口漏写 run，并且只读取 stdout；每次调用独立报告，不能读取历史报告冒充成功。
+cat > /usr/local/bin/kube-bench <<'PY'
+#!/usr/local/bin/python3.11
+"""兼容历史 Kube-Bench 接口，保留审计失败状态和独立报告。"""
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+
+def extract_output(arguments):
+    """取出报告路径，拒绝重复或缺值参数。"""
+    remaining, output = [], None
+    values = iter(arguments)
+    for value in values:
+        if value == "--outputfile" or value.startswith("--outputfile="):
+            if output is not None:
+                raise ValueError("不能重复指定 --outputfile")
+            output = value.split("=", 1)[1] if "=" in value else next(values, "")
+            if not output or output.startswith("-"):
+                raise ValueError("--outputfile 缺少有效路径")
+        else:
+            remaining.append(value)
+    return remaining, output
+
+
+def run_report(command, output):
+    """只返回本次报告，保留发现风险时显式配置的非零退出状态。"""
+    target = Path(output).absolute()
+    descriptor, name = tempfile.mkstemp(prefix=".kube-bench-", dir=target.parent)
+    os.close(descriptor)
+    temporary = Path(name)
+    try:
+        status = subprocess.call(command + ["--outputfile", name])
+        if not temporary.stat().st_size:
+            if status:
+                return status if status > 0 else 128 - status
+            raise ValueError("Kube-Bench 未生成报告")
+        report = temporary.read_text(encoding="utf-8")
+        temporary.replace(target)
+        sys.stdout.write(report)
+        return status if status >= 0 else 128 - status
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def main():
+    """补齐旧参数的子命令和配置目录，不改写目标或检查结果。"""
+    try:
+        arguments, output = extract_output(sys.argv[1:])
+        if arguments and arguments[0].startswith("-") and any(
+            arg in ("--targets", "-s") or arg.startswith("--targets=") for arg in arguments
+        ):
+            arguments.insert(0, "run")
+        informational = any(arg in ("version", "help", "--help", "-h") for arg in arguments)
+        if not informational and not any(
+            arg in ("--config-dir", "-D") or arg.startswith(("--config-dir=", "-D")) for arg in arguments
+        ):
+            arguments += ["--config-dir", "/etc/kube-bench/cfg"]
+        command = ["/opt/kube-bench/kube-bench"] + arguments
+        if output:
+            return run_report(command, output)
+        status = subprocess.call(command)
+        return status if status >= 0 else 128 - status
+    except (OSError, ValueError) as error:
+        print(f"Kube-Bench 兼容入口失败: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+PY
+
+# 上游 --interface 是布尔开关，不是网卡名称；禁止把旧接口的 eth0 静默扩大成所有网卡。
+cat > /usr/local/bin/kube-hunter <<'PY'
+#!/usr/local/bin/python3.11
+"""转交隔离环境，明确拒绝上游不支持的命名网卡参数。"""
+import os
+import sys
+
+
+def main():
+    """保持显式目标参数不变，不把命名网卡转换成更大的扫描范围。"""
+    arguments = sys.argv[1:]
+    for index, value in enumerate(arguments):
+        named = value.startswith("--interface=") or (
+            value == "--interface" and index + 1 < len(arguments)
+            and not arguments[index + 1].startswith("-")
+        )
+        if named:
+            print("Kube-Hunter 不支持 interface 网卡名；请使用明确的 target 或 cidr", file=sys.stderr)
+            return 2
+    os.execv("/opt/kube-hunter-venv/bin/kube-hunter", ["kube-hunter"] + arguments)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+PY
+chmod 0755 /usr/local/bin/kube-bench /usr/local/bin/kube-hunter

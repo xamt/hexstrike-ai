@@ -6,10 +6,10 @@
 
 | 用途 | AMD64 | ARM64 |
 | --- | --- | --- |
-| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-arm64` |
-| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-arm64` |
+| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-arm64` |
+| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-arm64` |
 
-- 基础镜像：Kali、安全工具、小型字典、Python 3.11，以及隔离的 Volatility 2/3、JWT-Tool、ParamSpider 环境；默认进入 Bash，不启动服务。
+- 基础镜像：Kali、安全工具、小型字典、Python 3.11，以及隔离的 Volatility 2/3、JWT-Tool、ParamSpider、Kube-Hunter 环境；默认进入 Bash，不启动服务。
 - 应用镜像：继承同架构基础镜像，安装项目依赖、复制代码、配置 8888 端口和健康检查，不重复安装安全工具。
 - 两类镜像版本独立管理，应用镜像引用同架构的基础镜像。
 - 本项目发布标签不使用 `latest`；已发布的版本标签不可覆盖。调整版本时直接修改对应命令中的完整镜像名。
@@ -18,6 +18,7 @@
 保留原有 SQLMap 等安全工具自身的数据库测试能力；其间接依赖不作为独立数据库客户端能力承诺。
 恢复以 `1c865493^` 为基准的 MCP 参数契约，优先由固定工具版本、隔离运行时和命令入口适配原接口；
 不以新版工具的参数替换原有接口。五个补充工具 testssl.sh、WhatWeb、JWT-Tool、TruffleHog、tcpdump 及其版本保持不变。
+1.3.1 优先覆盖 Kube-Bench、Kube-Hunter、kubectl、Helm，保留 Docker CLI；移除默认 Trivy，暂不加入 Clair，体积及运行前提见第 6.6 节。
 
 以下命令全部在项目根目录执行，不需要预先设置任何 Shell 变量。
 本地两步构建使用 Docker Desktop 的 `docker` 驱动，基础镜像通过 `--load` 保存到本机。
@@ -32,7 +33,7 @@
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-amd64 \
   --load \
   --progress=plain \
   "."
@@ -44,7 +45,7 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-arm64 \
   --load \
   --progress=plain \
   "."
@@ -62,8 +63,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-amd64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-amd64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-amd64 \
   --load \
   --progress=plain \
   "."
@@ -77,8 +78,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.0-arm64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-arm64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-arm64 \
   --load \
   --progress=plain \
   "."
@@ -96,7 +97,7 @@ docker run --detach \
   --name pentest-tools-amd64 \
   --platform linux/amd64 \
   --publish 127.0.0.1:8888:8888 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-amd64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-amd64
 ```
 
 ### 4.2 ARM64 应用
@@ -106,7 +107,7 @@ docker run --detach \
   --name pentest-tools-arm64 \
   --platform linux/arm64 \
   --publish 127.0.0.1:8888:8888 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.0-arm64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-arm64
 ```
 
 服务地址为 `http://127.0.0.1:8888`。两条命令使用相同的宿主机端口，不要同时运行。
@@ -126,7 +127,7 @@ docker run --detach \
 | 基础镜像及应用镜像的 Python 包 | 清华 PyPI 镜像 `https://pypi.tuna.tsinghua.edu.cn/simple` | `PIP_INDEX_URL` |
 | Gau、Waybackurls、Anew 的 Go 模块 | `https://goproxy.cn` | `GOPROXY` |
 | Go 模块校验数据 | `sum.golang.org https://goproxy.cn/sumdb/sum.golang.org` | `GOSUMDB` |
-| Rust、RubyGems、GitHub 固定源码归档 | 各自配置的上游来源 | 不由上述参数覆盖 |
+| Rust、RubyGems、GitHub 固定源码归档及 Kube-Bench 发布包 | 各自配置的上游来源 | 不由上述参数覆盖 |
 
 需要切换来源时，在对应构建命令的 `--load` 前添加参数：
 
@@ -142,7 +143,7 @@ Kali 和 Go 参数只用于基础镜像构建，PyPI 参数可用于两种镜像
 
 ## 6. 基础镜像包含的工具
 
-以下按基础镜像 1.3.0 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
+以下按基础镜像 1.3.1 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
 AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不同，表中以实际命令入口为准。
 
 ### 6.1 网络发现与资产收集
@@ -238,16 +239,52 @@ AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不�
 | --- | --- | --- | --- |
 | Docker CLI | 28.5.2+dfsg4-5 | `docker` | 连接授权的 Docker 服务，读取镜像、容器、网络与运行配置；不包含守护进程。 |
 | kubectl | 1.33.4+ds-1 | `kubectl` | 使用授权的 kubeconfig 访问 Kubernetes API，检查资源配置、RBAC 与暴露面；不安装集群。 |
-| Trivy | 0.66.0-0kali1 | `trivy` | 检查镜像、文件系统及配置中的漏洞、敏感信息和错误配置，复用原有 Trivy 接口。 |
+| Helm | 4.3.0+ds1-0kali1 | `helm` | 渲染、检查 Kubernetes Chart，查看或管理授权集群的应用发布。 |
+| Kube-Bench | 0.16.0 | `kube-bench` | 按 CIS 基线检查 Kubernetes 节点配置；内置该发布包的检查配置。 |
+| Kube-Hunter | 0.6.8 | `kube-hunter` | 发现 Kubernetes 暴露服务和已知配置风险；主动检查需要明确选择。 |
 
-三个工具均从现有国内 Kali 镜像安装，不引入 AWS/Azure CLI。
-Docker CLI 和 kubectl 不新增专用 HTTP 接口；安装客户端不等于已获得宿主机或集群访问权限。
+Docker CLI、kubectl、Helm 从国内 Kali 镜像安装，Helm 的包名为 `kubernetes-helm`。
+Kube-Bench 使用官方双架构发布包并校验固定 SHA-256；Kube-Hunter 从国内 PyPI 安装到独立虚拟环境，工具及依赖均固定版本。
+安装配置集中在 `docker/install-container-tools.sh`，按 APT、发布包和 Python 构建阶段调用，不额外拆成单工具脚本。
+Docker CLI、kubectl、Helm 不新增专用 HTTP 接口；Kube-Bench、Kube-Hunter 沿用已有接口。
+安装客户端不等于已获得宿主机或集群访问权限。
 不自动挂载 Docker socket、kubeconfig 或服务账号，也不默认提高容器权限。
 
-按 2026-10-16 包索引的安装体积合计，三个组件约增加 AMD64 **341 MiB**、ARM64 **326 MiB**，其中大部分来自 Trivy；
-安装包下载量约为 **69 MiB / 59 MiB**。这是包元数据估算，不是镜像层实测，也不包含 Trivy 后续下载的漏洞数据库。
+#### 体积与可选工具
+
+按本次核对的包索引及官方发布元数据估算（2026-10-16 至 2026-10-17）：
+
+| 组件 | AMD64 | ARM64 | 口径 |
+| --- | --- | --- | --- |
+| Docker CLI | 32.1 MiB | 30.1 MiB | APT 安装体积 |
+| kubectl | 79.8 MiB | 77.6 MiB | APT 安装体积 |
+| Helm | 63.3 MiB | 59.0 MiB | APT 安装体积 |
+| Kube-Bench | 16.1 MiB | 14.3 MiB | 压缩发布包下载量，解压后更大 |
+| Kube-Hunter | 约 68 KiB | 约 68 KiB | 仅工具 wheel；不含独立环境及 30 项依赖/安装组件 |
+
+前三个 APT 组件合计约 **175.1 / 166.7 MiB**，不是四个优先工具的总增量；Docker CLI 和 kubectl 在上一版中已存在。
+Kube-Hunter 的完整环境含 Kubernetes Python 客户端和 netifaces 扩展，不能用小型工具 wheel 的大小代表整体占用。
+以上不是最终镜像层实测，也不能将压缩下载量与安装体积直接相加。
+
+- **Trivy 暂不默认安装**：此前固定包的程序安装体积约 **229.4 / 218.7 MiB**，另需漏洞数据库；不符合此次“体积影响不大”的条件。本版移除原默认安装，不调整已有接口。
+- **Clair 暂不安装**：完整能力需要服务端和 PostgreSQL，不是单个轻量客户端；原代码的 `clairctl analyze` 调用也不能直接视为兼容当前官方 Clair。
+
 [AMD64 包索引](https://http.kali.org/kali/dists/kali-rolling/main/binary-amd64/Packages.gz)、
-[ARM64 包索引](https://mirrors.aliyun.com/kali/dists/kali-rolling/main/binary-arm64/Packages.gz)。
+[ARM64 包索引](https://mirrors.aliyun.com/kali/dists/kali-rolling/main/binary-arm64/Packages.gz)、
+[Kube-Bench 固定发布](https://github.com/aquasecurity/kube-bench/releases/tag/v0.16.0)、
+[Kube-Hunter 包元数据](https://pypi.org/pypi/kube-hunter/0.6.8/json)、
+[Clair 部署要求](https://quay.github.io/clair/howto/getting_started.html)。
+
+#### 原接口与运行前提
+
+- Kube-Bench 需要目标节点的进程、配置文件及相应可见权限。在普通应用容器内启动命令不等于检查宿主节点；Docker Desktop 内的结果也不等于 macOS 宿主机审计结果。
+- 独立临时报告针对实际命令执行；原服务的命令结果缓存保持不变，重复 HTTP 请求不保证重新检查目标。
+- 原 Kube-Bench 接口的 `targets` 由命令入口补齐 `run` 子命令；`version` 仍表示被测 Kubernetes 版本。`--outputfile` 使用每次调用独立的临时文件，把本次生成的报告返回标准输出并更新请求的报告路径；显式设置 `--exit-code` 后发现风险的非零状态仍保留，无报告的执行错误不读取旧报告。原接口始终传递 `--json`，因此只承诺 JSON 报告，不以文件扩展名冒充其他格式。
+- Kube-Hunter 原接口的 `interface="eth0"` 不受上游支持；命令入口明确报错，不能静默改成扫描全部网卡。使用明确的 `target` 或 `cidr`。未指定目标时，原接口走 `--pod`，并非空操作；上游该模式可能探测云元数据地址，不因未安装 AWS/Azure CLI 而消失。
+- Kube-Hunter 0.6.8 固定较旧的 Kubernetes Python 客户端，不保证覆盖新集群的全部风险；Helm 4 与现有 Chart、插件和集群版本也需匹配。安装完成不等于所有现有接口参数均已获得运行验证。
+
+参数依据：[Kube-Bench run](https://github.com/aquasecurity/kube-bench/blob/v0.16.0/cmd/run.go)、
+[Kube-Hunter 参数定义](https://github.com/aquasecurity/kube-hunter/blob/v0.6.8/kube_hunter/conf/parser.py)。
 
 ### 6.7 基础环境与辅助工具
 
@@ -258,7 +295,7 @@ Docker CLI 和 kubectl 不新增专用 HTTP 接口；安装客户端不等于已
 | Git | 获取源码、读取和管理版本库。 |
 | Perl、Ruby 及相关依赖 | 支持 Nikto、WPScan 等工具运行。 |
 | Python 3.11、pip、venv | 提供 Python 运行与虚拟环境能力，不替换 Kali 系统 Python。 |
-| 独立 Volatility3/JWT-Tool/ParamSpider 环境 | 各自隔离 Python 3 依赖，不使用应用虚拟环境。 |
+| 独立 Volatility3/JWT-Tool/ParamSpider/Kube-Hunter 环境 | 各自隔离 Python 3 依赖，不使用应用虚拟环境。 |
 | Python 2.7.18 专用运行时 | 只服务 Volatility 2；安装在 `/opt/python2`，不替换系统或应用解释器，不带入构建阶段编译器。 |
 | tini | 作为容器轻量入口管理子进程与信号。 |
 | CA 证书和系统动态库 | 支持 HTTPS 访问及各工具运行。 |
@@ -277,5 +314,5 @@ Docker CLI 和 kubectl 不新增专用 HTTP 接口；安装客户端不等于已
 - Volatility 3 的 `output_file` 保存成功命令的标准输出文本，而不是映射到含义不同的 `-o` 产物目录；HTTP 响应仍保留原命令输出。
 - 服务端仅保留原接口无法靠工具版本纠正的必要修复：CTF 目标占位符和缺失参数、HTTPX 两个原入口的字段传递、ParamSpider 输出字段与两档参数、Volatility 3 报告文件语义。Arjun、Fierce 的旧参数及 JWT-Tool 的旧路径由基础镜像兼容入口处理，不修改原调用代码；Arjun 原 GET+POST 意图分别转为两次明确调用，任一步失败即返回失败。未增加上述五个工具的新专用接口。
 - 工具选择以实际渗透复用为准：调试、逆向与内存取证工具保留其漏洞分析用途，不为了补齐 CTF 清单增加仅限赛题的工具；云与容器限定 Docker、Kubernetes 等通用环境，不增加 AWS/Azure 专用组件。
-- Trivy 不内置漏洞数据库或 Java 数据库；扫描前需具备下载条件或预先准备的数据缓存，数据库缺失不能视为无漏洞。
+- Trivy、Clair 的原接口仍保留在代码中，但本版不提供其运行环境；接口存在不能作为工具可用的依据。
 - kubectl 1.33.x 应配合受支持的 Kubernetes API 版本使用，不能保证兼容所有旧集群；连接前核对服务端版本与官方版本偏差范围。[Kubernetes 版本偏差策略](https://kubernetes.io/releases/version-skew-policy/#kubectl)
