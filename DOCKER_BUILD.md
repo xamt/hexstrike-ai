@@ -11,7 +11,7 @@
 
 - 基础镜像：Kali、安全工具、五类数据库客户端、小型字典、Python 3.11、独立 Volatility3/JWT-Tool 环境；默认进入 Bash，不启动服务。
 - 应用镜像：继承同架构基础镜像，安装项目依赖、复制代码、配置 8888 端口和健康检查，不重复安装安全工具。
-- 两类镜像版本独立管理；工具或运行时变化才重建基础镜像，仅代码或项目依赖变化只重建应用镜像。
+- 两类镜像版本独立管理，应用镜像引用同架构的基础镜像。
 - 不使用 `latest`；已发布的版本标签不可覆盖。调整版本时直接修改对应命令中的完整镜像名。
 
 以下命令全部在项目根目录执行，不需要预先设置任何 Shell 变量。
@@ -45,30 +45,7 @@ docker buildx build \
   "."
 ```
 
-默认使用阿里云 Kali 源。需要切换到 Kali 官方分发地址时，在对应命令的 `--load` 前增加
-`--build-arg KALI_APT_MIRROR=http://http.kali.org/kali`；仍验证 Kali 官方签名。
-软件包版本不存在或下载失败时直接中止，不自动升级或跳过工具。
-
-基础镜像和应用镜像的 Python 包默认使用国内清华 PyPI 源：`https://pypi.tuna.tsinghua.edu.cn/simple`，
-原构建命令无需额外参数。该地址是清华镜像站支持的服务域名，使用 HTTPS 并保留证书校验。[镜像站说明](https://mirrors.tuna.tsinghua.edu.cn/help/pypi/)
-基础镜像中的 pip、setuptools、wheel、Volatility3、JWT-Tool 依赖，以及应用镜像的项目 Python 依赖，均显式使用这个源。
-这次调整下载来源，不增加超时时间，不改变固定工具版本，也不自动回退到其他源。
-需要显式切回官方 PyPI 时，在对应构建命令中加入 `--build-arg PIP_INDEX_URL=https://pypi.org/simple`。
-国内镜像仍可能短暂不同步或连接异常；缺少固定版本时应排查包源，而不是放宽版本限制。
-`PIP_INDEX_URL` 只作用于 Python 包；Kali 仍使用既有阿里云源，Rust 和 GitHub 下载配置不变。
-
-Go 工具（gau、waybackurls、anew）默认使用国内 HTTPS 模块代理 `https://goproxy.cn`。
-`GOSUMDB` 使用 `sum.golang.org https://goproxy.cn/sumdb/sum.golang.org`，通过代理下载校验数据，仍核对 Go 官方校验数据库签名，不设置 `GOSUMDB=off`。
-两个配置只传入 Go 编译阶段，不进入最终基础镜像；工具版本仍由 `docker/install-go-tool.sh` 固定。
-默认不追加 `direct` 或其他源，不静默回退境外地址；源故障直接报错。依据：[代理说明](https://goproxy.cn/)、[Go 模块校验说明](https://go.dev/ref/mod#authenticating)。
-
-需要显式切回官方源时，在对应基础镜像命令的 `--load` 前同时增加
-`--build-arg GOPROXY=https://proxy.golang.org` 和 `--build-arg GOSUMDB=sum.golang.org`。
-仅在宿主机执行 `go env -w` 不会传入 Docker 构建阶段；覆盖参数必须传给基础镜像构建命令。
-
-若日志显示 `go install gau` 请求 `proxy.golang.org` 时出现 `unexpected EOF`，表示依赖传输中断，不是新增五个工具的安装错误；其他并行阶段的 `CANCELED` 是连带取消。
-更新此配置后直接重跑原基础镜像构建命令即可，无需清空缓存或增加超时。修改源参数会重新执行相关 Go 安装层，已缓存模块仍可复用。
-该调整不改变 1.2.0 中任何工具版本；国内源的实际连通性和完整镜像构建仍以本机构建结果为准。
+下载源及覆盖参数见第 5 节。
 
 ## 3. 构建应用镜像
 
@@ -105,39 +82,9 @@ docker buildx build \
 命令显式指定基础镜像，避免选错架构。省略 `BASE_IMAGE` 时，Dockerfile 依据 BuildKit 的 `TARGETARCH`
 选择对应架构标签，不引用公共多架构标签。[Docker 参数说明](https://docs.docker.com/reference/dockerfile/#automatic-platform-args-in-the-global-scope)
 
-## 4. 验收与启动（由使用者执行）
+## 4. 启动应用镜像
 
-### 4.1 离线检查
-
-不调用 Docker、不访问网络：
-
-
-```bash
-python3 -m unittest discover -s "tests" -v
-```
-
-### 4.2 AMD64 镜像验收
-
-```bash
-bash "docker/test-images.sh" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-amd64 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-amd64 \
-  amd64
-```
-
-### 4.3 ARM64 镜像验收
-
-```bash
-bash "docker/test-images.sh" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-arm64 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-arm64 \
-  arm64
-```
-
-脚本检查架构、工具启动、Python 依赖隔离和 HTTP 健康状态，禁用容器网络并清理自己创建的测试容器。
-健康接口列出的可选工具不要求全部安装；验收不执行外部扫描。
-
-### 4.4 手动启动 AMD64 应用
+### 4.1 AMD64 应用
 
 ```bash
 docker run --detach \
@@ -145,12 +92,9 @@ docker run --detach \
   --platform linux/amd64 \
   --publish 127.0.0.1:8888:8888 \
   harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-amd64
-curl --fail --silent --show-error http://127.0.0.1:8888/health
-docker inspect --format '{{.State.Health.Status}}' pentest-tools-amd64
-docker logs pentest-tools-amd64
 ```
 
-### 4.5 手动启动 ARM64 应用
+### 4.2 ARM64 应用
 
 ```bash
 docker run --detach \
@@ -158,264 +102,163 @@ docker run --detach \
   --platform linux/arm64 \
   --publish 127.0.0.1:8888:8888 \
   harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-arm64
-curl --fail --silent --show-error http://127.0.0.1:8888/health
-docker inspect --format '{{.State.Health.Status}}' pentest-tools-arm64
-docker logs pentest-tools-arm64
 ```
 
-两条启动命令使用同一个宿主机端口，不要同时运行。等待健康状态变为 `healthy` 后再验收。
-停止时使用对应容器名执行 `docker stop`，再执行 `docker rm`。
-确需原始套接字或网络管理时才添加 `--cap-add NET_RAW --cap-add NET_ADMIN`，不要直接使用 `--privileged`。
+服务地址为 `http://127.0.0.1:8888`。两条命令使用相同的宿主机端口，不要同时运行。
+使用 `docker logs pentest-tools-amd64` 或 `docker logs pentest-tools-arm64` 查看日志。
+停止容器时使用对应名称执行 `docker stop`，删除已停止的容器使用 `docker rm`。
 
-### 4.6 缓存回归
+默认仅绑定本机地址。确需原始套接字或网络管理时再添加 `--cap-add NET_RAW --cap-add NET_ADMIN`，不要直接使用 `--privileged`。
+实时抓包和内网协议工具只能操作容器可见的网络接口；Docker Desktop 不等同于 Linux 宿主机二层网络直通。
 
-AMD64：
+## 5. 构建下载源
 
-```bash
-python3 "tests/verify_docker_cache.py" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-amd64 amd64
-```
+原构建命令默认使用下列源，无需额外设置环境变量。
 
-ARM64：
+| 下载内容 | 默认来源 | 构建参数 |
+| --- | --- | --- |
+| Kali 软件包 | 阿里云 Kali 镜像 `https://mirrors.aliyun.com/kali` | `KALI_APT_MIRROR` |
+| 基础镜像及应用镜像的 Python 包 | 清华 PyPI 镜像 `https://pypi.tuna.tsinghua.edu.cn/simple` | `PIP_INDEX_URL` |
+| Gau、Waybackurls、Anew 的 Go 模块 | `https://goproxy.cn` | `GOPROXY` |
+| Go 模块校验数据 | `sum.golang.org https://goproxy.cn/sumdb/sum.golang.org` | `GOSUMDB` |
+| Rust、RubyGems、GitHub 源码及数据库客户端独立安装包 | 各自配置的上游来源 | 不由上述参数覆盖 |
 
-```bash
-python3 "tests/verify_docker_cache.py" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-arm64 arm64
-```
+需要切换来源时，在对应构建命令的 `--load` 前添加参数：
 
-该脚本会实际构建临时应用镜像：只改代码时复用依赖层，只改依赖时重新安装项目依赖，基础镜像保持不变。
-同时验证 Volatility3 不受影响；源码不变，临时标签在结束时清理。
+- Kali 官方分发源：`--build-arg KALI_APT_MIRROR=http://http.kali.org/kali`。
+- 官方 PyPI：`--build-arg PIP_INDEX_URL=https://pypi.org/simple`。
+- 官方 Go 源：同时添加 `--build-arg GOPROXY=https://proxy.golang.org` 和 `--build-arg GOSUMDB=sum.golang.org`。
 
-## 5. 发布独立镜像
+Kali 和 Go 参数只用于基础镜像构建，PyPI 参数可用于两种镜像构建。
+宿主机的 `go env -w` 不会自动传入 Docker 构建。
+国内代理配置保留 HTTPS 与官方校验机制，不自动切换到其他下载源。
 
-对应架构完成构建与验收后再推送，不合并镜像。若版本已发布，应先换用新版本。
+来源说明：[清华 PyPI](https://mirrors.tuna.tsinghua.edu.cn/help/pypi/)、[Goproxy.cn](https://goproxy.cn/)、[Go 模块校验](https://go.dev/ref/mod#authenticating)。
 
-### 5.1 AMD64
+## 6. 基础镜像包含的工具
 
-```bash
-docker push harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-amd64
-docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-amd64
-```
+以下按基础镜像 1.2.0 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
+AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不同，表中以实际命令入口为准。
 
-### 5.2 ARM64
+### 6.1 网络发现与资产收集
 
-```bash
-docker push harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.2.0-arm64
-docker push harbor.everoffice.cn/harbor-cucc/pentest-tools:1.2.0-arm64
-```
+| 工具 | 命令 | 主要用途 |
+| --- | --- | --- |
+| Nmap | `nmap` | 主机发现、端口扫描、服务与操作系统识别，以及 NSE 脚本检查。 |
+| Masscan | `masscan` | 大批量 IP 的高速端口发现。 |
+| RustScan | `rustscan` | 快速发现开放端口，可交由 Nmap 进一步识别服务。 |
+| Amass | `amass` | 收集子域名、DNS 关系及外部资产信息。 |
+| Subfinder | `subfinder` | 通过公开数据源被动发现子域名。 |
+| Fierce | `fierce` | DNS 枚举及关联主机发现。 |
+| DNSenum | `dnsenum` | 枚举 DNS 记录、名称服务器、子域名及区域传送配置。 |
+| AutoRecon | `autorecon` | 编排端口扫描和服务枚举，实际能力取决于可用子工具与数据。 |
+| theHarvester | `theHarvester` | 从公开数据源收集邮箱、域名、主机名和 IP。 |
+| tcpdump | `tcpdump` | 采集网络报文，或读取 PCAP 文件分析协议与流量。 |
 
-正式应用发布时，先推送并记录**同架构基础镜像**的真实摘要，将第 3 节 `BASE_IMAGE` 的值替换为
-`harbor.everoffice.cn/harbor-cucc/pentest-tools-base@sha256:<该架构的真实摘要>`，再重建、验收并推送应用。
-占位内容不能原样执行；不要把 ARM64 基础摘要用于 AMD64 构建。
-部署时记录应用摘要和基础摘要；回滚直接部署上一版应用，不覆盖旧基础镜像。
+### 6.2 Web 内容、接口与参数发现
 
-## 6. Dockerfile 与脚本如何维护
+| 工具 | 命令 | 主要用途 |
+| --- | --- | --- |
+| Gobuster | `gobuster` | 枚举 Web 目录、文件、DNS 名称和虚拟主机。 |
+| Feroxbuster | `feroxbuster` | 递归发现 Web 目录、文件和链接。 |
+| Dirsearch | `dirsearch` | 使用字典、扩展名和递归规则发现隐藏路径。 |
+| FFUF | `ffuf` | 对 URL、参数、请求头和虚拟主机进行模糊测试。 |
+| Dirb | `dirb` | 基于字典发现 Web 服务器隐藏资源。 |
+| HTTPX Toolkit | `httpx` | 批量探测 HTTP 服务、状态码、标题及技术栈；不是 Python 同名库的命令。 |
+| Katana | `katana` | 抓取页面、JavaScript 端点和表单。 |
+| Hakrawler | `hakrawler` | 从输入 URL 中发现链接、脚本及其他端点。 |
+| Gau | `gau` | 从多个公开数据源收集历史 URL。 |
+| Waybackurls | `waybackurls` | 从 Wayback Machine 收集历史 URL。 |
+| Arjun | `arjun` | 发现 GET、POST、JSON 请求中的隐藏参数。 |
+| ParamSpider | `paramspider` | 从历史 URL 中提取带参数的端点。 |
+| X8 | `x8` | 根据响应差异发现隐藏 HTTP 参数。 |
+| Anew | `anew` | 对文本行去重，仅追加尚未出现的结果。 |
+| QSReplace | `qsreplace` | 批量替换 URL 查询参数值，准备测试输入。 |
+| Uro | `uro` | 归并相似 URL，减少重复测试。 |
+| Wfuzz | `wfuzz` | 对请求路径、参数、头部及认证字段进行模糊测试。 |
 
-### 6.1 版本与安装逻辑就近维护
+### 6.3 Web 漏洞、TLS 与凭据检查
 
-`Dockerfile.base` 只保留上游镜像、Kali/PyPI 软件源和平台配置；不再声明或传递工具版本。
-工具版本直接定义在对应安装脚本中，查看安装方式时即可找到版本，不需要跨文件追踪。
+| 工具 | 命令 | 主要用途 |
+| --- | --- | --- |
+| Nuclei | `nuclei` | 依据模板检查服务和 Web 应用的漏洞及配置问题。 |
+| Nikto | `nikto` | 检查 Web 服务器危险文件、错误配置和已知风险。 |
+| SQLMap | `sqlmap` | 检测和验证 SQL 注入及其影响。 |
+| WPScan | `wpscan` | 枚举 WordPress 核心、主题、插件并检查相关风险。 |
+| Dalfox | `dalfox` | 发现和验证 XSS 问题。 |
+| Wafw00f | `wafw00f` | 识别 Web 应用防火墙。 |
+| WhatWeb | `whatweb` | 识别 Web 技术、服务器和 CMS 指纹。 |
+| testssl.sh | `testssl` | 检查 TLS 协议、密码套件、证书及相关配置风险。 |
+| JWT-Tool | `jwt_tool` | 解析 JWT，并测试签名、令牌篡改和相关认证问题。 |
+| TruffleHog | `trufflehog` | 在文件、源码和 Git 历史中检测凭据泄漏，可按需验证凭据。 |
 
-| 修改内容 | 唯一维护位置 |
+### 6.4 内网枚举与身份认证
+
+| 工具 | 命令 | 主要用途 |
+| --- | --- | --- |
+| Responder | `responder` | 分析和响应 LLMNR、NBT-NS、mDNS 等名称解析请求，验证名称解析投毒及认证信息泄露风险。 |
+| NetExec | `nxc` | 枚举 SMB、WinRM、LDAP、MSSQL 等服务，验证凭据与访问权限。 |
+| enum4linux-ng | `enum4linux-ng` | 枚举 Windows/Samba 用户、组、共享、策略及域信息。 |
+| CrackMapExec | `crackmapexec` | Windows/Active Directory 环境中的凭据与权限验证；与 NetExec 分别保留。 |
+| Evil-WinRM | `evil-winrm` | 使用已有凭据通过 WinRM 连接 Windows 主机并执行远程操作。 |
+| Hydra | `hydra` | 多种网络协议的在线口令验证。 |
+| Medusa | `medusa` | 并行验证多种远程服务的认证凭据。 |
+| Patator | `patator` | 模块化、多协议认证测试。 |
+| John the Ripper | `john` | 多种密码哈希的离线恢复和强度评估。 |
+| Hashcat | `hashcat` | 使用 CPU/GPU 等设备进行离线哈希恢复。 |
+| Hash-Identifier | `hash-identifier` | 根据哈希特征推测可能的算法类型。 |
+| Ophcrack CLI | `ophcrack-cli` | 使用彩虹表恢复 Windows LM/NTLM 哈希，无图形界面。 |
+
+### 6.5 二进制分析与数字取证
+
+| 工具 | 命令 | 主要用途 |
+| --- | --- | --- |
+| GDB | `gdb` | 调试程序，查看寄存器、内存、断点和调用栈。 |
+| Radare2 | `r2`、`radare2` | 反汇编、调试、二进制修补及脚本化分析。 |
+| Binwalk | `binwalk` | 识别固件中的嵌入文件、签名与压缩数据。 |
+| Ghidra | `ghidra`、`analyzeHeadless` | 反汇编、反编译及无界面的批量分析。 |
+| Checksec | `checksec` | 查看 ELF 文件及进程的 PIE、RELRO、NX、Canary 等保护机制。 |
+| Binutils：Strings | `strings` | 提取二进制文件中的可打印字符串。 |
+| Binutils：Objdump | `objdump` | 查看目标文件段、符号和反汇编结果。 |
+| XXD | `xxd` | 生成十六进制转储或还原二进制数据。 |
+| Foremost | `foremost` | 根据文件特征从磁盘镜像或原始数据中恢复文件。 |
+| Steghide | `steghide` | 在图片、音频等载体中嵌入或提取隐藏数据。 |
+| ExifTool | `exiftool` | 读取、修改和比较文件元数据。 |
+| Volatility3 | `vol` | 分析内存镜像中的进程、模块及其他取证信息。 |
+
+### 6.6 数据库客户端
+
+| 客户端 | 命令 | 主要用途 |
+| --- | --- | --- |
+| MariaDB 兼容客户端 | `mysql` | 连接 MySQL/MariaDB，执行 SQL、查看数据库结构和权限。 |
+| ClickHouse 客户端 | `clickhouse-client` | 连接 ClickHouse，执行 SQL 并查看数据库及表信息。 |
+| Redis 客户端 | `redis-cli` | 连接 Redis，执行键值、配置及状态查询等命令。 |
+| PostgreSQL 客户端 | `psql` | 连接 PostgreSQL，执行 SQL 及查看数据库对象。 |
+| MongoDB Shell | `mongosh` | 连接 MongoDB，执行数据库命令及集合操作。 |
+
+这里提供客户端环境，不配置或启动数据库服务。`mysql` 是 MariaDB 兼容客户端，不是 Oracle MySQL 官方客户端或 Python 的 mysqlclient 驱动。
+MongoDB 提供 `mongosh`，不包含旧 `mongo` 命令或独立备份工具套件。
+ClickHouse 客户端依赖公共多功能二进制，该二进制仍带有服务端子命令，但不安装 `clickhouse-server` 服务包。
+
+### 6.7 基础环境与辅助工具
+
+| 环境或工具 | 主要用途 |
 | --- | --- |
-| APT 工具版本、架构差异 | 对应的 `docker/install-network.sh`、`install-web.sh`、`install-password.sh`、`install-binary.sh` |
-| Gau、Waybackurls、Anew | `docker/install-go-tool.sh` |
-| Rust 编译工具链 | `docker/install-rust-toolchain.sh`；后续 Cargo 使用该阶段选定的默认工具链 |
-| X8 | `docker/install-x8.sh` |
-| Nikto | `docker/install-nikto-source.sh` |
-| WPScan | `docker/install-web.sh` |
-| pip、setuptools、wheel、Volatility3 | `docker/install-python-runtime.sh` |
-| MySQL（MariaDB 兼容）、Redis、PostgreSQL 客户端 | `docker/install-database-apt.sh` |
-| ClickHouse 客户端及双架构摘要 | `docker/install-database-clickhouse.sh` |
-| MongoDB Shell 及双架构摘要 | `docker/install-database-mongodb.sh` |
-| testssl.sh、WhatWeb、TruffleHog、tcpdump | `docker/install-security-extras.sh` |
-| JWT-Tool 标签、归档摘要及直接依赖 | `docker/install-jwt-tool.sh` |
+| Kali Linux、Bash | 提供系统环境和交互式命令行。 |
+| curl | 发起 HTTP 等协议请求和下载文件。 |
+| Git | 获取源码、读取和管理版本库。 |
+| Perl、Ruby 及相关依赖 | 支持 Nikto、WPScan 等工具运行。 |
+| Python 3.11、pip、venv | 提供 Python 运行与虚拟环境能力，不替换 Kali 系统 Python。 |
+| 独立 Volatility3/JWT-Tool 环境 | 隔离工具依赖，避免受应用 Python 依赖影响。 |
+| tini | 作为容器轻量入口管理子进程与信号。 |
+| CA 证书和系统动态库 | 支持 HTTPS 访问及各工具运行。 |
+| 小型目录与参数字典 | 提供 Dirb、Dirsearch、X8 使用的基本输入数据。 |
 
-修改工具版本时直接编辑上述脚本；不再通过 `--build-arg NMAP_VERSION=...` 等参数覆盖。
-源地址和上游镜像仍可通过 Dockerfile 中的构建参数覆盖。现有工具版本及架构差异均未改变。
-`OUTPUT_DIR`、`TOOL_RECORD_DIR` 仅供离线检查隔离临时输出；镜像构建不覆盖这些路径。
+### 6.8 工具使用边界
 
-安装成功后，脚本调用 `docker/record-tool-version.sh` 保存其声明的**预期版本**，而不是把查询到的实际版本当成预期值。
-Go、Rust、Nikto、Python 阶段的记录随产物一起复制，最终汇总到 `/opt/hexstrike/tool-versions.d/`。
-最终校验不再维护第二份版本号：`docker/verify-tool-versions.py` 读取记录，与实际安装的包状态、版本和架构比对；
-Go/X8 二进制及 Nikto/JWT-Tool 主程序还会比对构建阶段记录的 SHA256，防止复制后产物发生变化。
-记录缺失、冲突、架构不符或版本漂移均使构建失败；全部校验通过后，才生成原路径 `/opt/hexstrike/tool-versions.lock`。
-记录目录属于构建产物，不是另一套需要手工编辑的配置。校验器只保存必需工具名称，不保存版本常量。
-
-### 6.2 统一执行方式
-
-之前仅抽出了较长的 Kali 安装过程，较短的 Rust、Nikto、Python 安装仍内联在 Dockerfile，导致组织方式混杂。
-现在基础镜像的每个 `RUN` 都只挂载并执行职责明确的脚本；Dockerfile 负责参数、阶段、缓存与文件复制。
-脚本通过只读构建挂载使用，不复制到最终镜像中。不同工具类别仍保留独立安装层，不合并为一个大脚本。
-
-| 阶段 | 安装与校验入口 | 产物 |
-| --- | --- | --- |
-| Go | `docker/install-go-tool.sh` | Gau、Waybackurls、Anew 目标架构二进制 |
-| Rust | `docker/install-rust-toolchain.sh`、`docker/install-x8.sh` | X8 二进制 |
-| Nikto | `docker/install-nikto-source.sh` | 固定标签源码 |
-| Kali | `docker/install-system.sh`、四类工具安装脚本 | 系统运行库和 APT 工具 |
-| 安全能力补充 | `docker/install-security-extras.sh` | TLS 检查、Web 指纹、凭据泄漏检测、网络报文工具 |
-| 数据库客户端 | `docker/install-database-apt.sh`、`install-database-clickhouse.sh`、`install-database-mongodb.sh` | 五类客户端；公共下载校验由 `install-database-deb.sh` 负责 |
-| 工具组装 | `docker/prepare-tool-data.sh` | 小型字典；安装记录由各工具脚本产生 |
-| Python | `docker/install-python-runtime.sh`、`docker/install-jwt-tool.sh` | Python 安装工具、独立 Volatility3/JWT-Tool 环境 |
-| 最终镜像 | `docker/finalize-base.sh`、`docker/verify-base.sh`、`docker/verify-tool-versions.py` | 动态库接入、vol 包装命令、版本核对与清单生成 |
-
-### 6.3 工具清单与环境边界
-
-48 个 APT 工具包均有固定版本安装步骤，最终再次核对完整安装状态、包版本和命令，不能仅凭版本变量或安装记录判定成功。
-
-| 脚本 | 包数量 | 工具 |
-| --- | --- | --- |
-| `docker/install-network.sh` | 13 | Nmap、Masscan、Rustscan、Amass、Subfinder、Nuclei、Fierce、Dnsenum、AutoRecon、theHarvester、Responder、NetExec、Enum4linux-ng |
-| `docker/install-web.sh` | 16 | Gobuster、Feroxbuster、Dirsearch、FFUF、Dirb、HTTPX Toolkit、Katana、Hakrawler、SQLMap、Arjun、ParamSpider、Dalfox、Wafw00f、Qsreplace、Uro、Wfuzz |
-| `docker/install-password.sh` | 9 | Hydra、John、Hashcat、Medusa、Patator、CrackMapExec、Evil-WinRM、Hash-Identifier、Ophcrack CLI |
-| `docker/install-binary.sh` | 10 | GDB、Radare2、Binwalk、Ghidra、Checksec、Binutils、XXD、Foremost、Steghide、ExifTool |
-
-Masscan、Dirb、Ophcrack CLI、Foremost 按架构选择固定版本。
-ExifTool 包名为 `libimage-exiftool-perl`，NetExec 命令为 `nxc`，HTTPX Toolkit 提供 `httpx`，Binutils 提供 `strings`、`objdump`。
-另外安装 Gau、Waybackurls、Anew、X8、Nikto、WPScan、Volatility3；清单路径保持 `/opt/hexstrike/tool-versions.lock`。
-
-### 6.4 数据库客户端（1.1.0 新增）
-
-基础镜像 1.1.0 提供客户端环境；应用代码另提供下列五个 HTTP 接口及技能入口，不新增 MCP 注册，也不修改原 `/health` 检查清单。
-
-| POST 接口 | 技能工具 | 执行内容 |
-| --- | --- | --- |
-| `/api/tools/mysql` | `mysql_query` | MySQL/MariaDB SQL |
-| `/api/tools/clickhouse` | `clickhouse_query` | ClickHouse SQL（默认原生协议端口 9000） |
-| `/api/tools/redis` | `redis_command` | 字符串数组形式的单条 Redis 命令 |
-| `/api/tools/postgresql` | `postgresql_query` | PostgreSQL SQL |
-| `/api/tools/mongodb` | `mongodb_command` | MongoDB 数据库命令对象 |
-
-这些是受保护的数据库入口，不限于连通性检测；按用户选择保留新增和更新，但不再接受任意命令。服务端按允许列表在客户端启动前拒绝删除、DDL、动态脚本及未知高风险命令，返回 HTTP 403 和 `operation_not_allowed`，没有请求级关闭保护开关。请求参数的唯一维护源为 `database_tools/contracts.json`；技能参数表由它生成。Agent 无需本机数据库客户端，命令在应用容器中执行。
-
-数据库接口不使用原来的缓存/自动重试执行器，也不拼接 Shell。应用镜像包含 `database_tools/` 包；仅数据库能力可复用基础镜像 1.1.0，本次五项安全工具需要基础镜像 1.2.0 和新版应用代码。本次不执行构建或真实数据库连接。
-
-详细参数、允许命令子集、凭据处理与使用边界见 `skills/pentest-tools/references/workflows/database-validation.md`。HTTP 服务没有新增鉴权，数据库连接未增加 TLS 配置，不能直接暴露到不可信网络或将未受保护的链路当作安全凭据通道。此限制只覆盖五个专用接口，不限制其他通用命令入口；数据库侧应使用不具删除/DDL/管理权限的最小权限账号。新增/更新仍可能通过触发器、既有TTL、视图/扩展等内部逻辑引起删除，或覆盖已有值/嵌套字段；用户明确选择保留写入，此策略不保证零数据损失。
-
-保护策略分别位于 `database_tools/policy_sql.py`、`sql_tokens.py`、`policy_nosql.py`；HTTP参数校验与直接执行入口均执行策略。SQL允许保守单语句查询及 `INSERT`/`UPDATE`，不开放DDL；Redis保留常见新增/更新，但拒绝过期、裁剪及危险选项；MongoDB保留insert与受限更新操作符，拒绝替换式更新/删字段/写入聚合与未知来源游标。常见系统元数据对象不可写。为保留写能力，不强制只读会话。仅需更新应用代码/应用镜像，基础镜像和客户端版本不变；旧运行容器不会自动获得新策略。
-
-设计参考：[PostgreSQL函数副作用](https://www.postgresql.org/docs/current/spi-visibility.html)、[ClickHouse查询权限分类](https://clickhouse.com/docs/concepts/features/configuration/settings/permissions-for-queries)、[Redis命令权限](https://redis.io/docs/latest/management/security/acl/)、[MongoDB聚合写入阶段](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/)。文本策略不替代数据库账号权限和服务端配置审计。
-
-数据库客户端自 1.1.0 引入，1.2.0 保留相同版本；应用通过继承新版基础镜像获得客户端，1.0.0 基础镜像不包含该环境。
-
-| 客户端命令 | 固定版本 | 安装来源 |
-| --- | --- | --- |
-| `mysql` | MariaDB `1:11.8.9+ds-2` | Kali 签名仓库，client/core/compat 三个包同步锁定 |
-| `redis-cli` | `5:8.0.6-3` | Kali `redis-tools` |
-| `psql` | `18.6-3` | Kali `postgresql-client-18` |
-| `clickhouse-client` | `25.8.20.4` | ClickHouse 官方固定版本客户端及 `clickhouse-common-static` |
-| `mongosh` | `2.13.0` | MongoDB 官方独立 Shell 包 |
-
-`mysql` 是用户选定的 MariaDB 兼容客户端，不是 Oracle MySQL 官方客户端，也不是 Python 的 mysqlclient 驱动。
-不新增 MySQL、Redis、PostgreSQL、MongoDB 或 ClickHouse 的服务端包，不配置或启动数据库服务。
-ClickHouse 官方客户端必须依赖公共多功能二进制，因此其底层二进制仍包含服务端子命令能力；这里不安装 `clickhouse-server` 服务包。
-MongoDB 仅提供 `mongosh`，不包含旧 `mongo` 命令或数据库备份工具套件。
-
-五类客户端均提供 AMD64、ARM64 安装路径；Kali 包沿用阿里云镜像和官方签名验证。
-ClickHouse、MongoDB 通过 HTTPS 下载官方固定版本 `.deb`，先核对安装脚本锁定的 SHA256、包名、版本、架构再安装；不添加第三方全局 APT 源、不使用未经验证的下载代理。
-摘要来自 [ClickHouse 官方 AMD64 索引](https://packages.clickhouse.com/deb/dists/stable/main/binary-amd64/Packages)、[ARM64 索引](https://packages.clickhouse.com/deb/dists/stable/main/binary-arm64/Packages)，以及 [MongoDB 官方发行](https://github.com/mongodb-js/mongosh/releases/tag/v2.13.0)（并与官方 APT 索引交叉核对）。
-官方来源不可达、固定包消失、摘要不符均直接失败，不静默换版本或跳过客户端。
-
-最终构建校验新增五个命令及 `--version` 检查，版本清单记录八个新增客户端/支撑包；不连接数据库、不执行查询。
-该修改只完成离线检查，实际双架构构建、客户端连接与数据库操作验收由使用者执行。
-
-Kali 系统 Python 保持不变；另提供 Python 3.11。Volatility3 使用 `/opt/volatility3-venv`，JWT-Tool 使用 `/opt/jwt-tool-venv`，应用使用 `/opt/hexstrike-venv`。
-项目依赖仍排除 `pwntools`、`angr`、`bcrypt`。应用 venv 优先的 PATH 保持不变，只有同名 `httpx` 命令链接到安全工具。
-应用 Python 的 `httpx` 库导入不受影响；基础镜像固定版本 pip 通过 `--python` 管理应用环境。
-
-### 6.5 安全能力补充（1.2.0 新增）
-
-本次升级基础镜像为 `1.2.0-amd64` / `1.2.0-arm64`；应用示例同步使用 1.2.0，避免旧基础镜像缺少命令。既有工具与数据库客户端的固定版本不变。
-
-| 工具 | 实际命令 | 固定版本 | 安装与用途 |
-| --- | --- | --- | --- |
-| testssl.sh | `testssl` | `3.2.4+dfsg-2` | Kali APT；TLS 协议、密码套件与证书专项检查 |
-| WhatWeb | `whatweb` | `0.6.4-1` | Kali APT；Web 技术与 CMS 指纹 |
-| JWT-Tool | `jwt_tool` | `2.3.0` | 官方固定标签源码；令牌解析、签名与篡改验证 |
-| TruffleHog | `trufflehog` | `3.97.9-0kali1` | Kali APT；授权源码及文件中的凭据泄漏检测 |
-| tcpdump | `tcpdump` | `4.99.6-2` | Kali APT；离线 PCAP 分析及有界报文采集 |
-
-四个 APT 包已核对 [Kali AMD64 索引](https://http.kali.org/kali/dists/kali-rolling/main/binary-amd64/Packages.gz) 和 [ARM64 索引](https://http.kali.org/kali/dists/kali-rolling/main/binary-arm64/Packages.gz)，两种架构使用相同版本。构建继续使用阿里云镜像及 Kali 官方签名；不存在固定版本即失败，不降级或静默跳过。
-
-JWT-Tool 使用 [官方 v2.3.0](https://github.com/ticarpi/jwt_tool/releases/tag/v2.3.0)，对应提交 `3bc7407cf2222d6a821dcc19c776e5a1b1cb9a9b`；下载归档 SHA256 固定为 `0f8c32aa9f67cea4312e5df81d48f72dc5daf57f3cc0ce09d67db78e23fbe451`，先校验再解压到 `/opt/jwt-tool`。直接依赖的固定版本位于同一安装脚本；Python 依赖使用已配置的国内源，源码仍从官方 GitHub HTTPS 下载，不使用未经验证的下载代理。
-
-`jwt_tool` 包装命令固定使用 `/opt/jwt-tool-venv/bin/python`，不受应用虚拟环境 PATH 影响。镜像不预生成共享私钥或令牌日志；首次手工使用会在用户 HOME 初始化配置，HTTP 接口使用独立临时 HOME 并在结束后清理。
-
-新增五个命令的发现及帮助/版本检查，并核对 JWT 独立环境的 `pip check` 和导入。版本清单继续使用 `/opt/hexstrike/tool-versions.lock`；记录四个 APT 工具及 JWT-Tool 源码版本，JWT 直接依赖另在预期记录中逐项校验。
-
-五项合计预计增加约 **170–280 MiB 未压缩镜像大小**，不是实际测量或 Harbor 压缩大小。现有库复用、两种架构以及传递依赖会影响结果，必须由实际构建确认。本次不执行镜像构建、运行或目标扫描。
-
-tcpdump 实时采集需要容器可见的网络接口和相应权限；Docker Desktop 不能等同于 Linux 宿主机二层网络。离线 PCAP 不需要抓包权限。TruffleHog 的验证模式可能访问第三方服务，应按测试授权边界选择，不在构建时扫描或验证凭据。
-
-新版应用提供以下专用接口，声明来自 `security_tools/contracts.json`，技能导出器使用同一契约：
-
-| 工具 | HTTP 接口（POST） | 技能调用名 | 默认行为 |
-| --- | --- | --- | --- |
-| testssl.sh | `/api/tools/testssl` | `testssl_scan` | 单个 HTTPS URL 的 TLS 检查 |
-| WhatWeb | `/api/tools/whatweb` | `whatweb_scan` | 单个 HTTP/HTTPS URL，aggression=1 |
-| JWT-Tool | `/api/tools/jwt-tool` | `jwt_tool_analyze` | 本地 decode；scan 必须显式给 target_url，使用 Bearer 令牌主动测试 |
-| TruffleHog | `/api/tools/trufflehog` | `trufflehog_scan` | 容器内文件扫描；verify=false，不额外联网验证凭据 |
-| tcpdump | `/api/tools/tcpdump` | `tcpdump_capture` | read 模式读取容器内 PCAP；capture 需显式网卡和包数 |
-
-这些入口只接收结构化参数，不接受任意 `additional_args`，不通过 shell 拼接命令；执行有并发、超时和输出上限，不缓存或自动重试。JWT 初始化与执行使用同一个临时 HOME，独立配置/密钥/日志在请求结束时清理。`success` 仅表示客户端正常退出，输出仍需复核，且可能含敏感信息。
-
-健康检查使用 `testssl`、`whatweb`、`jwt_tool`、`trufflehog`、`tcpdump` 五个实际命令名。旧 `jwt_analyzer` 保持原行为，不是 JWT-Tool 的别名。只更新基础镜像而继续运行旧应用代码，不会获得新接口；也不代表原 MCP 脚本新增了这五项注册。详细约束见 [技能执行边界](skills/pentest-tools/references/security-tools.md)。
-
-## 7. 缓存与重建限制
-
-APT 索引、下载和 SecLists 缓存按架构隔离。最小 Kali 的 HTTPS 由官方 Python 镜像 CA 引导，显式配置 APT 信任路径；
-保留 TLS 和签名校验，索引失败立即中止，移除下载后清理钩子以复用包缓存。
-
-可选远程缓存使用以下四个独立引用，不与发布标签混用：
-
-| 用途 | 完整缓存引用 |
-| --- | --- |
-| AMD64 基础 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:buildcache-amd64` |
-| ARM64 基础 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:buildcache-arm64` |
-| AMD64 应用 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:buildcache-amd64` |
-| ARM64 应用 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:buildcache-arm64` |
-
-仅在构建器支持 registry 缓存时，才向对应构建命令添加 `--cache-from` / `--cache-to` 并使用表中完整引用。
-缓存标签允许更新；普通本地两步构建不依赖远程缓存。
-
-Kali 滚动仓库可能移除历史包，传递依赖和项目 Python 依赖也并非全部固定，锁定工具版本不代表任意时间都能重建。
-X8 4.3.0 锁定的 time 0.3.21 需要 Rust 1.79.0；不升级 X8 或锁文件，编译器不进入最终镜像。
-大型字典、Nuclei 模板、彩虹表和 Volatility 符号表不内置，通过挂载或运行时准备。
-AutoRecon 依赖安装的 SecLists 数据只写入构建缓存；需要时挂载到 `/usr/share/seclists`，包元数据不代表数据已经可用。
-
-## 8. Agent 使用渗透测试技能（无需本机 Python / MCP）
-
-应用容器启动后，可将本仓库的 `skills/pentest-tools/` **整个目录**导入支持技能和命令执行的 Agent。入口为 `SKILL.md`，`scripts/` 和 `references/` 需要一起保留；不再使用原来的 stdio MCP 配置。原 `hexstrike_mcp.py` 留作兼容与维护参考。
-
-技能按测试目标选择流程，不要求用户先知道工具名：
-
-| 方向 | 流程与交付 |
-| --- | --- |
-| 资产清单 | 输入定界 → 候选发现 → 归属/解析复核 → 存活与服务识别 → 可追溯资产清单 |
-| Web / API 渗透 | 基线与身份 → 应用建模 → 具体假设 → 最小复核 → 发现、覆盖矩阵与复测条件 |
-| 容器安全 | 区分镜像/部署/运行时/集群 → 检查真实能力 → 分层验证 → 风险及未覆盖项 |
-| 数据库验证 | 固定目标与身份 → 最小基线 → 执行 SQL/命令验证假设 → 根因/实际权限深化 → 证据与复测 |
-
-技能先输出包含假设、优先级、方法、证明/证伪标准、预算和停止条件的可执行计划；已有授权充分时直接执行，不额外等待确认。发现疑点及时复核，已确认问题沿同一根因、相邻对象与有证据的关联深化影响，不把多个告警拼成已验证漏洞链。
-
-用户可直接说“梳理指定域名的资产清单，不做漏洞扫描”或“评估这份 Kubernetes 配置，暂不连接集群”。技能按边界执行，不自动把清单任务升级成漏洞验证，也不因工具缺失而安装工具或扩大权限。详细阶段见 `skills/pentest-tools/references/workflows/`，共 161 个调用入口，保留此前 151 个工具契约，并补充五类数据库及五项安全工具接口。
-
-运行环境需要 Node.js 22 或更高版本，不需要 Python、requests、MCP SDK 或 npm install。调用器使用 Node.js 内置 fetch 直接访问 HTTP API；工具仍在容器中执行。
-
-以下在仓库根目录执行，仅列出本地定义，不访问服务：
-
-```bash
-node "skills/pentest-tools/scripts/run.mjs" list
-node "skills/pentest-tools/scripts/run.mjs" describe nmap_scan
-```
-
-服务地址默认 `http://127.0.0.1:8888`，可用 `PENTEST_SERVER_URL` 或单次 `--server` 覆盖。注意地址相对于 Agent 后端，不是浏览器所在机器。下面仅请求健康接口，不执行扫描：
-
-```bash
-node "skills/pentest-tools/scripts/run.mjs" call server_health --server http://127.0.0.1:8888
-```
-
-技能保留原 150 个唯一工具名，并将第二个重复 HTTPx 定义命名为 `httpx_probe_extended`，形成 151 个兼容入口；加上 10 个共享 HTTP 契约入口，总计 161 个。详细参数用 `describe` 按需读取。调用通过 `--input` 读取 JSON 文件或 `--input -` 读取 stdin；无需激活虚拟环境。
-
-本次仅完成离线参数/请求/返回对照及模拟 HTTP 验证，未运行镜像构建、真实服务联调或扫描。技能不是新的安全工具安装包，可选工具缺失仍会导致相应接口失败。
+- 工具清单描述基础镜像的命令能力，不表示每个工具都有独立 HTTP 接口，也不把应用层接口的参数限制等同于客户端本身的全部能力。
+- Subfinder、theHarvester 等工具的部分数据源需要 API Key；WPScan 的漏洞信息查询可能需要令牌。
+- 大型字典、完整 SecLists、Nuclei 模板、彩虹表和 Volatility 符号表不作为内置数据保证，需要按任务准备或挂载。
+- Katana 的无头浏览器模式需要可用浏览器；Hashcat 的 GPU 模式需要宿主机驱动与设备透传。
+- tcpdump 实时采集需要可见网卡和相应权限，读取离线 PCAP 不需要抓包权限。
+- TruffleHog 的凭据验证及 JWT-Tool 的主动测试会产生外部请求，使用时应明确选择相应模式。
