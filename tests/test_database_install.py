@@ -81,6 +81,29 @@ class DatabaseInstallTests(unittest.TestCase):
                     self.assertFalse((root / "calls").exists())
                     self.assertFalse((root / "records").exists())
 
+    def test_download_uses_http1_and_bounded_retry_and_propagates_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            fake_command(root, "curl", 'printf "%s\\n" "$@" > "$TEST_LOG"; exit 92\n')
+            fake_command(root, "sha256sum", 'echo unexpected > "$VERIFY_LOG"; exit 99\n')
+            env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}", TARGETARCH="arm64",
+                       TEST_LOG=str(root / "calls"), VERIFY_LOG=str(root / "verified"))
+            result = subprocess.run([
+                "bash", "-c", 'source "$1"; download_database_deb https://example.invalid/client.deb digest client 1.0 "$2"',
+                "test", str(ROOT / "docker/install-database-deb.sh"), str(root / "client.deb"),
+            ], env=env, capture_output=True, text=True)
+            self.assertEqual(92, result.returncode, result.stderr)
+            self.assertFalse((root / "verified").exists())
+            args = (root / "calls").read_text().splitlines()
+            for flag in ("--http1.1", "--retry-all-errors", "--fail", "--show-error"):
+                self.assertIn(flag, args)
+            for flag, value in (("--retry", "5"), ("--retry-delay", "3"),
+                                ("--proto", "=https"), ("--proto-redir", "=https")):
+                self.assertIn(flag, args)
+                self.assertEqual(value, args[args.index(flag) + 1])
+            self.assertNotIn("--insecure", args)
+            self.assertEqual(str(root / "client.deb"), args[args.index("--output") + 1])
+
     def test_download_verifies_digest_and_package_metadata(self):
         for failure in (None, "digest", "Package", "Version", "Architecture", "download"):
             with self.subTest(failure=failure), tempfile.TemporaryDirectory() as temporary:
