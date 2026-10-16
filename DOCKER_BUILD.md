@@ -280,9 +280,19 @@ X8 4.3.0 锁定的 time 0.3.21 需要 Rust 1.79.0；不升级 X8 或锁文件，
 大型字典、Nuclei 模板、彩虹表和 Volatility 符号表不内置，通过挂载或运行时准备。
 AutoRecon 依赖安装的 SecLists 数据只写入构建缓存；需要时挂载到 `/usr/share/seclists`，包元数据不代表数据已经可用。
 
-## 8. Agent 使用 HTTP 技能（无需本机 Python / MCP）
+## 8. Agent 使用渗透测试技能（无需本机 Python / MCP）
 
 应用容器启动后，可将本仓库的 `skills/pentest-tools/` **整个目录**导入支持技能和命令执行的 Agent。入口为 `SKILL.md`，`scripts/` 和 `references/` 需要一起保留；不再使用原来的 stdio MCP 配置。原 `hexstrike_mcp.py` 留作兼容与维护参考。
+
+技能按测试目标选择流程，不要求用户先知道工具名：
+
+| 方向 | 流程与交付 |
+| --- | --- |
+| 资产清单 | 输入定界 → 候选发现 → 归属/解析复核 → 存活与服务识别 → 可追溯资产清单 |
+| Web / API 渗透 | 基线与身份 → 应用建模 → 具体假设 → 最小复核 → 发现、覆盖矩阵与复测条件 |
+| 容器安全 | 区分镜像/部署/运行时/集群 → 检查真实能力 → 分层验证 → 风险及未覆盖项 |
+
+用户可直接说“梳理指定域名的资产清单，不做漏洞扫描”或“评估这份 Kubernetes 配置，暂不连接集群”。技能按边界执行，不自动把清单任务升级成漏洞验证，也不因容器工具缺失而安装工具或扩大权限。详细阶段见 `skills/pentest-tools/references/workflows/`。
 
 运行环境需要 Node.js 22 或更高版本，不需要 Python、requests、MCP SDK 或 npm install。调用器使用 Node.js 内置 fetch 直接访问 HTTP API；工具仍在容器中执行。
 
