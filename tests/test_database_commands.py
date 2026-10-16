@@ -33,20 +33,23 @@ class DatabaseCommandTests(unittest.TestCase):
                            "--local-infile=0", "--skip-reconnect", "--protocol=TCP"):
                 self.assertIn(option, invocation.argv)
 
-    def test_sql_writes_and_literal_backslashes_remain_supported(self):
-        query = "UPDATE sample SET value = 'back\\slash' WHERE id = 1"
+    def test_update_preserved_without_forcing_read_only_session(self):
+        query = "UPDATE sample SET value='literal; DROP TABLE sample' WHERE id=1"
         with tempfile.TemporaryDirectory() as directory:
             for name in ("mysql_query", "postgresql_query", "clickhouse_query"):
                 invocation = build_invocation(name, arguments(name, query=query), directory)
                 serialized = " ".join(invocation.argv) + invocation.stdin.decode()
                 self.assertIn(query, serialized)
+                self.assertNotIn("--readonly=1", invocation.argv)
+                self.assertNotIn("PGOPTIONS", invocation.environment)
+                self.assertFalse(any("READ ONLY" in item for item in invocation.argv))
 
     def test_postgresql_meta_commands_rejected_and_query_atomic(self):
-        for query in ("\\! id", "  \\copy x from '/etc/passwd'", "\\i file"):
+        for query in ("\\! id", "  \\copy x from '/etc/passwd'", "\\i file", "SELECT 1;\n\\! no-local-command"):
             with self.assertRaises(ValueError):
                 arguments("postgresql_query", query=query)
         with tempfile.TemporaryDirectory() as directory:
-            query = "SELECT 1;\n\\! no-local-command"
+            query = "SELECT 1"
             invocation = build_invocation("postgresql_query", arguments("postgresql_query", query=query), directory)
             self.assertIn("--command=" + query, invocation.argv)
             self.assertEqual(invocation.stdin, b"")
@@ -60,7 +63,7 @@ class DatabaseCommandTests(unittest.TestCase):
 
     def test_redis_noninteractive_command_preserves_arguments(self):
         with tempfile.TemporaryDirectory() as directory:
-            command = ["SET", "键", "a\nPING\n$(id)\"\\"]
+            command = ["MGET", "键", "a\nPING\n$(id)\"\\"]
             invocation = build_invocation("redis_command", arguments("redis_command", command=command), directory)
             self.assertIn("-e", invocation.argv)
             self.assertIn("-x", invocation.argv)
@@ -88,13 +91,13 @@ class DatabaseCommandTests(unittest.TestCase):
             self.assertNotIn("private-query", repr(invocation))
             self.assertNotIn("secret", repr(invocation))
 
-    def test_redis_last_auth_value_uses_stdin(self):
+    def test_redis_last_key_uses_stdin(self):
         with tempfile.TemporaryDirectory() as directory:
             invocation = build_invocation("redis_command", arguments(
-                "redis_command", command=["AUTH", "test-user", "private-password"]), directory)
-            self.assertNotIn("private-password", " ".join(invocation.argv))
-            self.assertEqual(invocation.stdin, b"private-password")
-            self.assertEqual(invocation.argv[-3:], ["-x", "AUTH", "test-user"])
+                "redis_command", command=["GET", "private-key"]), directory)
+            self.assertNotIn("private-key", " ".join(invocation.argv))
+            self.assertEqual(invocation.stdin, b"private-key")
+            self.assertEqual(invocation.argv[-2:], ["-x", "GET"])
 
     def test_mongodb_write_errors_and_concern_errors_are_failures(self):
         harness = """
@@ -121,8 +124,8 @@ process.stdin.on('end', () => {
                                ({"ok": 1, "cursor": {"firstBatch": [{"ok": 0}]}}, 1),
                                ({"ok": 1, "writeErrors": []}, 0)):
             result = subprocess.run(["node", "-e", harness], input=json.dumps({
-                "script": MONGO_SCRIPT, "request": arguments("mongodb_command", command={
-                    "bulkWrite": 1, "ops": [], "nsInfo": []}),
+                "script": MONGO_SCRIPT, "request": {**arguments("mongodb_command"), "command": {
+                    "bulkWrite": 1, "ops": [], "nsInfo": []}},
                 "response": response}), text=True, capture_output=True, check=True)
             observed = json.loads(result.stdout)
             self.assertEqual(observed["exits"], [code])

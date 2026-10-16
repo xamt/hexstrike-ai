@@ -11,6 +11,8 @@ import time
 from urllib.parse import quote
 
 from .commands import build_invocation
+from .contracts import validate_request
+from .policy_errors import OperationNotAllowed
 
 SLOTS = threading.BoundedSemaphore(4)
 ERRORS = {
@@ -20,11 +22,19 @@ ERRORS = {
     "output_limit": "输出超过上限，客户端已终止；结果不完整，远端状态需核实",
     "command_failed": "数据库客户端返回失败，请检查脱敏后的输出",
     "execution_error": "数据库客户端无法正常执行",
+    "operation_not_allowed": "数据库保护策略拒绝执行：仅支持允许的查询、新增和更新",
+    "invalid_request": "数据库请求参数无效",
 }
 
 
 def execute_database(name, args):
-    """执行一次已校验请求；每个服务进程最多同时启动四个客户端。"""
+    """重新校验请求后执行一次；每个服务进程最多同时启动四个客户端。"""
+    try:
+        args = validate_request(name, args)
+    except OperationNotAllowed:
+        return _result("operation_not_allowed")
+    except (ValueError, KeyError):
+        return _result("invalid_request")
     if not SLOTS.acquire(blocking=False):
         return _result("busy")
     started = time.monotonic()

@@ -1,7 +1,7 @@
 {
   "mysql_query": {
     "endpoint": "api/tools/mysql",
-    "description": "MySQL/MariaDB SQL 查询",
+    "description": "MySQL/MariaDB 受保护SQL：允许查询、INSERT和UPDATE，删除/DDL/脚本返回 operation_not_allowed",
     "parameters": {
       "host": {
         "type": "str",
@@ -45,7 +45,7 @@
   },
   "clickhouse_query": {
     "endpoint": "api/tools/clickhouse",
-    "description": "ClickHouse SQL 查询",
+    "description": "ClickHouse 受保护SQL：允许查询、INSERT和UPDATE，删除/DDL/脚本返回 operation_not_allowed；不开放ALTER更新语法",
     "parameters": {
       "host": {
         "type": "str",
@@ -89,7 +89,7 @@
   },
   "redis_command": {
     "endpoint": "api/tools/redis",
-    "description": "Redis 单条命令",
+    "description": "Redis 受保护命令：允许读取及受限新增/更新，删除/过期/裁剪/脚本及未知命令返回 operation_not_allowed",
     "parameters": {
       "host": {
         "type": "str",
@@ -133,7 +133,7 @@
   },
   "postgresql_query": {
     "endpoint": "api/tools/postgresql",
-    "description": "PostgreSQL SQL 查询",
+    "description": "PostgreSQL 受保护SQL：允许查询、INSERT和UPDATE，删除/DDL/脚本返回 operation_not_allowed",
     "parameters": {
       "host": {
         "type": "str",
@@ -177,7 +177,7 @@
   },
   "mongodb_command": {
     "endpoint": "api/tools/mongodb",
-    "description": "MongoDB JSON 命令",
+    "description": "MongoDB 受保护命令：允许读取、insert及受限操作符update，拒绝删除字段/替换式更新/脚本/写入聚合/未知来源游标，返回 operation_not_allowed",
     "parameters": {
       "host": {
         "type": "str",

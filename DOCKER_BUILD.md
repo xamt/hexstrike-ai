@@ -271,11 +271,15 @@ ExifTool 包名为 `libimage-exiftool-perl`，NetExec 命令为 `nxc`，HTTPX To
 | `/api/tools/postgresql` | `postgresql_query` | PostgreSQL SQL |
 | `/api/tools/mongodb` | `mongodb_command` | MongoDB 数据库命令对象 |
 
-这些是通用 SQL/数据库命令入口，不限于连通性检测，不强制只读。请求参数的唯一维护源为 `database_tools/contracts.json`；技能参数表由它生成。Agent 无需本机数据库客户端，命令在应用容器中执行。
+这些是受保护的数据库入口，不限于连通性检测；按用户选择保留新增和更新，但不再接受任意命令。服务端按允许列表在客户端启动前拒绝删除、DDL、动态脚本及未知高风险命令，返回 HTTP 403 和 `operation_not_allowed`，没有请求级关闭保护开关。请求参数的唯一维护源为 `database_tools/contracts.json`；技能参数表由它生成。Agent 无需本机数据库客户端，命令在应用容器中执行。
 
 新接口不使用原来的缓存/自动重试执行器，也不拼接 Shell。应用镜像已增加 `database_tools/` 包复制；部署新接口需要用更新后的代码构建应用镜像并发布新标签，已有基础镜像 1.1.0 可继续复用。本次不执行构建或真实数据库连接。
 
-详细参数、凭据处理与使用边界见 `skills/pentest-tools/references/workflows/database-validation.md`。HTTP 服务没有新增鉴权，数据库连接未增加 TLS 配置，不能直接暴露到不可信网络或将未受保护的链路当作安全凭据通道；写入/管理命令会按实际数据库账号权限执行。
+详细参数、允许命令子集、凭据处理与使用边界见 `skills/pentest-tools/references/workflows/database-validation.md`。HTTP 服务没有新增鉴权，数据库连接未增加 TLS 配置，不能直接暴露到不可信网络或将未受保护的链路当作安全凭据通道。此限制只覆盖五个专用接口，不限制其他通用命令入口；数据库侧应使用不具删除/DDL/管理权限的最小权限账号。新增/更新仍可能通过触发器、既有TTL、视图/扩展等内部逻辑引起删除，或覆盖已有值/嵌套字段；用户明确选择保留写入，此策略不保证零数据损失。
+
+保护策略分别位于 `database_tools/policy_sql.py`、`sql_tokens.py`、`policy_nosql.py`；HTTP参数校验与直接执行入口均执行策略。SQL允许保守单语句查询及 `INSERT`/`UPDATE`，不开放DDL；Redis保留常见新增/更新，但拒绝过期、裁剪及危险选项；MongoDB保留insert与受限更新操作符，拒绝替换式更新/删字段/写入聚合与未知来源游标。常见系统元数据对象不可写。为保留写能力，不强制只读会话。仅需更新应用代码/应用镜像，基础镜像和客户端版本不变；旧运行容器不会自动获得新策略。
+
+设计参考：[PostgreSQL函数副作用](https://www.postgresql.org/docs/current/spi-visibility.html)、[ClickHouse查询权限分类](https://clickhouse.com/docs/concepts/features/configuration/settings/permissions-for-queries)、[Redis命令权限](https://redis.io/docs/latest/management/security/acl/)、[MongoDB聚合写入阶段](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/)。文本策略不替代数据库账号权限和服务端配置审计。
 
 原安全工具版本不变；基础镜像和应用镜像使用新的 `1.1.0-amd64` / `1.1.0-arm64` 标签，应用通过继承新版基础镜像获得客户端，旧基础镜像不包含本次新增环境。
 

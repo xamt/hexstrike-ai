@@ -4,6 +4,8 @@ import json
 import re
 from pathlib import Path
 
+from .policy import enforce_policy
+
 CONTRACTS = json.loads(Path(__file__).with_name("contracts.json").read_text("utf-8"))
 REQUEST_LIMIT = 131072
 TYPES = {"str": str, "int": int, "bool": bool, "list": list, "dict": dict}
@@ -26,13 +28,14 @@ def validate_request(name, payload):
         result[key] = value
     _validate_values(result)
     _validate_operation(name, result)
+    enforce_policy(name, result)
     return result
 
 
 def _validate_values(args):
     try:
         encoded = json.dumps(args, ensure_ascii=False, allow_nan=False).encode("utf-8")
-    except (ValueError, UnicodeError, RecursionError):
+    except (TypeError, ValueError, UnicodeError, RecursionError):
         raise ValueError("请求存在非有限数值、无效字符或过深嵌套") from None
     if len(encoded) > REQUEST_LIMIT:
         raise ValueError("请求超过 128 KiB 上限")
@@ -65,23 +68,11 @@ def _validate_operation(name, args):
         query = args["query"]
         if not query.strip() or len(query.encode("utf-8")) > 65536 or "\0" in query:
             raise ValueError("query 必须非空、无 NUL 且不超过 64 KiB")
-        if name == "postgresql_query" and query.lstrip().startswith("\\"):
-            raise ValueError("PostgreSQL 接口不接受本地 psql 元命令")
-        if name == "clickhouse_query" and re.search(
-                r"\b(?:INFILE|OUTFILE)\b", _without_sql_literals(query), re.I):
-            raise ValueError("ClickHouse 接口不接受 INFILE/OUTFILE 本地文件通道")
     elif name == "redis_command":
         command = args["command"]
         if not command or len(command) > 256 or any(type(v) is not str or "\0" in v for v in command):
             raise ValueError("command 必须为 1 到 256 个无 NUL 的字符串")
         if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]*", command[0]):
             raise ValueError("Redis 命令名称无效")
-        if command[0].upper() in {"CONNECT", "HELP", "QUIT", "EXIT", "CLEAR", "RESTART"}:
-            raise ValueError("不接受 redis-cli 本地控制命令")
     elif not args["command"]:
         raise ValueError("MongoDB command 必须为非空 JSON 对象")
-
-
-def _without_sql_literals(query):
-    literal = r"'(?:[^'\\]|\\.|'')*'|\"(?:[^\"\\]|\\.|\"\")*\"|`(?:[^`\\]|\\.|``)*`"
-    return re.sub(literal + r"|/\*.*?\*/|--[^\n]*|#[^\n]*", " ", query, flags=re.S)

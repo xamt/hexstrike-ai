@@ -7,9 +7,11 @@ from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 
 from .contracts import CONTRACTS, REQUEST_LIMIT, validate_request
 from .runner import execute_database
+from .policy_errors import OperationNotAllowed
 
 STATUS = {"busy": 429, "tool_missing": 503, "timeout": 504,
-          "output_limit": 422, "command_failed": 422, "execution_error": 500}
+          "output_limit": 422, "command_failed": 422, "execution_error": 500,
+          "operation_not_allowed": 403, "invalid_request": 400}
 
 
 def register_database_routes(app):
@@ -28,12 +30,14 @@ def _handle(name):
         if len(raw) > REQUEST_LIMIT:
             return jsonify(success=False, error_code="invalid_request",
                            error="请求超过 128 KiB 上限"), 413
-        payload = json.loads(raw)
+        payload = json.loads(raw, object_pairs_hook=_unique_object)
     except (ValueError, UnicodeError, RecursionError, BadRequest, RequestEntityTooLarge):
         return jsonify(success=False, error_code="invalid_request",
                        error="请求必须为有效且嵌套深度合理的 UTF-8 JSON"), 400
     try:
         args = validate_request(name, payload)
+    except OperationNotAllowed as error:
+        return jsonify(success=False, error_code="operation_not_allowed", error=str(error)), 403
     except ValueError as error:
         return jsonify(success=False, error_code="invalid_request", error=str(error)), 400
     try:
@@ -43,3 +47,12 @@ def _handle(name):
         return jsonify(success=False, error_code="execution_error",
                        error="数据库执行器内部错误"), 500
     return jsonify(result), STATUS.get(result.get("error_code"), 200)
+
+
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("JSON对象不允许重复键")
+        result[key] = value
+    return result

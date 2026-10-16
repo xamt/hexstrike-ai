@@ -1,0 +1,36 @@
+{
+  "updatedAt": "2026-10-16T07:23:08.870Z",
+  "version": 2,
+  "source": "plan",
+  "originCommand": "",
+  "qaMode": "deep",
+  "qaFocus": [
+    "破坏性及间接命令拦截",
+    "SQL词法歧义失败关闭",
+    "Redis子命令与MongoDB嵌套",
+    "执行前拒绝与错误脱敏",
+    "技能导出和兼容边界"
+  ],
+  "ui": {
+    "required": false,
+    "designContract": false,
+    "sourcePriority": [],
+    "styleAdvisor": {
+      "required": false,
+      "reason": "",
+      "focus": []
+    },
+    "visualValidation": {
+      "required": false,
+      "reason": "",
+      "screens": [],
+      "states": []
+    }
+  },
+  "advisor": {
+    "required": false,
+    "reason": "",
+    "focus": [],
+    "preferredSources": []
+  }
+}

@@ -59,15 +59,18 @@ test('业务失败不篡改响应；组合工具保留原聚合但记录子请�
 });
 
 test('非 2xx 数据库错误保留结构化诊断并强制失败，不重试', async () => {
-  let calls = 0;
-  const body = { success: false, error: '客户端缺失', error_code: 'tool_missing', stderr: '' };
-  const client = createClient({ fetchImpl: async () => {
-    calls++;
-    return new Response(JSON.stringify(body), { status: 503 });
-  } });
-  assert.deepEqual(await client.safe_post('api/tools/mysql', {}), { ...body, http_status: 503 });
-  assert.equal(calls, 1);
-  assert.equal(client.failures.length, 1);
+  for (const [status, code, message] of [[503, 'tool_missing', '客户端缺失'],
+    [403, 'operation_not_allowed', '数据库保护策略拒绝执行']]) {
+    let calls = 0;
+    const body = { success: false, error: message, error_code: code, stderr: '' };
+    const client = createClient({ fetchImpl: async () => {
+      calls++;
+      return new Response(JSON.stringify(body), { status });
+    } });
+    assert.deepEqual(await client.safe_post('api/tools/mysql', {}), { ...body, http_status: status });
+    assert.equal(calls, 1);
+    assert.equal(client.failures.length, 1);
+  }
 });
 
 test('五类数据库入口保留参数、默认值和服务端结果，不转为 shell 命令', async () => {
