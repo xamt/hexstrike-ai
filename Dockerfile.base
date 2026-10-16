@@ -15,6 +15,10 @@ ARG KALI_APT_MIRROR=https://mirrors.aliyun.com/kali
 ARG KALI_APT_SUITE=kali-rolling
 # Python 包默认从国内 HTTPS 镜像下载；包源属于构建配置，工具版本仍在安装脚本中。
 ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+# Go 模块与校验数据库通过国内 HTTPS 代理下载；保留官方校验数据库签名身份。
+# 不自动回退境外源，避免代理异常时再次遇到 proxy.golang.org 连接中断。
+ARG GOPROXY=https://goproxy.cn
+ARG GOSUMDB="sum.golang.org https://goproxy.cn/sumdb/sum.golang.org"
 
 # =============================================================================
 # 2. Go 工具：构建机运行编译器，产物面向目标架构
@@ -22,7 +26,11 @@ ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 FROM --platform=${BUILDPLATFORM} ${GO_BUILD_IMAGE} AS go-tools
 ARG TARGETOS
 ARG TARGETARCH
+ARG GOPROXY
+ARG GOSUMDB
 ENV CGO_ENABLED=0 \
+    GOPROXY=${GOPROXY} \
+    GOSUMDB=${GOSUMDB} \
     GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH}
 

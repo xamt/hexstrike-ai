@@ -55,7 +55,20 @@ docker buildx build \
 这次调整下载来源，不增加超时时间，不改变固定工具版本，也不自动回退到其他源。
 需要显式切回官方 PyPI 时，在对应构建命令中加入 `--build-arg PIP_INDEX_URL=https://pypi.org/simple`。
 国内镜像仍可能短暂不同步或连接异常；缺少固定版本时应排查包源，而不是放宽版本限制。
-此配置只作用于 Python 包；Kali 仍使用既有阿里云源，Go、Rust、GitHub 的下载配置不变。
+`PIP_INDEX_URL` 只作用于 Python 包；Kali 仍使用既有阿里云源，Rust 和 GitHub 下载配置不变。
+
+Go 工具（gau、waybackurls、anew）默认使用国内 HTTPS 模块代理 `https://goproxy.cn`。
+`GOSUMDB` 使用 `sum.golang.org https://goproxy.cn/sumdb/sum.golang.org`，通过代理下载校验数据，仍核对 Go 官方校验数据库签名，不设置 `GOSUMDB=off`。
+两个配置只传入 Go 编译阶段，不进入最终基础镜像；工具版本仍由 `docker/install-go-tool.sh` 固定。
+默认不追加 `direct` 或其他源，不静默回退境外地址；源故障直接报错。依据：[代理说明](https://goproxy.cn/)、[Go 模块校验说明](https://go.dev/ref/mod#authenticating)。
+
+需要显式切回官方源时，在对应基础镜像命令的 `--load` 前同时增加
+`--build-arg GOPROXY=https://proxy.golang.org` 和 `--build-arg GOSUMDB=sum.golang.org`。
+仅在宿主机执行 `go env -w` 不会传入 Docker 构建阶段；覆盖参数必须传给基础镜像构建命令。
+
+若日志显示 `go install gau` 请求 `proxy.golang.org` 时出现 `unexpected EOF`，表示依赖传输中断，不是新增五个工具的安装错误；其他并行阶段的 `CANCELED` 是连带取消。
+更新此配置后直接重跑原基础镜像构建命令即可，无需清空缓存或增加超时。修改源参数会重新执行相关 Go 安装层，已缓存模块仍可复用。
+该调整不改变 1.2.0 中任何工具版本；国内源的实际连通性和完整镜像构建仍以本机构建结果为准。
 
 ## 3. 构建应用镜像
 

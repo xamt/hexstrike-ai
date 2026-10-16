@@ -15,7 +15,7 @@ class DockerLayoutTests(unittest.TestCase):
         content = (ROOT / "Dockerfile.base").read_text()
         header, stages = content.split("\nFROM ", 1)
         defaults = re.findall(r"^ARG (\w+)=(.+)$", header, re.M)
-        self.assertEqual(8, len(defaults))
+        self.assertEqual(10, len(defaults))
         self.assertEqual(len(defaults), len(dict(defaults)))
         self.assertNotRegex(stages, r"(?m)^ARG \w+=")
         self.assertNotIn("ARG BUILDPLATFORM", header)
@@ -25,6 +25,22 @@ class DockerLayoutTests(unittest.TestCase):
         rust = (ROOT / "docker/install-rust-toolchain.sh").read_text()
         self.assertIn("RUST_TOOLCHAIN=1.79.0", rust)
         self.assertIn('rustup default "${RUST_TOOLCHAIN}"', rust)
+
+    def test_go_download_sources_are_scoped_and_keep_checksum_verification(self):
+        content = (ROOT / "Dockerfile.base").read_text()
+        header, stages = content.split("\nFROM ", 1)
+        self.assertIn("ARG GOPROXY=https://goproxy.cn", header)
+        self.assertIn('ARG GOSUMDB="sum.golang.org https://goproxy.cn/sumdb/sum.golang.org"', header)
+        go_stage = stages.split("\nFROM ", 1)[0]
+        for name in ("GOPROXY", "GOSUMDB"):
+            self.assertIn(f"ARG {name}\n", go_stage)
+            self.assertIn(f"{name}=${{{name}}}", go_stage)
+        self.assertNotIn("GOSUMDB=off", content)
+        self.assertNotIn("GOINSECURE", content)
+        self.assertNotIn("GONOSUMDB", content)
+        script = (ROOT / "docker/install-go-tool.sh").read_text()
+        self.assertNotIn("GOPROXY=", script)
+        self.assertIn('go install "${package}@${version}"', script)
 
     def test_every_run_executes_a_mounted_script(self):
         content = (ROOT / "Dockerfile.base").read_text().replace("\\\n", " ")
