@@ -12,7 +12,7 @@ test('DataAgent 插件同时声明技能、两个 MCP 和 HTML 面板', async ()
   assert.equal(manifest.mcpServers, './.mcp.json');
   const config = await json('.mcp.json');
   assert.equal(config.mcpServers.hexstrike.type, 'http');
-  assert.equal(config.mcpServers.hexstrike.url, '${user_config.mcp_url}');
+  assert.equal(config.mcpServers.hexstrike.url, 'http://127.0.0.1:8889/mcp');
   assert.equal(config.mcpServers.records.env.PENTEST_RECORDS_ROOT,
     '${DATAAGENT_PROJECT_DIR}/pentest-records');
   const panel = await json(manifest.dataPanels);

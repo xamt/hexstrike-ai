@@ -41,7 +41,6 @@ async function packagePlugin(version) {
     await mkdir(dirname(join(stage, path)), { recursive: true });
     await cp(join(root, path), join(stage, path), { recursive: true });
   }
-  await cp(join(repository, 'LICENSE'), join(stage, 'LICENSE'));
   const files = await collect(stage, stage);
   const bytes = zipSync(files, { level: 6, mtime: new Date('2026-01-01T00:00:00Z') });
   const path = join(root, `dist/pentest-tools-${version}.zip`);

@@ -16,13 +16,17 @@ test('ZIP 仅包含可分发内容，技能同步且摘要正确', async () => {
   const zip = await readFile(new URL(archive, root));
   const files = unzipSync(zip);
   for (const name of ['.dataagent-plugin/plugin.json', '.mcp.json', 'panels/workbench.panel.json',
-    'ui/index.html', 'dist/records.cjs', 'dist/THIRD_PARTY_LICENSES.txt', 'LICENSE',
+    'ui/index.html', 'dist/records.cjs', 'dist/THIRD_PARTY_LICENSES.txt',
     'skills/pentest-tools/SKILL.md', 'skills/pentest-tools/references/plugin-workbench.md']) {
     assert.ok(files[name], name);
   }
+  assert.equal(Object.hasOwn(files, 'LICENSE'), false, '不重新打包已删除的项目许可证，包括旧暂存目录遗留文件');
+  assert.match(Buffer.from(files['dist/THIRD_PARTY_LICENSES.txt']).toString(), /@modelcontextprotocol\/sdk@/,
+    '第三方依赖声明独立保留');
   assert.ok(Object.keys(files).every(name => !/(node_modules|pentest-records|\.git\/|\.helloagents|screenshots|\.env)/.test(name)));
   const config = JSON.parse(Buffer.from(files['.mcp.json']).toString());
-  assert.equal(config.mcpServers.hexstrike.url, '${user_config.mcp_url}', '发布包不能固化开发机地址');
+  assert.deepEqual(config, JSON.parse(await readFile(new URL('.mcp.json', root), 'utf8')),
+    '发布包忠实使用当前MCP配置，不替换用户已确定的本机地址');
   assert.equal(JSON.parse(Buffer.from(files['.dataagent-plugin/plugin.json']).toString()).version, manifest.version);
   const source = await readFile(new URL('../skills/pentest-tools/SKILL.md', import.meta.url), 'utf8');
   const packaged = Buffer.from(files['skills/pentest-tools/SKILL.md']).toString();
