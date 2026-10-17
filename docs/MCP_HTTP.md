@@ -46,6 +46,8 @@
 
 技能 [pentest-tools](../skills/pentest-tools/SKILL.md) 提供测试流程和证据要求，不负责建立 MCP 连接，也不提供独立 HTTP 调用器。先由宿主连接服务，再加载技能；MCP 失败时不要静默切到 HTTP API 重试。
 
+DataAgent 用户可使用 [渗透测试工作台插件](../plugins/pentest-tools/README.md)，统一安装技能、远端 MCP 配置及进度/报告 HTML 视图。插件固定远端服务身份为 `plugin:pentest-tools:hexstrike`，另带 `plugin:pentest-tools:records` 保存工作区记录；只需配置现有服务地址，不需要再手工建立一份重复 MCP 连接。本地记录组件需要 Node.js 22+，不执行扫描。
+
 ### 2.2 自研 Agent：Python SDK 示例
 
 以下示例适用于本项目 [requirements-mcp.txt](../requirements-mcp.txt) 固定的官方 SDK。SDK 负责协议协商和请求封装；这里的客户端代码不会启动 MCP 服务进程。
