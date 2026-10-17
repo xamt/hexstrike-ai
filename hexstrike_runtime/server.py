@@ -22,7 +22,7 @@ class HexStrikeMCPServer(MCPServer):
             raise ValueError("并发工具数量必须为正整数")
         self._max_concurrent = max_concurrent
         self._inflight = 0
-        super().__init__("hexstrike-ai-mcp", subscriptions=False)
+        super().__init__("pentest-agent-tools", subscriptions=False)
 
     async def call_tool(self, name, arguments, context=None):
         """在事件循环内快速分配配额，SDK 在线程中运行原同步工具。"""

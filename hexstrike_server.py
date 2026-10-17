@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HexStrike AI - Advanced Penetration Testing Framework Server
+pentest-agent-tools - 安全测试工具服务
 
 Enhanced with AI-Powered Intelligence & Automation
 🚀 Bug Bounty | CTF | Red Team | Security Research
@@ -174,7 +174,7 @@ class ModernVisualEngine:
 
     @staticmethod
     def create_banner() -> str:
-        """Create the enhanced HexStrike banner"""
+        """生成 pentest-agent-tools 启动横幅。"""
         # Build a blood-red themed border using primary/gradient alternation
         border_color = ModernVisualEngine.COLORS['PRIMARY_BORDER']
         accent = ModernVisualEngine.COLORS['ACCENT_LINE']
@@ -184,15 +184,15 @@ class ModernVisualEngine:
         title_block = f"{accent}{BOLD}"
         banner = f"""
 {title_block}
-██╗  ██╗███████╗██╗  ██╗███████╗████████╗██████╗ ██╗██╗  ██╗███████╗
-██║  ██║██╔════╝╚██╗██╔╝██╔════╝╚══██╔══╝██╔══██╗██║██║ ██╔╝██╔════╝
-███████║█████╗   ╚███╔╝ ███████╗   ██║   ██████╔╝██║█████╔╝ █████╗
-██╔══██║██╔══╝   ██╔██╗ ╚════██║   ██║   ██╔══██╗██║██╔═██╗ ██╔══╝
-██║  ██║███████╗██╔╝ ██╗███████║   ██║   ██║  ██║██║██║  ██╗███████╗
-╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│                        pentest-agent-tools                          │
+│                          安全测试工具服务                           │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 {RESET}
 {border_color}┌─────────────────────────────────────────────────────────────────────┐
-│  {ModernVisualEngine.COLORS['BRIGHT_WHITE']}🚀 HexStrike AI - Blood-Red Offensive Intelligence Core{border_color}        │
+│  {ModernVisualEngine.COLORS['BRIGHT_WHITE']}pentest-agent-tools — 安全测试工具服务{border_color}                     │
 │  {accent}⚡ AI-Automated Recon | Exploitation | Analysis Pipeline{border_color}          │
 │  {gradient}🎯 Bug Bounty | CTF | Red Team | Zero-Day Research{border_color}              │
 └─────────────────────────────────────────────────────────────────────┘{RESET}
@@ -282,7 +282,7 @@ class ModernVisualEngine:
         if not processes:
             return f"""
 {ModernVisualEngine.COLORS['PRIMARY_BORDER']}╭─────────────────────────────────────────────────────────────────────────────╮
-│ {ModernVisualEngine.COLORS['ACCENT_LINE']}📊 HEXSTRIKE LIVE DASHBOARD{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                           │
+│ {ModernVisualEngine.COLORS['ACCENT_LINE']}pentest-agent-tools 进程概览{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ {ModernVisualEngine.COLORS['TERMINAL_GRAY']}No active processes currently running{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                    │
 ╰─────────────────────────────────────────────────────────────────────────────╯{ModernVisualEngine.COLORS['RESET']}
@@ -290,7 +290,7 @@ class ModernVisualEngine:
 
         dashboard_lines = [
             f"{ModernVisualEngine.COLORS['PRIMARY_BORDER']}╭─────────────────────────────────────────────────────────────────────────────╮",
-            f"│ {ModernVisualEngine.COLORS['ACCENT_LINE']}📊 HEXSTRIKE LIVE DASHBOARD{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                           │",
+            f"│ {ModernVisualEngine.COLORS['ACCENT_LINE']}pentest-agent-tools 进程概览{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                             │",
             f"├─────────────────────────────────────────────────────────────────────────────┤"
         ]
 
@@ -6655,7 +6655,7 @@ def setup_logging():
     # Console handler with colors
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(ColoredFormatter(
-        "[🔥 HexStrike AI] %(asctime)s [%(levelname)s] %(message)s",
+        "[pentest-agent-tools] %(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     ))
     logger.addHandler(console_handler)
@@ -9130,7 +9130,7 @@ def health_check():
 
     return jsonify({
         "status": "healthy",
-        "message": "HexStrike AI Tools API Server is operational",
+        "message": "pentest-agent-tools API Server is operational",
         "version": "6.0.0",
         "tools_status": tools_status,
         "all_essential_tools_available": all_essential_tools_available,
@@ -17298,7 +17298,7 @@ if __name__ == "__main__":
     # Display the beautiful new banner
     print(BANNER)
 
-    parser = argparse.ArgumentParser(description="Run the HexStrike AI API Server")
+    parser = argparse.ArgumentParser(description="启动 pentest-agent-tools API 服务")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     parser.add_argument("--port", type=int, default=API_PORT, help=f"Port for the API server (default: {API_PORT})")
     args = parser.parse_args()
@@ -17313,7 +17313,7 @@ if __name__ == "__main__":
     # Enhanced startup messages with beautiful formatting
     startup_info = f"""
 {ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╭─────────────────────────────────────────────────────────────────────────────╮{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['NEON_BLUE']}🚀 Starting HexStrike AI Tools API Server{ModernVisualEngine.COLORS['RESET']}
+{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['NEON_BLUE']}正在启动 pentest-agent-tools API 服务{ModernVisualEngine.COLORS['RESET']}
 {ModernVisualEngine.COLORS['BOLD']}├─────────────────────────────────────────────────────────────────────────────┤{ModernVisualEngine.COLORS['RESET']}
 {ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['CYBER_ORANGE']}🌐 Port:{ModernVisualEngine.COLORS['RESET']} {API_PORT}
 {ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['WARNING']}🔧 Debug Mode:{ModernVisualEngine.COLORS['RESET']} {DEBUG_MODE}
