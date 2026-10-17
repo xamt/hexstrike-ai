@@ -8,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict
 from unittest.mock import Mock
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 TREE = ast.parse((ROOT / "hexstrike_server.py").read_text())
@@ -21,6 +22,7 @@ def load_function(name, **overrides):
     namespace = {
         "request": SimpleNamespace(json={}), "jsonify": lambda value: value,
         "logger": logging.getLogger(__name__), "shlex": shlex,
+        "urlparse": urlparse,
         "execute_command": Mock(return_value={"success": True}),
         "execute_command_with_recovery": Mock(return_value={"success": True}),
         "os": SimpleNamespace(makedirs=Mock(), path=SimpleNamespace(isfile=lambda _: False)),
@@ -160,7 +162,7 @@ class EndpointContractTests(unittest.TestCase):
             ("sqlmap", {"url": "https://example.com/?a=1&b=2", "data": "a=$x&b='text'"}, ["https://example.com/?a=1&b=2", "--data=a=$x&b='text'"]),
             ("hydra", {"target": "example.com", "service": "ssh", "username": "a b", "password": "p'$x"}, ["a b", "p'$x"]),
             ("gobuster", {"url": "https://example.com/?x=1&y=2", "wordlist": "/tmp/a b.txt", "use_recovery": False}, ["https://example.com/?x=1&y=2", "/tmp/a b.txt"]),
-            ("ffuf", {"url": "https://example.com/?a=1&b=2", "mode": "parameter"}, ["https://example.com/?a=1&b=2?FUZZ=value"]),
+            ("ffuf", {"url": "https://example.com/?a=1&b=2", "mode": "parameter"}, ["https://example.com/?a=1&b=2&FUZZ=value"]),
             ("anew", {"input_data": "a'b\n$x", "output_file": "/tmp/a b.txt"}, ["a'b\n$x", "/tmp/a b.txt"]),
             ("x8", {"url": "https://example.com/?a=1&b=2", "body": "a='x'&b=$y", "headers": "X-Key: a'b"}, ["https://example.com/?a=1&b=2", "a='x'&b=$y", "X-Key: a'b"]),
             ("volatility3", {"memory_file": "/tmp/a b.raw", "plugin": "windows.pslist"}, ["/tmp/a b.raw"]),

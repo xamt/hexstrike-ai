@@ -6,8 +6,8 @@
 
 | 用途 | AMD64 | ARM64 |
 | --- | --- | --- |
-| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-arm64` |
-| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-arm64` |
+| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-arm64` |
+| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-arm64` |
 
 - 基础镜像：Kali、安全工具、小型字典、Python 3.11，以及隔离的 Volatility 2/3、JWT-Tool、ParamSpider、Kube-Hunter 环境；默认进入 Bash，不启动服务。
 - 应用镜像：继承同架构基础镜像，安装项目依赖、复制代码、配置 8888 端口和健康检查，不重复安装安全工具。
@@ -18,7 +18,7 @@
 保留原有 SQLMap 等安全工具自身的数据库测试能力；其间接依赖不作为独立数据库客户端能力承诺。
 恢复以 `1c865493^` 为基准的 MCP 参数契约，优先由固定工具版本、隔离运行时和命令入口适配原接口；
 不以新版工具的参数替换原有接口。五个补充工具 testssl.sh、WhatWeb、JWT-Tool、TruffleHog、tcpdump 及其版本保持不变。
-1.3.2 保留上一版的 Kube-Bench、Kube-Hunter、kubectl、Helm 和 Docker CLI，不默认安装 Trivy 或 Clair。
+1.3.3 保留上一版的 Kube-Bench、Kube-Hunter、kubectl、Helm 和 Docker CLI，不默认安装 Trivy 或 Clair。
 本版主要修复旧接口的命令兼容：Dalfox 固定为官方 `v2.12.0`，其他工具版本不变；AutoRecon、Hakrawler 的既有 MCP 默认参数由基础镜像兼容入口承接，不要求调用方更改默认值。版本差异与接口使用边界见第 6.8 节。
 
 以下命令全部在项目根目录执行，不需要预先设置任何 Shell 变量。
@@ -34,7 +34,7 @@
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-amd64 \
   --load \
   --progress=plain \
   "."
@@ -46,7 +46,7 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-arm64 \
   --load \
   --progress=plain \
   "."
@@ -64,8 +64,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-amd64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-amd64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-amd64 \
   --load \
   --progress=plain \
   "."
@@ -79,8 +79,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-arm64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-arm64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-arm64 \
   --load \
   --progress=plain \
   "."
@@ -91,9 +91,10 @@ docker buildx build \
 
 ## 4. 启动应用镜像
 
-下面两条启动命令包含 John/Hashcat 默认字典的只读挂载。执行前，将 `/path/to/rockyou.txt`
+下面两条启动命令包含 John/Hashcat 默认字典和 Nuclei 离线模板的只读挂载。执行前，将 `/path/to/rockyou.txt`
 替换为宿主机上真实、可读且已解压的 `rockyou.txt` 文件的绝对路径；不能直接挂载 `rockyou.txt.gz`。
 宿主机文件须提前准备好，离线运行环境应提前传入该文件。`--mount` 在源文件不存在时会直接报错，避免误建同名目录。
+将 `/path/to/nuclei-templates` 替换为宿主机上已准备好的完整模板根目录绝对路径（准备要求见 4.4），不要指向归档文件或多包了一层的父目录。
 
 ### 4.1 AMD64 应用
 
@@ -103,7 +104,8 @@ docker run --detach \
   --platform linux/amd64 \
   --publish 127.0.0.1:8888:8888 \
   --mount "type=bind,source=/path/to/rockyou.txt,target=/usr/share/wordlists/rockyou.txt,readonly" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-amd64
+  --mount "type=bind,source=/path/to/nuclei-templates,target=/opt/nuclei-templates,readonly" \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-amd64
 ```
 
 ### 4.2 ARM64 应用
@@ -114,7 +116,8 @@ docker run --detach \
   --platform linux/arm64 \
   --publish 127.0.0.1:8888:8888 \
   --mount "type=bind,source=/path/to/rockyou.txt,target=/usr/share/wordlists/rockyou.txt,readonly" \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-arm64
+  --mount "type=bind,source=/path/to/nuclei-templates,target=/opt/nuclei-templates,readonly" \
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-arm64
 ```
 
 服务地址为 `http://127.0.0.1:8888`。两条命令使用相同的宿主机端口，不要同时运行。
@@ -134,6 +137,26 @@ John 和 Hashcat 的现有 MCP 接口默认读取 `/usr/share/wordlists/rockyou.
 只读挂载不增加镜像层，也能避免容器修改宿主机字典。
 不使用 John/Hashcat 的默认字典功能时，可以省略这项挂载；使用其他字典时，应先将其挂载到容器，再通过接口的 `wordlist` 指定容器内路径。
 待处理的哈希文件也需另行提供给容器，字典挂载不包含输入文件。
+
+### 4.4 Nuclei 离线模板准备与挂载
+
+镜像安装 Nuclei 引擎，不固化完整模板。当前默认入口只使用本地模板，不会在首次扫描时下载模板、检查更新或更新引擎。
+使用默认 MCP 调用前，必须按上面的启动命令将模板根目录只读挂载到 `/opt/nuclei-templates`；缺少目录、空目录或没有非空 YAML 模板时明确失败，不自动改用在线源。
+不使用 Nuclei 时可以省略该挂载，不影响 HTTP 服务和其他工具启动，但工具可被健康检查发现不代表模板已就绪。
+
+离线部署前，在有网络的准备环境从 [官方 nuclei-templates 发布页](https://github.com/projectdiscovery/nuclei-templates/releases)
+选定与本镜像 Nuclei 3.11.1 兼容的模板发布版，记录标签、下载地址及归档 SHA-256，按固定版本归档交付，不使用浮动的 latest。
+解压时保留完整目录结构、隐藏文件及辅助数据（例如 helpers、workflows），并在准备环境使用相同引擎版本核对模板语法；本仓库不承诺任意新模板兼容旧引擎。
+将归档及校验值通过部署介质传入运行环境，核对校验值后解压、设置可读权限，再将解压后的模板根目录用于挂载。
+这一步在运行前完成，不要求离线容器能够访问 GitHub，也不需要重新构建基础镜像。
+
+兼容入口通过 `NUCLEI_TEMPLATES_DIR` 指定模板根目录（默认 `/opt/nuclei-templates`），追加 `-duc` 禁止更新检查，
+并禁用公共及自定义仓库的自动模板下载。现有 `template` 参数仍可选择容器内的本地 YAML 文件或目录；逗号分隔的多个本地路径、相对于模板根目录的路径及本地通配符也支持。
+不接受远程模板 URL 或更新命令，模板更新应在准备环境完成后更换挂载内容。模板选择只检查本地文件存在和基本可读性，具体语法和执行错误由 Nuclei 原生引擎返回。
+
+默认追加 `-ni` 禁用 Interactsh 外部回连，依赖 OAST 的模板不会执行；这属于离线模式的检测范围限制，不代表这些风险不存在。
+其他模板仍会访问目标，部分模板可能另有外部 API、浏览器或辅助程序依赖，因此本入口不是网络隔离沙箱，也不保证所有模板都能在无外网环境工作。
+模板挂载可只读，但容器内 Nuclei 的用户配置目录、缓存和临时目录仍需可写；不要仅凭模板只读就将整个容器根文件系统改成只读。
 
 ## 5. 构建下载源
 
@@ -161,7 +184,7 @@ Kali 和 Go 参数只用于基础镜像构建，PyPI 参数可用于两种镜像
 
 ## 6. 基础镜像包含的工具
 
-以下按基础镜像 1.3.2 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
+以下按基础镜像 1.3.3 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
 AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不同，表中以实际命令入口为准。
 
 ### 6.1 网络发现与资产收集
@@ -208,7 +231,7 @@ AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不�
 | Nuclei | `nuclei` | 依据模板检查服务和 Web 应用的漏洞及配置问题。 |
 | Nikto | `nikto` | 检查 Web 服务器危险文件、错误配置和已知风险。 |
 | SQLMap | `sqlmap` | 检测和验证 SQL 注入及其影响。 |
-| WPScan | `wpscan` | 枚举 WordPress 核心、主题、插件并检查相关风险。 |
+| WPScan | `wpscan` | 固定 3.8.28，保留旧接口的默认插件枚举行为；检查 WordPress 核心、主题、插件风险，漏洞信息仍受数据库和 API 令牌条件限制。 |
 | Dalfox v2.12.0 | `dalfox` | 发现和验证 XSS 问题；固定官方 v2 版本以原生支持现有 mining、deep-domxss 参数，通过 Go 阶段编译，不安装 Kali 的 v3 包。 |
 | Wafw00f | `wafw00f` | 识别 Web 应用防火墙。 |
 | WhatWeb | `whatweb` | 识别 Web 技术、服务器和 CMS 指纹。 |
@@ -324,6 +347,7 @@ Kube-Hunter 的完整环境含 Kubernetes Python 客户端和 netifaces 扩展�
 - 工具清单描述基础镜像的命令能力，不表示每个工具都有独立 HTTP 接口，也不把应用层接口的参数限制等同于客户端本身的全部能力。
 - Subfinder、theHarvester 等工具的部分数据源需要 API Key；WPScan 的漏洞信息查询可能需要令牌。
 - 大型字典、完整 SecLists、Nuclei 模板、彩虹表和 Volatility 符号表不作为内置数据保证，需要按任务准备或挂载。
+- Nuclei 默认调用使用第 4.4 节的离线模板挂载，不再依赖首次调用时下载；不代表所有模板的外部依赖也已离线化。
 - Katana 的无头浏览器模式需要可用浏览器；Hashcat 的 GPU 模式需要宿主机驱动与设备透传。
 - tcpdump 实时采集需要可见网卡和相应权限，读取离线 PCAP 不需要抓包权限。
 - TruffleHog 的凭据验证及 JWT-Tool 的主动测试会产生外部请求，使用时应明确选择相应模式。
@@ -335,7 +359,15 @@ Kube-Hunter 的完整环境含 Kubernetes Python 客户端和 netifaces 扩展�
 - Trivy、Clair 的原接口仍保留在代码中，但本版不提供其运行环境；接口存在不能作为工具可用的依据。
 - kubectl 1.33.x 应配合受支持的 Kubernetes API 版本使用，不能保证兼容所有旧集群；连接前核对服务端版本与官方版本偏差范围。[Kubernetes 版本偏差策略](https://kubernetes.io/releases/version-skew-policy/#kubectl)
 
-#### 1.3.2 的兼容入口与接口参数
+#### 1.3.3 的兼容入口与接口参数
+
+本版将 WPScan 固定为 3.8.28，恢复其原生默认插件枚举（被动检测）和配置备份检查，不新增 WPScan 包装入口。
+Nuclei 增加基础环境离线模板入口；服务端仅调整 RPCclient、FFUF、Foremost 三个路由，不修改 `hexstrike_mcp.py`。
+RPCclient 默认匿名认证使用 `-N -U ''`，用户名配空密码时明确传递空密码，命令序列通过 `-c` 执行，不再使用交互管道。
+FFUF 默认目录模式在 URL 路径部分追加 `/FUZZ`，保留查询参数，已有 `FUZZ` 时不重复添加；参数模式正确追加查询项。
+Foremost 默认在 `/tmp/foremost_output` 下为每次调用创建唯一 `run-*` 子目录，响应中的 `output_directory` 返回实际结果目录。
+显式指定非默认目录时保留该路径，非空则拒绝执行，不删除旧证据；该接口不复用结果缓存，避免返回历史结果。
+默认结果保存在容器文件系统中，需要持久化时将 `/tmp/foremost_output` 挂载到单独的可写数据目录；保留目录权限与容量，按保留策略管理旧结果，不自动清空。
 
 基础镜像和应用镜像均优先使用 `/opt/hexstrike-compat/bin`，原始 APT 与 Go 命令保留在原路径。
 兼容入口不改写目标、不吞掉退出状态，也不以“找到命令”替代工具能力判断。

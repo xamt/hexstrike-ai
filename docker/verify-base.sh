@@ -98,13 +98,15 @@ timeout 30 kube-bench version
 timeout 30 kube-hunter --help >/dev/null
 
 # 兼容入口使用显式 PATH，不覆盖上面验证摘要和 ELF 架构的原始二进制。
-for name in enum4linux-ng gobuster checksec binwalk waybackurls anew analyzeHeadless autorecon hakrawler; do
+for name in enum4linux-ng gobuster checksec binwalk waybackurls anew analyzeHeadless autorecon hakrawler nuclei; do
     test "$(command -v "${name}")" = "/opt/hexstrike-compat/bin/${name}"
 done
 test "$(id -u hexstrike-extract)" -ne 0
 test "$(id -u hexstrike-extract)" = "$(id -g hexstrike-extract)"
 test -r /opt/hexstrike-compat/ghidra/ExportXml.java
 /usr/local/bin/python3.11 -m py_compile /opt/hexstrike-compat/cli-compat.py
+/usr/local/bin/python3.11 -m py_compile /opt/hexstrike-compat/nuclei-compat.py
+timeout 30 nuclei -version
 /usr/local/bin/python3.11 -m py_compile /opt/hexstrike-compat/autorecon-compat.py \
     /opt/hexstrike-compat/autorecon-plugins/hexstrike-tcp-profiles.py \
     /opt/hexstrike-compat/hakrawler-compat.py /opt/hexstrike-compat/hakrawler_runtime.py \

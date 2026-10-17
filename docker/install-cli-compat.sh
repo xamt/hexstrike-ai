@@ -22,6 +22,10 @@ done
 for name in hakrawler_runtime.py hakrawler_sources.py hakrawler_process.py; do
     install -m 0644 "${script_dir}/${name}" "/opt/hexstrike-compat/${name}"
 done
+# 模板由运行时只读挂载，不在构建或第一次扫描时下载。
+install -d /opt/nuclei-templates
+install -m 0755 "${script_dir}/nuclei-compat.py" /opt/hexstrike-compat/nuclei-compat.py
+ln -s ../nuclei-compat.py /opt/hexstrike-compat/bin/nuclei
 # Binwalk 主进程仍能读取输入，但外部解包程序不默认以 root 执行。
 # Binwalk 2.x 的 UID/GID 处理存在历史缺陷，专用用户使用相同且均未占用的编号。
 if ! id hexstrike-extract >/dev/null 2>&1; then

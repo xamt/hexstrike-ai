@@ -5,7 +5,7 @@
     "ANEW_VERSION": "v0.1.1",
     "X8_VERSION": "4.3.0",
     "NIKTO_VERSION": "2.6.1",
-    "WPSCAN_VERSION": "4.0.0",
+    "WPSCAN_VERSION": "3.8.28",
     "NMAP_VERSION": "7.991+dfsg-1kali1",
     "MASSCAN_VERSION_AMD64": "2:1.3.2+ds1-2",
     "MASSCAN_VERSION_ARM64": "2:1.3.2+ds1-2+b1",

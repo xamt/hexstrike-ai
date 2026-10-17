@@ -26,6 +26,7 @@ def mcp_request(name, **arguments):
     client = Mock()
     client.safe_post.return_value = {"success": True}
     namespace = {"hexstrike_client": client, "logger": logging.getLogger(__name__),
+                 "HexStrikeColors": Mock(),
                  "Dict": Dict, "Any": Any}
     exec(compile(ast.Module(body=[node], type_ignores=[]), "isolated-mcp", "exec"), namespace)
     namespace[name](**arguments)

@@ -53,7 +53,7 @@ class DockerContractTests(unittest.TestCase):
 
     def test_application_layers_and_isolation(self):
         app = (ROOT / "Dockerfile").read_text()
-        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-${TARGETARCH}", app)
+        self.assertIn("ARG BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-${TARGETARCH}", app)
         self.assertIn("FROM ${BASE_IMAGE}", app)
         self.assertEqual(1, len(re.findall(r"^FROM ", app, re.M)))
         self.assertNotIn("apt-get", app)
@@ -70,9 +70,9 @@ class DockerContractTests(unittest.TestCase):
         docs = (ROOT / "docs/DOCKER_BUILD.md").read_text()
         for arch in ("amd64", "arm64"):
             self.assertIn(f'--platform linux/{arch}', docs)
-            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-{arch}', docs)
-            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-{arch}', docs)
-            self.assertIn(f'--build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-{arch}', docs)
+            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-{arch}', docs)
+            self.assertIn(f'--tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-{arch}', docs)
+            self.assertIn(f'--build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-{arch}', docs)
         self.assertNotIn("${", docs)
         self.assertNotIn("imagetools", docs)
         self.assertNotRegex(docs, r'pentest-tools(?:-base)?:1\.3\.2(?!-)')

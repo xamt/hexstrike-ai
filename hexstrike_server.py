@@ -20,6 +20,7 @@ Framework: FastMCP integration for AI agent communication
 
 import argparse
 import shlex
+import tempfile
 import json
 import logging
 import os
@@ -11262,12 +11263,20 @@ def ffuf():
 
         command = f"ffuf"
 
+        if "FUZZ" not in url and mode in ("directory", "parameter"):
+            parsed = urlparse(url)
+            if mode == "directory":
+                url = parsed._replace(path=parsed.path.rstrip("/") + "/FUZZ").geturl()
+            else:
+                query = parsed.query + ("&" if parsed.query else "") + "FUZZ=value"
+                url = parsed._replace(query=query).geturl()
+
         if mode == "directory":
-            command += f" -u {shlex.quote(url + '/FUZZ')} -w {shlex.quote(wordlist)}"
+            command += f" -u {shlex.quote(url)} -w {shlex.quote(wordlist)}"
         elif mode == "vhost":
             command += f" -u {shlex.quote(url)} -H 'Host: FUZZ' -w {shlex.quote(wordlist)}"
         elif mode == "parameter":
-            command += f" -u {shlex.quote(url + '?FUZZ=value')} -w {shlex.quote(wordlist)}"
+            command += f" -u {shlex.quote(url)} -w {shlex.quote(wordlist)}"
         else:
             command += f" -u {shlex.quote(url)} -w {shlex.quote(wordlist)}"
 
@@ -11740,22 +11749,16 @@ def rpcclient():
             logger.warning("🎯 rpcclient called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        # Build authentication string
-        auth_string = ""
-        if username and password:
-            auth_string = f"-U {username}%{password}"
-        elif username:
-            auth_string = f"-U {username}"
+        # 明确空密码和匿名认证，避免非交互接口进入密码提示。
+        if username:
+            auth_string = f"-U {shlex.quote(username + '%' + password)}"
         else:
-            auth_string = "-U ''"  # Anonymous
+            auth_string = "-N -U ''"
 
         if domain:
-            auth_string += f" -W {domain}"
+            auth_string += f" -W {shlex.quote(domain)}"
 
-        # Create command sequence
-        command_sequence = commands.replace(";", "\n")
-
-        command = f"echo -e '{command_sequence}' | rpcclient {auth_string} {target}"
+        command = f"rpcclient {auth_string} -c {shlex.quote(commands)} {shlex.quote(target)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -15336,8 +15339,13 @@ def foremost():
                 "error": "Input file parameter is required"
             }), 400
 
-        # Ensure output directory exists
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        # 每次默认调用独占结果目录；显式目录非空时保留旧证据并拒绝执行。
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        if output_dir == "/tmp/foremost_output":
+            output_dir = tempfile.mkdtemp(prefix="run-", dir=str(output_path))
+        elif any(output_path.iterdir()):
+            return jsonify({"error": "Foremost 输出目录非空，请指定新的目录；已有结果不会被覆盖"}), 400
 
         command = f"foremost -o {shlex.quote(output_dir)}"
 
@@ -15350,7 +15358,7 @@ def foremost():
         command += f" {shlex.quote(input_file)}"
 
         logger.info(f"📁 Starting Foremost file carving: {input_file}")
-        result = execute_command(command)
+        result = execute_command(command, use_cache=False)
         result["output_directory"] = output_dir
         logger.info(f"📊 Foremost carving completed")
         return jsonify(result)

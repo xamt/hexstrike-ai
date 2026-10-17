@@ -224,6 +224,7 @@ RUN --mount=type=bind,source=docker/install-cli-compat.sh,target=/tmp/install-cl
     --mount=type=bind,source=docker/hakrawler_runtime.py,target=/tmp/hakrawler_runtime.py \
     --mount=type=bind,source=docker/hakrawler_sources.py,target=/tmp/hakrawler_sources.py \
     --mount=type=bind,source=docker/hakrawler_process.py,target=/tmp/hakrawler_process.py \
+    --mount=type=bind,source=docker/nuclei-compat.py,target=/tmp/nuclei-compat.py \
     bash /tmp/install-cli-compat.sh
 RUN --mount=type=bind,source=docker/finalize-base.sh,target=/tmp/finalize-base.sh \
     bash /tmp/finalize-base.sh
