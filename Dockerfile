@@ -13,12 +13,16 @@ ENV PATH="/opt/hexstrike-compat/bin:/opt/hexstrike-venv/bin:/usr/local/bin:/usr/
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
     HEXSTRIKE_HOST=0.0.0.0 \
-    HEXSTRIKE_PORT=8888
+    HEXSTRIKE_PORT=8888 \
+    HEXSTRIKE_MCP_PORT=8889 \
+    HEXSTRIKE_STARTUP_TIMEOUT=60 \
+    HEXSTRIKE_SHUTDOWN_TIMEOUT=10
 
 WORKDIR /opt/hexstrike
 # 使用基础镜像固定的 pip 管理新环境，不修改系统或工具虚拟环境。
-RUN /usr/local/bin/python3.11 -m venv --without-pip /opt/hexstrike-venv
-COPY requirements.txt ./
+RUN /usr/local/bin/python3.11 -m venv --without-pip /opt/hexstrike-venv && \
+    /usr/local/bin/python3.11 -m venv --without-pip /opt/hexstrike-mcp-venv
+COPY requirements.txt requirements-mcp.txt ./
 # 与基础镜像统一国内 PyPI 源；只用于构建，不改容器运行时的 pip 配置。
 ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 RUN sed -E '/^(pwntools|angr|bcrypt)([<=>]|$)/d' requirements.txt \
@@ -26,17 +30,24 @@ RUN sed -E '/^(pwntools|angr|bcrypt)([<=>]|$)/d' requirements.txt \
     /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python install -r requirements-runtime.txt --index-url "${PIP_INDEX_URL}" && \
     ln -sf /usr/local/bin/httpx /opt/hexstrike-venv/bin/httpx && \
     /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python check && \
+    /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-mcp-venv/bin/python install -r requirements-mcp.txt --index-url "${PIP_INDEX_URL}" && \
+    /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-mcp-venv/bin/python check && \
     /opt/volatility3-venv/bin/python -m pip check && \
     vol -h >/dev/null
 
 # 代码变化不触发前面的依赖安装。
 COPY hexstrike_server.py hexstrike_mcp.py ./
-RUN /opt/hexstrike-venv/bin/python -c 'import aiohttp, bs4, flask, mcp, mitmproxy, psutil, requests, selenium' && \
-    /opt/hexstrike-venv/bin/python -m py_compile hexstrike_server.py hexstrike_mcp.py
+COPY hexstrike_runtime/ ./hexstrike_runtime/
+COPY hexstrike_tools/ ./hexstrike_tools/
+COPY docker/service_manager.py docker/service_health.py ./docker/
+RUN /opt/hexstrike-venv/bin/python -c 'import aiohttp, bs4, flask, mitmproxy, psutil, requests, selenium' && \
+    /opt/hexstrike-venv/bin/python -m py_compile hexstrike_server.py docker/service_manager.py docker/service_health.py && \
+    /opt/hexstrike-mcp-venv/bin/python -c 'import mcp, requests' && \
+    /opt/hexstrike-mcp-venv/bin/python -m compileall -q hexstrike_mcp.py hexstrike_runtime hexstrike_tools
 
-EXPOSE 8888
-HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-  CMD /opt/hexstrike-venv/bin/python -c "import requests; response=requests.get('http://127.0.0.1:8888/health', timeout=4); response.raise_for_status()"
+EXPOSE 8888 8889
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD ["/opt/hexstrike-venv/bin/python", "/opt/hexstrike/docker/service_health.py"]
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/opt/hexstrike-venv/bin/python", "/opt/hexstrike/hexstrike_server.py", "--port", "8888"]
+CMD ["/opt/hexstrike-venv/bin/python", "/opt/hexstrike/docker/service_manager.py"]

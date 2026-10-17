@@ -1,0 +1,1367 @@
+{
+  "source": "hexstrike_mcp.py before transport extraction",
+  "definition_count": 151,
+  "unique_tool_count": 150,
+  "duplicate_policy": "first registration wins",
+  "definitions": [
+    {
+      "name": "nmap_scan",
+      "original_line": 284,
+      "signature": "target: str, scan_type: str='-sV', ports: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='scan_type', annotation=Name(id='str', ctx=Load())), arg(arg='ports', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='-sV'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute an enhanced Nmap scan against a target with real-time logging.\n\n        Args:\n            target: The IP address or hostname to scan\n            scan_type: Scan type (e.g., -sV for version detection, -sC for scripts)\n            ports: Comma-separated list of ports or port ranges\n            additional_args: Additional Nmap arguments\n\n        Returns:\n            Scan results with enhanced telemetry\n        ",
+      "body_sha256": "75eca3c607911181b9c2a3ee3c41cb22bd7fe27dcdf422a99e3659accb611c50"
+    },
+    {
+      "name": "gobuster_scan",
+      "original_line": 327,
+      "signature": "url: str, mode: str='dir', wordlist: str='/usr/share/wordlists/dirb/common.txt', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='mode', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='dir'), Constant(value='/usr/share/wordlists/dirb/common.txt'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Gobuster to find directories, DNS subdomains, or virtual hosts with enhanced logging.\n\n        Args:\n            url: The target URL\n            mode: Scan mode (dir, dns, fuzz, vhost)\n            wordlist: Path to wordlist file\n            additional_args: Additional Gobuster arguments\n\n        Returns:\n            Scan results with enhanced telemetry\n        ",
+      "body_sha256": "bd4d165d18fdf9a7241d83b5dd7553f82bc2864193b3f31fc930e341b2dabd0b"
+    },
+    {
+      "name": "nuclei_scan",
+      "original_line": 371,
+      "signature": "target: str, severity: str='', tags: str='', template: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='severity', annotation=Name(id='str', ctx=Load())), arg(arg='tags', annotation=Name(id='str', ctx=Load())), arg(arg='template', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Nuclei vulnerability scanner with enhanced logging and real-time progress.\n\n        Args:\n            target: The target URL or IP\n            severity: Filter by severity (critical,high,medium,low,info)\n            tags: Filter by tags (e.g. cve,rce,lfi)\n            template: Custom template path\n            additional_args: Additional Nuclei arguments\n\n        Returns:\n            Scan results with discovered vulnerabilities and telemetry\n        ",
+      "body_sha256": "17685221bd84ad83676c2ae761191e8e0a380cbfaabf07c33ee5aae070caa8e6"
+    },
+    {
+      "name": "prowler_scan",
+      "original_line": 422,
+      "signature": "provider: str='aws', profile: str='default', region: str='', checks: str='', output_dir: str='/tmp/prowler_output', output_format: str='json', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='provider', annotation=Name(id='str', ctx=Load())), arg(arg='profile', annotation=Name(id='str', ctx=Load())), arg(arg='region', annotation=Name(id='str', ctx=Load())), arg(arg='checks', annotation=Name(id='str', ctx=Load())), arg(arg='output_dir', annotation=Name(id='str', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='aws'), Constant(value='default'), Constant(value=''), Constant(value=''), Constant(value='/tmp/prowler_output'), Constant(value='json'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Prowler for comprehensive cloud security assessment.\n\n        Args:\n            provider: Cloud provider (aws, azure, gcp)\n            profile: AWS profile to use\n            region: Specific region to scan\n            checks: Specific checks to run\n            output_dir: Directory to save results\n            output_format: Output format (json, csv, html)\n            additional_args: Additional Prowler arguments\n\n        Returns:\n            Cloud security assessment results\n        ",
+      "body_sha256": "3a1f8f78b13a2ea25426d1569efb6f026bc24583251217130b6396d2fbe4bc4e"
+    },
+    {
+      "name": "trivy_scan",
+      "original_line": 456,
+      "signature": "scan_type: str='image', target: str='', output_format: str='json', severity: str='', output_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='scan_type', annotation=Name(id='str', ctx=Load())), arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='severity', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='image'), Constant(value=''), Constant(value='json'), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Trivy for container and filesystem vulnerability scanning.\n\n        Args:\n            scan_type: Type of scan (image, fs, repo, config)\n            target: Target to scan (image name, directory, repository)\n            output_format: Output format (json, table, sarif)\n            severity: Severity filter (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)\n            output_file: File to save results\n            additional_args: Additional Trivy arguments\n\n        Returns:\n            Vulnerability scan results\n        ",
+      "body_sha256": "7dcab2ae1b71a12a5907a7372dfcec16a34fb883df659a07d8333f37230b53ee"
+    },
+    {
+      "name": "scout_suite_assessment",
+      "original_line": 492,
+      "signature": "provider: str='aws', profile: str='default', report_dir: str='/tmp/scout-suite', services: str='', exceptions: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='provider', annotation=Name(id='str', ctx=Load())), arg(arg='profile', annotation=Name(id='str', ctx=Load())), arg(arg='report_dir', annotation=Name(id='str', ctx=Load())), arg(arg='services', annotation=Name(id='str', ctx=Load())), arg(arg='exceptions', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='aws'), Constant(value='default'), Constant(value='/tmp/scout-suite'), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Scout Suite for multi-cloud security assessment.\n\n        Args:\n            provider: Cloud provider (aws, azure, gcp, aliyun, oci)\n            profile: AWS profile to use\n            report_dir: Directory to save reports\n            services: Specific services to assess\n            exceptions: Exceptions file path\n            additional_args: Additional Scout Suite arguments\n\n        Returns:\n            Multi-cloud security assessment results\n        ",
+      "body_sha256": "34d7f2d70bea3baa883724c3887e3bcda693f21b8fa0dd09b422a92f6efbeaab"
+    },
+    {
+      "name": "cloudmapper_analysis",
+      "original_line": 526,
+      "signature": "action: str='collect', account: str='', config: str='config.json', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='action', annotation=Name(id='str', ctx=Load())), arg(arg='account', annotation=Name(id='str', ctx=Load())), arg(arg='config', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='collect'), Constant(value=''), Constant(value='config.json'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute CloudMapper for AWS network visualization and security analysis.\n\n        Args:\n            action: Action to perform (collect, prepare, webserver, find_admins, etc.)\n            account: AWS account to analyze\n            config: Configuration file path\n            additional_args: Additional CloudMapper arguments\n\n        Returns:\n            AWS network visualization and security analysis results\n        ",
+      "body_sha256": "c4d36c52d18da64d82f7c5f175843e2a5043a9dc8e96d3a2d642bb5f2478ad0f"
+    },
+    {
+      "name": "pacu_exploitation",
+      "original_line": 555,
+      "signature": "session_name: str='hexstrike_session', modules: str='', data_services: str='', regions: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='session_name', annotation=Name(id='str', ctx=Load())), arg(arg='modules', annotation=Name(id='str', ctx=Load())), arg(arg='data_services', annotation=Name(id='str', ctx=Load())), arg(arg='regions', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='hexstrike_session'), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Pacu for AWS exploitation framework.\n\n        Args:\n            session_name: Pacu session name\n            modules: Comma-separated list of modules to run\n            data_services: Data services to enumerate\n            regions: AWS regions to target\n            additional_args: Additional Pacu arguments\n\n        Returns:\n            AWS exploitation framework results\n        ",
+      "body_sha256": "28eabfff6cca2ca81f0ab844e6431bcdb483fae9bf8290917400f01d31942b1e"
+    },
+    {
+      "name": "kube_hunter_scan",
+      "original_line": 587,
+      "signature": "target: str='', remote: str='', cidr: str='', interface: str='', active: bool=False, report: str='json', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='remote', annotation=Name(id='str', ctx=Load())), arg(arg='cidr', annotation=Name(id='str', ctx=Load())), arg(arg='interface', annotation=Name(id='str', ctx=Load())), arg(arg='active', annotation=Name(id='bool', ctx=Load())), arg(arg='report', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=False), Constant(value='json'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute kube-hunter for Kubernetes penetration testing.\n\n        Args:\n            target: Specific target to scan\n            remote: Remote target to scan\n            cidr: CIDR range to scan\n            interface: Network interface to scan\n            active: Enable active hunting (potentially harmful)\n            report: Report format (json, yaml)\n            additional_args: Additional kube-hunter arguments\n\n        Returns:\n            Kubernetes penetration testing results\n        ",
+      "body_sha256": "580068c9c38a238301223088916082b78e713b9e1ff93f39fd6399900555e181"
+    },
+    {
+      "name": "kube_bench_cis",
+      "original_line": 623,
+      "signature": "targets: str='', version: str='', config_dir: str='', output_format: str='json', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='targets', annotation=Name(id='str', ctx=Load())), arg(arg='version', annotation=Name(id='str', ctx=Load())), arg(arg='config_dir', annotation=Name(id='str', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='json'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute kube-bench for CIS Kubernetes benchmark checks.\n\n        Args:\n            targets: Targets to check (master, node, etcd, policies)\n            version: Kubernetes version\n            config_dir: Configuration directory\n            output_format: Output format (json, yaml)\n            additional_args: Additional kube-bench arguments\n\n        Returns:\n            CIS Kubernetes benchmark results\n        ",
+      "body_sha256": "9a6dc5d94fd2d1536605db19e382f11fe953c02e1d0096b119072a043cccedb5"
+    },
+    {
+      "name": "docker_bench_security_scan",
+      "original_line": 654,
+      "signature": "checks: str='', exclude: str='', output_file: str='/tmp/docker-bench-results.json', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='checks', annotation=Name(id='str', ctx=Load())), arg(arg='exclude', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value='/tmp/docker-bench-results.json'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Docker Bench for Security for Docker security assessment.\n\n        Args:\n            checks: Specific checks to run\n            exclude: Checks to exclude\n            output_file: Output file path\n            additional_args: Additional Docker Bench arguments\n\n        Returns:\n            Docker security assessment results\n        ",
+      "body_sha256": "18c791957ed8d4d6ef423b0fddd9a0c284608c53ab1235baf7b9c841dd58207b"
+    },
+    {
+      "name": "clair_vulnerability_scan",
+      "original_line": 684,
+      "signature": "image: str, config: str='/etc/clair/config.yaml', output_format: str='json', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='image', annotation=Name(id='str', ctx=Load())), arg(arg='config', annotation=Name(id='str', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/etc/clair/config.yaml'), Constant(value='json'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Clair for container vulnerability analysis.\n\n        Args:\n            image: Container image to scan\n            config: Clair configuration file\n            output_format: Output format (json, yaml)\n            additional_args: Additional Clair arguments\n\n        Returns:\n            Container vulnerability analysis results\n        ",
+      "body_sha256": "1ab6f3efd2bb203593fe0bafc7222c2b37576c000134df0752e7d7880eeb6fb5"
+    },
+    {
+      "name": "falco_runtime_monitoring",
+      "original_line": 713,
+      "signature": "config_file: str='/etc/falco/falco.yaml', rules_file: str='', output_format: str='json', duration: int=60, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='config_file', annotation=Name(id='str', ctx=Load())), arg(arg='rules_file', annotation=Name(id='str', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='duration', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/etc/falco/falco.yaml'), Constant(value=''), Constant(value='json'), Constant(value=60), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Falco for runtime security monitoring.\n\n        Args:\n            config_file: Falco configuration file\n            rules_file: Custom rules file\n            output_format: Output format (json, text)\n            duration: Monitoring duration in seconds\n            additional_args: Additional Falco arguments\n\n        Returns:\n            Runtime security monitoring results\n        ",
+      "body_sha256": "b443a8f188ab968bfc2102ca4f49fb56b152e7fbb4132e9b8279883835adbee7"
+    },
+    {
+      "name": "checkov_iac_scan",
+      "original_line": 745,
+      "signature": "directory: str='.', framework: str='', check: str='', skip_check: str='', output_format: str='json', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='directory', annotation=Name(id='str', ctx=Load())), arg(arg='framework', annotation=Name(id='str', ctx=Load())), arg(arg='check', annotation=Name(id='str', ctx=Load())), arg(arg='skip_check', annotation=Name(id='str', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='.'), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='json'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Checkov for infrastructure as code security scanning.\n\n        Args:\n            directory: Directory to scan\n            framework: Framework to scan (terraform, cloudformation, kubernetes, etc.)\n            check: Specific check to run\n            skip_check: Check to skip\n            output_format: Output format (json, yaml, cli)\n            additional_args: Additional Checkov arguments\n\n        Returns:\n            Infrastructure as code security scanning results\n        ",
+      "body_sha256": "e26303612b335617251bea5fa54704b97b52d99f47280923afe6252e0d69c231"
+    },
+    {
+      "name": "terrascan_iac_scan",
+      "original_line": 779,
+      "signature": "scan_type: str='all', iac_dir: str='.', policy_type: str='', output_format: str='json', severity: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='scan_type', annotation=Name(id='str', ctx=Load())), arg(arg='iac_dir', annotation=Name(id='str', ctx=Load())), arg(arg='policy_type', annotation=Name(id='str', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='severity', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='all'), Constant(value='.'), Constant(value=''), Constant(value='json'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Terrascan for infrastructure as code security scanning.\n\n        Args:\n            scan_type: Type of scan (all, terraform, k8s, etc.)\n            iac_dir: Infrastructure as code directory\n            policy_type: Policy type to use\n            output_format: Output format (json, yaml, xml)\n            severity: Severity filter (high, medium, low)\n            additional_args: Additional Terrascan arguments\n\n        Returns:\n            Infrastructure as code security scanning results\n        ",
+      "body_sha256": "30230aa3c7a098f552245afde68b74f95e46c6601e2ca7dd50bca658edab0ffb"
+    },
+    {
+      "name": "create_file",
+      "original_line": 817,
+      "signature": "filename: str, content: str, binary: bool=False",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='filename', annotation=Name(id='str', ctx=Load())), arg(arg='content', annotation=Name(id='str', ctx=Load())), arg(arg='binary', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create a file with specified content on the HexStrike server.\n\n        Args:\n            filename: Name of the file to create\n            content: Content to write to the file\n            binary: Whether the content is binary data\n\n        Returns:\n            File creation results\n        ",
+      "body_sha256": "5711dc7a34ded6ffa854afe0159431f24e914c73a4ea7e727e2780aa4dd51bec"
+    },
+    {
+      "name": "modify_file",
+      "original_line": 843,
+      "signature": "filename: str, content: str, append: bool=False",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='filename', annotation=Name(id='str', ctx=Load())), arg(arg='content', annotation=Name(id='str', ctx=Load())), arg(arg='append', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Modify an existing file on the HexStrike server.\n\n        Args:\n            filename: Name of the file to modify\n            content: Content to write or append\n            append: Whether to append to the file (True) or overwrite (False)\n\n        Returns:\n            File modification results\n        ",
+      "body_sha256": "4e116815100b84fe1aab49391fc30f7ceedf5d294415a952ba8e1c59e2f2db61"
+    },
+    {
+      "name": "delete_file",
+      "original_line": 869,
+      "signature": "filename: str",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='filename', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Delete a file or directory on the HexStrike server.\n\n        Args:\n            filename: Name of the file or directory to delete\n\n        Returns:\n            File deletion results\n        ",
+      "body_sha256": "9442835d796841735f59c5114629e0106c76e04b6eb24dd8d1f42ab3dd24f9f4"
+    },
+    {
+      "name": "list_files",
+      "original_line": 891,
+      "signature": "directory: str='.'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='directory', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='.')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        List files in a directory on the HexStrike server.\n\n        Args:\n            directory: Directory to list (relative to server's base directory)\n\n        Returns:\n            Directory listing results\n        ",
+      "body_sha256": "a678c91043cd8c9c83922b1f925c15595599a6e2f6f93b894c26f60b7e538454"
+    },
+    {
+      "name": "generate_payload",
+      "original_line": 911,
+      "signature": "payload_type: str='buffer', size: int=1024, pattern: str='A', filename: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='payload_type', annotation=Name(id='str', ctx=Load())), arg(arg='size', annotation=Name(id='int', ctx=Load())), arg(arg='pattern', annotation=Name(id='str', ctx=Load())), arg(arg='filename', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='buffer'), Constant(value=1024), Constant(value='A'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Generate large payloads for testing and exploitation.\n\n        Args:\n            payload_type: Type of payload (buffer, cyclic, random)\n            size: Size of the payload in bytes\n            pattern: Pattern to use for buffer payloads\n            filename: Custom filename (auto-generated if empty)\n\n        Returns:\n            Payload generation results\n        ",
+      "body_sha256": "3ace9619550b7ff25a27e689491a0932407ee5819e662647136477ecd939de3e"
+    },
+    {
+      "name": "install_python_package",
+      "original_line": 945,
+      "signature": "package: str, env_name: str='default'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='package', annotation=Name(id='str', ctx=Load())), arg(arg='env_name', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='default')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Install a Python package in a virtual environment on the HexStrike server.\n\n        Args:\n            package: Name of the Python package to install\n            env_name: Name of the virtual environment\n\n        Returns:\n            Package installation results\n        ",
+      "body_sha256": "4dd9f881b5772060117829d5cbf790597debe8fae0f096eeb13c5084d6aa8da3"
+    },
+    {
+      "name": "execute_python_script",
+      "original_line": 969,
+      "signature": "script: str, env_name: str='default', filename: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='script', annotation=Name(id='str', ctx=Load())), arg(arg='env_name', annotation=Name(id='str', ctx=Load())), arg(arg='filename', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='default'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute a Python script in a virtual environment on the HexStrike server.\n\n        Args:\n            script: Python script content to execute\n            env_name: Name of the virtual environment\n            filename: Custom script filename (auto-generated if empty)\n\n        Returns:\n            Script execution results\n        ",
+      "body_sha256": "67b1bde39bef842c5ff2e0b90aa6bce60483888a3d9484e001fe1b09fcb47651"
+    },
+    {
+      "name": "dirb_scan",
+      "original_line": 1001,
+      "signature": "url: str, wordlist: str='/usr/share/wordlists/dirb/common.txt', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/usr/share/wordlists/dirb/common.txt'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Dirb for directory brute forcing with enhanced logging.\n\n        Args:\n            url: The target URL\n            wordlist: Path to wordlist file\n            additional_args: Additional Dirb arguments\n\n        Returns:\n            Scan results with enhanced telemetry\n        ",
+      "body_sha256": "58c8198747710841238475d13493868671a4e47a0d7ce9e88010020d762e6adb"
+    },
+    {
+      "name": "nikto_scan",
+      "original_line": 1027,
+      "signature": "target: str, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Nikto web vulnerability scanner with enhanced logging.\n\n        Args:\n            target: The target URL or IP\n            additional_args: Additional Nikto arguments\n\n        Returns:\n            Scan results with discovered vulnerabilities\n        ",
+      "body_sha256": "de3cc45af879c117fad1d2e90347a8c80295e2537cc4a07492bcff920a9089f0"
+    },
+    {
+      "name": "sqlmap_scan",
+      "original_line": 1051,
+      "signature": "url: str, data: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='data', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute SQLMap for SQL injection testing with enhanced logging.\n\n        Args:\n            url: The target URL\n            data: POST data for testing\n            additional_args: Additional SQLMap arguments\n\n        Returns:\n            SQL injection test results\n        ",
+      "body_sha256": "99e04ec263c34fc8a1e3944137e9d12163d20750916368dedecbc9107590e451"
+    },
+    {
+      "name": "metasploit_run",
+      "original_line": 1077,
+      "signature": "module: str, options: Dict[str, Any]={}",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='module', annotation=Name(id='str', ctx=Load())), arg(arg='options', annotation=Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Dict(keys=[], values=[])])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute a Metasploit module with enhanced logging.\n\n        Args:\n            module: The Metasploit module to use\n            options: Dictionary of module options\n\n        Returns:\n            Metasploit execution results\n        ",
+      "body_sha256": "9e3d95ea1d98ac10607af29a0c083becfa8eb2fc365546ff7207ad78be5122ba"
+    },
+    {
+      "name": "hydra_attack",
+      "original_line": 1101,
+      "signature": "target: str, service: str, username: str='', username_file: str='', password: str='', password_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='service', annotation=Name(id='str', ctx=Load())), arg(arg='username', annotation=Name(id='str', ctx=Load())), arg(arg='username_file', annotation=Name(id='str', ctx=Load())), arg(arg='password', annotation=Name(id='str', ctx=Load())), arg(arg='password_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Hydra for password brute forcing with enhanced logging.\n\n        Args:\n            target: The target IP or hostname\n            service: The service to attack (ssh, ftp, http, etc.)\n            username: Single username to test\n            username_file: File containing usernames\n            password: Single password to test\n            password_file: File containing passwords\n            additional_args: Additional Hydra arguments\n\n        Returns:\n            Brute force attack results\n        ",
+      "body_sha256": "018f345b97d587f266190f83b8ddc10018b9cf8a565100933d50c49bbd693025"
+    },
+    {
+      "name": "john_crack",
+      "original_line": 1143,
+      "signature": "hash_file: str, wordlist: str='/usr/share/wordlists/rockyou.txt', format_type: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='hash_file', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='format_type', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/usr/share/wordlists/rockyou.txt'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute John the Ripper for password cracking with enhanced logging.\n\n        Args:\n            hash_file: File containing password hashes\n            wordlist: Wordlist file to use\n            format_type: Hash format type\n            additional_args: Additional John arguments\n\n        Returns:\n            Password cracking results\n        ",
+      "body_sha256": "6bc41df8e839a6e9f9cf6b2415e655d016b1e4f2970918823585a7a20e674ce9"
+    },
+    {
+      "name": "wpscan_analyze",
+      "original_line": 1176,
+      "signature": "url: str, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute WPScan for WordPress vulnerability scanning with enhanced logging.\n\n        Args:\n            url: The WordPress site URL\n            additional_args: Additional WPScan arguments\n\n        Returns:\n            WordPress vulnerability scan results\n        ",
+      "body_sha256": "9201e8ed6584d7ec23f08c56af686e31e3d19e3bbdc5d0dbdd514beb076b8975"
+    },
+    {
+      "name": "enum4linux_scan",
+      "original_line": 1200,
+      "signature": "target: str, additional_args: str='-a'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='-a')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Enum4linux for SMB enumeration with enhanced logging.\n\n        Args:\n            target: The target IP address\n            additional_args: Additional Enum4linux arguments\n\n        Returns:\n            SMB enumeration results\n        ",
+      "body_sha256": "98883c5a9e983c2496d6965cddfe60b06b7eff69e963c3259d914fdcccb113f0"
+    },
+    {
+      "name": "ffuf_scan",
+      "original_line": 1224,
+      "signature": "url: str, wordlist: str='/usr/share/wordlists/dirb/common.txt', mode: str='directory', match_codes: str='200,204,301,302,307,401,403', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='mode', annotation=Name(id='str', ctx=Load())), arg(arg='match_codes', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/usr/share/wordlists/dirb/common.txt'), Constant(value='directory'), Constant(value='200,204,301,302,307,401,403'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute FFuf for web fuzzing with enhanced logging.\n\n        Args:\n            url: The target URL\n            wordlist: Wordlist file to use\n            mode: Fuzzing mode (directory, vhost, parameter)\n            match_codes: HTTP status codes to match\n            additional_args: Additional FFuf arguments\n\n        Returns:\n            Web fuzzing results\n        ",
+      "body_sha256": "6528e09a5281b9364d8a29a226865add146ba6c839cfeee8dfe3fb52f2971f6b"
+    },
+    {
+      "name": "netexec_scan",
+      "original_line": 1254,
+      "signature": "target: str, protocol: str='smb', username: str='', password: str='', hash_value: str='', module: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='protocol', annotation=Name(id='str', ctx=Load())), arg(arg='username', annotation=Name(id='str', ctx=Load())), arg(arg='password', annotation=Name(id='str', ctx=Load())), arg(arg='hash_value', annotation=Name(id='str', ctx=Load())), arg(arg='module', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='smb'), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute NetExec (formerly CrackMapExec) for network enumeration with enhanced logging.\n\n        Args:\n            target: The target IP or network\n            protocol: Protocol to use (smb, ssh, winrm, etc.)\n            username: Username for authentication\n            password: Password for authentication\n            hash_value: Hash for pass-the-hash attacks\n            module: NetExec module to execute\n            additional_args: Additional NetExec arguments\n\n        Returns:\n            Network enumeration results\n        ",
+      "body_sha256": "947c389d08632d5b93b422974444c9dc0088c1e079547b7dbf7c253d7fb430d1"
+    },
+    {
+      "name": "amass_scan",
+      "original_line": 1288,
+      "signature": "domain: str, mode: str='enum', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='mode', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='enum'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Amass for subdomain enumeration with enhanced logging.\n\n        Args:\n            domain: The target domain\n            mode: Amass mode (enum, intel, viz)\n            additional_args: Additional Amass arguments\n\n        Returns:\n            Subdomain enumeration results\n        ",
+      "body_sha256": "9d675b063478763632ae262a7f99ce5ede5f44b2eb69286081d07654be2eac08"
+    },
+    {
+      "name": "hashcat_crack",
+      "original_line": 1314,
+      "signature": "hash_file: str, hash_type: str, attack_mode: str='0', wordlist: str='/usr/share/wordlists/rockyou.txt', mask: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='hash_file', annotation=Name(id='str', ctx=Load())), arg(arg='hash_type', annotation=Name(id='str', ctx=Load())), arg(arg='attack_mode', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='mask', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='0'), Constant(value='/usr/share/wordlists/rockyou.txt'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Hashcat for advanced password cracking with enhanced logging.\n\n        Args:\n            hash_file: File containing password hashes\n            hash_type: Hash type number for Hashcat\n            attack_mode: Attack mode (0=dict, 1=combo, 3=mask, etc.)\n            wordlist: Wordlist file for dictionary attacks\n            mask: Mask for mask attacks\n            additional_args: Additional Hashcat arguments\n\n        Returns:\n            Password cracking results\n        ",
+      "body_sha256": "d0fe75e02d32fe8b81e7d984a7549bc49098102168d2965281a8d6d9270e08a9"
+    },
+    {
+      "name": "subfinder_scan",
+      "original_line": 1346,
+      "signature": "domain: str, silent: bool=True, all_sources: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='silent', annotation=Name(id='bool', ctx=Load())), arg(arg='all_sources', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=True), Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Subfinder for passive subdomain enumeration with enhanced logging.\n\n        Args:\n            domain: The target domain\n            silent: Run in silent mode\n            all_sources: Use all sources\n            additional_args: Additional Subfinder arguments\n\n        Returns:\n            Passive subdomain enumeration results\n        ",
+      "body_sha256": "08fb8797cd4ea3b7a39b1fed8a4b01d07c6fe84cfbf2b67a0297a09a117a1c43"
+    },
+    {
+      "name": "smbmap_scan",
+      "original_line": 1374,
+      "signature": "target: str, username: str='', password: str='', domain: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='username', annotation=Name(id='str', ctx=Load())), arg(arg='password', annotation=Name(id='str', ctx=Load())), arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute SMBMap for SMB share enumeration with enhanced logging.\n\n        Args:\n            target: The target IP address\n            username: Username for authentication\n            password: Password for authentication\n            domain: Domain for authentication\n            additional_args: Additional SMBMap arguments\n\n        Returns:\n            SMB share enumeration results\n        ",
+      "body_sha256": "1af1dc336ac6f23bfd783277440073eb925eb7caa075fa8caa57ed13857a233e"
+    },
+    {
+      "name": "rustscan_fast_scan",
+      "original_line": 1408,
+      "signature": "target: str, ports: str='', ulimit: int=5000, batch_size: int=4500, timeout: int=1500, scripts: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='ports', annotation=Name(id='str', ctx=Load())), arg(arg='ulimit', annotation=Name(id='int', ctx=Load())), arg(arg='batch_size', annotation=Name(id='int', ctx=Load())), arg(arg='timeout', annotation=Name(id='int', ctx=Load())), arg(arg='scripts', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=5000), Constant(value=4500), Constant(value=1500), Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Rustscan for ultra-fast port scanning with enhanced logging.\n\n        Args:\n            target: The target IP address or hostname\n            ports: Specific ports to scan (e.g., \"22,80,443\")\n            ulimit: File descriptor limit\n            batch_size: Batch size for scanning\n            timeout: Timeout in milliseconds\n            scripts: Run Nmap scripts on discovered ports\n            additional_args: Additional Rustscan arguments\n\n        Returns:\n            Ultra-fast port scanning results\n        ",
+      "body_sha256": "341e6b137482e578165bcc5381dedeeeb7a4eea6f8c5433e787332d584c8026b"
+    },
+    {
+      "name": "masscan_high_speed",
+      "original_line": 1444,
+      "signature": "target: str, ports: str='1-65535', rate: int=1000, interface: str='', router_mac: str='', source_ip: str='', banners: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='ports', annotation=Name(id='str', ctx=Load())), arg(arg='rate', annotation=Name(id='int', ctx=Load())), arg(arg='interface', annotation=Name(id='str', ctx=Load())), arg(arg='router_mac', annotation=Name(id='str', ctx=Load())), arg(arg='source_ip', annotation=Name(id='str', ctx=Load())), arg(arg='banners', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='1-65535'), Constant(value=1000), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Masscan for high-speed Internet-scale port scanning with intelligent rate limiting.\n\n        Args:\n            target: The target IP address or CIDR range\n            ports: Port range to scan\n            rate: Packets per second rate\n            interface: Network interface to use\n            router_mac: Router MAC address\n            source_ip: Source IP address\n            banners: Enable banner grabbing\n            additional_args: Additional Masscan arguments\n\n        Returns:\n            High-speed port scanning results with intelligent rate limiting\n        ",
+      "body_sha256": "9e87950725b8d599ad7506703f5100c61017ed502a077ad5330aa6ce4a5518c2"
+    },
+    {
+      "name": "nmap_advanced_scan",
+      "original_line": 1482,
+      "signature": "target: str, scan_type: str='-sS', ports: str='', timing: str='T4', nse_scripts: str='', os_detection: bool=False, version_detection: bool=False, aggressive: bool=False, stealth: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='scan_type', annotation=Name(id='str', ctx=Load())), arg(arg='ports', annotation=Name(id='str', ctx=Load())), arg(arg='timing', annotation=Name(id='str', ctx=Load())), arg(arg='nse_scripts', annotation=Name(id='str', ctx=Load())), arg(arg='os_detection', annotation=Name(id='bool', ctx=Load())), arg(arg='version_detection', annotation=Name(id='bool', ctx=Load())), arg(arg='aggressive', annotation=Name(id='bool', ctx=Load())), arg(arg='stealth', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='-sS'), Constant(value=''), Constant(value='T4'), Constant(value=''), Constant(value=False), Constant(value=False), Constant(value=False), Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute advanced Nmap scans with custom NSE scripts and optimized timing.\n\n        Args:\n            target: The target IP address or hostname\n            scan_type: Nmap scan type (e.g., -sS, -sT, -sU)\n            ports: Specific ports to scan\n            timing: Timing template (T0-T5)\n            nse_scripts: Custom NSE scripts to run\n            os_detection: Enable OS detection\n            version_detection: Enable version detection\n            aggressive: Enable aggressive scanning\n            stealth: Enable stealth mode\n            additional_args: Additional Nmap arguments\n\n        Returns:\n            Advanced Nmap scanning results with custom NSE scripts\n        ",
+      "body_sha256": "a7fea4f78fd663d68175550f3da1901b0f3413221e0f5020fd2308aeb89d56d4"
+    },
+    {
+      "name": "autorecon_comprehensive",
+      "original_line": 1525,
+      "signature": "target: str, output_dir: str='/tmp/autorecon', port_scans: str='top-100-ports', service_scans: str='default', heartbeat: int=60, timeout: int=300, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='output_dir', annotation=Name(id='str', ctx=Load())), arg(arg='port_scans', annotation=Name(id='str', ctx=Load())), arg(arg='service_scans', annotation=Name(id='str', ctx=Load())), arg(arg='heartbeat', annotation=Name(id='int', ctx=Load())), arg(arg='timeout', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/tmp/autorecon'), Constant(value='top-100-ports'), Constant(value='default'), Constant(value=60), Constant(value=300), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute AutoRecon for comprehensive automated reconnaissance.\n\n        Args:\n            target: The target IP address or hostname\n            output_dir: Output directory for results\n            port_scans: Port scan configuration\n            service_scans: Service scan configuration\n            heartbeat: Heartbeat interval in seconds\n            timeout: Timeout for individual scans\n            additional_args: Additional AutoRecon arguments\n\n        Returns:\n            Comprehensive automated reconnaissance results\n        ",
+      "body_sha256": "09cdf363f6121fbd4629730b17cfbaf24458ff18a6f0169c46b4df29089d9ace"
+    },
+    {
+      "name": "enum4linux_ng_advanced",
+      "original_line": 1562,
+      "signature": "target: str, username: str='', password: str='', domain: str='', shares: bool=True, users: bool=True, groups: bool=True, policy: bool=True, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='username', annotation=Name(id='str', ctx=Load())), arg(arg='password', annotation=Name(id='str', ctx=Load())), arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='shares', annotation=Name(id='bool', ctx=Load())), arg(arg='users', annotation=Name(id='bool', ctx=Load())), arg(arg='groups', annotation=Name(id='bool', ctx=Load())), arg(arg='policy', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=True), Constant(value=True), Constant(value=True), Constant(value=True), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Enum4linux-ng for advanced SMB enumeration with enhanced logging.\n\n        Args:\n            target: The target IP address\n            username: Username for authentication\n            password: Password for authentication\n            domain: Domain for authentication\n            shares: Enumerate shares\n            users: Enumerate users\n            groups: Enumerate groups\n            policy: Enumerate policies\n            additional_args: Additional Enum4linux-ng arguments\n\n        Returns:\n            Advanced SMB enumeration results\n        ",
+      "body_sha256": "9da5cad619b5a42c545c8d14c7357babb6fc26ca0cb2e0ab7de504226f3b8093"
+    },
+    {
+      "name": "rpcclient_enumeration",
+      "original_line": 1603,
+      "signature": "target: str, username: str='', password: str='', domain: str='', commands: str='enumdomusers;enumdomgroups;querydominfo', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='username', annotation=Name(id='str', ctx=Load())), arg(arg='password', annotation=Name(id='str', ctx=Load())), arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='commands', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='enumdomusers;enumdomgroups;querydominfo'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute rpcclient for RPC enumeration with enhanced logging.\n\n        Args:\n            target: The target IP address\n            username: Username for authentication\n            password: Password for authentication\n            domain: Domain for authentication\n            commands: Semicolon-separated RPC commands\n            additional_args: Additional rpcclient arguments\n\n        Returns:\n            RPC enumeration results\n        ",
+      "body_sha256": "9656a4535f6b31b6140332aac998f42c8f461e7c45b757ebf8fde5af5cb0c366"
+    },
+    {
+      "name": "nbtscan_netbios",
+      "original_line": 1637,
+      "signature": "target: str, verbose: bool=False, timeout: int=2, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='verbose', annotation=Name(id='bool', ctx=Load())), arg(arg='timeout', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False), Constant(value=2), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute nbtscan for NetBIOS name scanning with enhanced logging.\n\n        Args:\n            target: The target IP address or range\n            verbose: Enable verbose output\n            timeout: Timeout in seconds\n            additional_args: Additional nbtscan arguments\n\n        Returns:\n            NetBIOS name scanning results\n        ",
+      "body_sha256": "a0dce93de5c0e0e907e67a47a76b6ba66b831f8ce092d25d181cb4c592d11095"
+    },
+    {
+      "name": "arp_scan_discovery",
+      "original_line": 1666,
+      "signature": "target: str='', interface: str='', local_network: bool=False, timeout: int=500, retry: int=3, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='interface', annotation=Name(id='str', ctx=Load())), arg(arg='local_network', annotation=Name(id='bool', ctx=Load())), arg(arg='timeout', annotation=Name(id='int', ctx=Load())), arg(arg='retry', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=False), Constant(value=500), Constant(value=3), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute arp-scan for network discovery with enhanced logging.\n\n        Args:\n            target: The target IP range (if not using local_network)\n            interface: Network interface to use\n            local_network: Scan local network\n            timeout: Timeout in milliseconds\n            retry: Number of retries\n            additional_args: Additional arp-scan arguments\n\n        Returns:\n            Network discovery results via ARP scanning\n        ",
+      "body_sha256": "a181e493fd99ca6b5c9b0f06fc538df4c61da097aab80bfb8fb745c8dae2ffab"
+    },
+    {
+      "name": "responder_credential_harvest",
+      "original_line": 1699,
+      "signature": "interface: str='eth0', analyze: bool=False, wpad: bool=True, force_wpad_auth: bool=False, fingerprint: bool=False, duration: int=300, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='interface', annotation=Name(id='str', ctx=Load())), arg(arg='analyze', annotation=Name(id='bool', ctx=Load())), arg(arg='wpad', annotation=Name(id='bool', ctx=Load())), arg(arg='force_wpad_auth', annotation=Name(id='bool', ctx=Load())), arg(arg='fingerprint', annotation=Name(id='bool', ctx=Load())), arg(arg='duration', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='eth0'), Constant(value=False), Constant(value=True), Constant(value=False), Constant(value=False), Constant(value=300), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Responder for credential harvesting with enhanced logging.\n\n        Args:\n            interface: Network interface to use\n            analyze: Analyze mode only\n            wpad: Enable WPAD rogue proxy\n            force_wpad_auth: Force WPAD authentication\n            fingerprint: Fingerprint mode\n            duration: Duration to run in seconds\n            additional_args: Additional Responder arguments\n\n        Returns:\n            Credential harvesting results\n        ",
+      "body_sha256": "d7496636b78075b90223552f52c3a6ecb66993d00259ad7e772b0dee58907bec"
+    },
+    {
+      "name": "volatility_analyze",
+      "original_line": 1736,
+      "signature": "memory_file: str, plugin: str, profile: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='memory_file', annotation=Name(id='str', ctx=Load())), arg(arg='plugin', annotation=Name(id='str', ctx=Load())), arg(arg='profile', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Volatility for memory forensics analysis with enhanced logging.\n\n        Args:\n            memory_file: Path to memory dump file\n            plugin: Volatility plugin to use\n            profile: Memory profile to use\n            additional_args: Additional Volatility arguments\n\n        Returns:\n            Memory forensics analysis results\n        ",
+      "body_sha256": "16f79b54924603b7e803e188aee5e76c68fd12b07f45f7f02e1cd7fb529f678f"
+    },
+    {
+      "name": "msfvenom_generate",
+      "original_line": 1764,
+      "signature": "payload: str, format_type: str='', output_file: str='', encoder: str='', iterations: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='payload', annotation=Name(id='str', ctx=Load())), arg(arg='format_type', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='encoder', annotation=Name(id='str', ctx=Load())), arg(arg='iterations', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute MSFVenom for payload generation with enhanced logging.\n\n        Args:\n            payload: The payload to generate\n            format_type: Output format (exe, elf, raw, etc.)\n            output_file: Output file path\n            encoder: Encoder to use\n            iterations: Number of encoding iterations\n            additional_args: Additional MSFVenom arguments\n\n        Returns:\n            Payload generation results\n        ",
+      "body_sha256": "1dbd8bb6985fe26a019012a8e9cf9f022ab63407b63846a0947927627db0e727"
+    },
+    {
+      "name": "gdb_analyze",
+      "original_line": 1800,
+      "signature": "binary: str, commands: str='', script_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='commands', annotation=Name(id='str', ctx=Load())), arg(arg='script_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute GDB for binary analysis and debugging with enhanced logging.\n\n        Args:\n            binary: Path to the binary file\n            commands: GDB commands to execute\n            script_file: Path to GDB script file\n            additional_args: Additional GDB arguments\n\n        Returns:\n            Binary analysis results\n        ",
+      "body_sha256": "b7829a191232de2618d85f4995a8e94bc17c49973d410888d6964f96e14d502b"
+    },
+    {
+      "name": "radare2_analyze",
+      "original_line": 1828,
+      "signature": "binary: str, commands: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='commands', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Radare2 for binary analysis and reverse engineering with enhanced logging.\n\n        Args:\n            binary: Path to the binary file\n            commands: Radare2 commands to execute\n            additional_args: Additional Radare2 arguments\n\n        Returns:\n            Binary analysis results\n        ",
+      "body_sha256": "41676fda021fa78d50d3726566fca95acdd77b6ec22bf5f6c4b6631155ca63d5"
+    },
+    {
+      "name": "binwalk_analyze",
+      "original_line": 1854,
+      "signature": "file_path: str, extract: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='file_path', annotation=Name(id='str', ctx=Load())), arg(arg='extract', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Binwalk for firmware and file analysis with enhanced logging.\n\n        Args:\n            file_path: Path to the file to analyze\n            extract: Whether to extract discovered files\n            additional_args: Additional Binwalk arguments\n\n        Returns:\n            Firmware analysis results\n        ",
+      "body_sha256": "dd2adff47c2de098e5215c3c7478e3c2986cba9f9cdc757dd0eba6d5f3289e6b"
+    },
+    {
+      "name": "ropgadget_search",
+      "original_line": 1880,
+      "signature": "binary: str, gadget_type: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='gadget_type', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Search for ROP gadgets in a binary using ROPgadget with enhanced logging.\n\n        Args:\n            binary: Path to the binary file\n            gadget_type: Type of gadgets to search for\n            additional_args: Additional ROPgadget arguments\n\n        Returns:\n            ROP gadget search results\n        ",
+      "body_sha256": "54383085267500a267b69c128a3be749644dc9b70f4b78df6e1b95e325389753"
+    },
+    {
+      "name": "checksec_analyze",
+      "original_line": 1906,
+      "signature": "binary: str",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Check security features of a binary with enhanced logging.\n\n        Args:\n            binary: Path to the binary file\n\n        Returns:\n            Security features analysis results\n        ",
+      "body_sha256": "b50e7f7d3447b2449e46fd47996548f1bd84a72a24ce2fd303fef7492b713f6a"
+    },
+    {
+      "name": "xxd_hexdump",
+      "original_line": 1928,
+      "signature": "file_path: str, offset: str='0', length: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='file_path', annotation=Name(id='str', ctx=Load())), arg(arg='offset', annotation=Name(id='str', ctx=Load())), arg(arg='length', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='0'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create a hex dump of a file using xxd with enhanced logging.\n\n        Args:\n            file_path: Path to the file\n            offset: Offset to start reading from\n            length: Number of bytes to read\n            additional_args: Additional xxd arguments\n\n        Returns:\n            Hex dump results\n        ",
+      "body_sha256": "19f05d823f962290fc6ea1efb4b737c7d4725f769af5bc9a2fdc4cdbd83cefe9"
+    },
+    {
+      "name": "strings_extract",
+      "original_line": 1956,
+      "signature": "file_path: str, min_len: int=4, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='file_path', annotation=Name(id='str', ctx=Load())), arg(arg='min_len', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=4), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Extract strings from a binary file with enhanced logging.\n\n        Args:\n            file_path: Path to the file\n            min_len: Minimum string length\n            additional_args: Additional strings arguments\n\n        Returns:\n            String extraction results\n        ",
+      "body_sha256": "3013bec75f9ce65ac50621aebcf56729dad79c8943e6d86ec311f4d630cab5e0"
+    },
+    {
+      "name": "objdump_analyze",
+      "original_line": 1982,
+      "signature": "binary: str, disassemble: bool=True, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='disassemble', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=True), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Analyze a binary using objdump with enhanced logging.\n\n        Args:\n            binary: Path to the binary file\n            disassemble: Whether to disassemble the binary\n            additional_args: Additional objdump arguments\n\n        Returns:\n            Binary analysis results\n        ",
+      "body_sha256": "7fae69512f713aca0779a34ee6e0069da54a6e69b6c12c86d9f8fb2e4787d077"
+    },
+    {
+      "name": "ghidra_analysis",
+      "original_line": 2012,
+      "signature": "binary: str, project_name: str='hexstrike_analysis', script_file: str='', analysis_timeout: int=300, output_format: str='xml', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='project_name', annotation=Name(id='str', ctx=Load())), arg(arg='script_file', annotation=Name(id='str', ctx=Load())), arg(arg='analysis_timeout', annotation=Name(id='int', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='hexstrike_analysis'), Constant(value=''), Constant(value=300), Constant(value='xml'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Ghidra for advanced binary analysis and reverse engineering.\n\n        Args:\n            binary: Path to the binary file\n            project_name: Ghidra project name\n            script_file: Custom Ghidra script to run\n            analysis_timeout: Analysis timeout in seconds\n            output_format: Output format (xml, json)\n            additional_args: Additional Ghidra arguments\n\n        Returns:\n            Advanced binary analysis results from Ghidra\n        ",
+      "body_sha256": "e9e5eae83823903116ac65ee55113c4ee9ce8ccc98ae4473aeca2159cf55964e"
+    },
+    {
+      "name": "pwntools_exploit",
+      "original_line": 2046,
+      "signature": "script_content: str='', target_binary: str='', target_host: str='', target_port: int=0, exploit_type: str='local', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='script_content', annotation=Name(id='str', ctx=Load())), arg(arg='target_binary', annotation=Name(id='str', ctx=Load())), arg(arg='target_host', annotation=Name(id='str', ctx=Load())), arg(arg='target_port', annotation=Name(id='int', ctx=Load())), arg(arg='exploit_type', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=0), Constant(value='local'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Pwntools for exploit development and automation.\n\n        Args:\n            script_content: Python script content using pwntools\n            target_binary: Local binary to exploit\n            target_host: Remote host to connect to\n            target_port: Remote port to connect to\n            exploit_type: Type of exploit (local, remote, format_string, rop)\n            additional_args: Additional arguments\n\n        Returns:\n            Exploit execution results\n        ",
+      "body_sha256": "704d56bb7aef234fb84d748e58af263dde291090d85126b47c4d82016417eabc"
+    },
+    {
+      "name": "one_gadget_search",
+      "original_line": 2080,
+      "signature": "libc_path: str, level: int=1, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='libc_path', annotation=Name(id='str', ctx=Load())), arg(arg='level', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=1), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute one_gadget to find one-shot RCE gadgets in libc.\n\n        Args:\n            libc_path: Path to libc binary\n            level: Constraint level (0, 1, 2)\n            additional_args: Additional one_gadget arguments\n\n        Returns:\n            One-shot RCE gadget search results\n        ",
+      "body_sha256": "cb59b9a674547ea3cbd61a499a2ce9a03ff3c9a43d52f9654582fa0ec5183125"
+    },
+    {
+      "name": "libc_database_lookup",
+      "original_line": 2106,
+      "signature": "action: str='find', symbols: str='', libc_id: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='action', annotation=Name(id='str', ctx=Load())), arg(arg='symbols', annotation=Name(id='str', ctx=Load())), arg(arg='libc_id', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='find'), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute libc-database for libc identification and offset lookup.\n\n        Args:\n            action: Action to perform (find, dump, download)\n            symbols: Symbols with offsets for find action (format: \"symbol1:offset1 symbol2:offset2\")\n            libc_id: Libc ID for dump/download actions\n            additional_args: Additional arguments\n\n        Returns:\n            Libc database lookup results\n        ",
+      "body_sha256": "b5f47e898b2fd28f5174ad367df8e188f6913eb87a17bb281d64245456bedf3a"
+    },
+    {
+      "name": "gdb_peda_debug",
+      "original_line": 2135,
+      "signature": "binary: str='', commands: str='', attach_pid: int=0, core_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='commands', annotation=Name(id='str', ctx=Load())), arg(arg='attach_pid', annotation=Name(id='int', ctx=Load())), arg(arg='core_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=0), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute GDB with PEDA for enhanced debugging and exploitation.\n\n        Args:\n            binary: Binary to debug\n            commands: GDB commands to execute\n            attach_pid: Process ID to attach to\n            core_file: Core dump file to analyze\n            additional_args: Additional GDB arguments\n\n        Returns:\n            Enhanced debugging results with PEDA\n        ",
+      "body_sha256": "bded53f4b77b5041b48afb81aebc6826affb588f99670122754a39f0fd405056"
+    },
+    {
+      "name": "angr_symbolic_execution",
+      "original_line": 2166,
+      "signature": "binary: str, script_content: str='', find_address: str='', avoid_addresses: str='', analysis_type: str='symbolic', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='script_content', annotation=Name(id='str', ctx=Load())), arg(arg='find_address', annotation=Name(id='str', ctx=Load())), arg(arg='avoid_addresses', annotation=Name(id='str', ctx=Load())), arg(arg='analysis_type', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='symbolic'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute angr for symbolic execution and binary analysis.\n\n        Args:\n            binary: Binary to analyze\n            script_content: Custom angr script content\n            find_address: Address to find during symbolic execution\n            avoid_addresses: Comma-separated addresses to avoid\n            analysis_type: Type of analysis (symbolic, cfg, static)\n            additional_args: Additional arguments\n\n        Returns:\n            Symbolic execution and binary analysis results\n        ",
+      "body_sha256": "22b7a548b3a8090c03918ef18e21682ca0ab1717cfaff03a6c5a4e6392138911"
+    },
+    {
+      "name": "ropper_gadget_search",
+      "original_line": 2200,
+      "signature": "binary: str, gadget_type: str='rop', quality: int=1, arch: str='', search_string: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='gadget_type', annotation=Name(id='str', ctx=Load())), arg(arg='quality', annotation=Name(id='int', ctx=Load())), arg(arg='arch', annotation=Name(id='str', ctx=Load())), arg(arg='search_string', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='rop'), Constant(value=1), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute ropper for advanced ROP/JOP gadget searching.\n\n        Args:\n            binary: Binary to search for gadgets\n            gadget_type: Type of gadgets (rop, jop, sys, all)\n            quality: Gadget quality level (1-5)\n            arch: Target architecture (x86, x86_64, arm, etc.)\n            search_string: Specific gadget pattern to search for\n            additional_args: Additional ropper arguments\n\n        Returns:\n            Advanced ROP/JOP gadget search results\n        ",
+      "body_sha256": "fa804ac3abb7316ad7dc9bd38079931494054b0be7f0dbf1536dcd9075263c6d"
+    },
+    {
+      "name": "pwninit_setup",
+      "original_line": 2234,
+      "signature": "binary: str, libc: str='', ld: str='', template_type: str='python', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='binary', annotation=Name(id='str', ctx=Load())), arg(arg='libc', annotation=Name(id='str', ctx=Load())), arg(arg='ld', annotation=Name(id='str', ctx=Load())), arg(arg='template_type', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value='python'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute pwninit for CTF binary exploitation setup.\n\n        Args:\n            binary: Binary file to set up\n            libc: Libc file to use\n            ld: Loader file to use\n            template_type: Template type (python, c)\n            additional_args: Additional pwninit arguments\n\n        Returns:\n            CTF binary exploitation setup results\n        ",
+      "body_sha256": "2582a68889ab5f3af8bf36912ff878701912d37c69fb53f9b755d4f120ae3183"
+    },
+    {
+      "name": "feroxbuster_scan",
+      "original_line": 2265,
+      "signature": "url: str, wordlist: str='/usr/share/wordlists/dirb/common.txt', threads: int=10, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='threads', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/usr/share/wordlists/dirb/common.txt'), Constant(value=10), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Feroxbuster for recursive content discovery with enhanced logging.\n\n        Args:\n            url: The target URL\n            wordlist: Wordlist file to use\n            threads: Number of threads\n            additional_args: Additional Feroxbuster arguments\n\n        Returns:\n            Content discovery results\n        ",
+      "body_sha256": "c228c9dd3644c6081a4b19a5e05873ce03acb0bf66639ab06501a2cbcbb32582"
+    },
+    {
+      "name": "dotdotpwn_scan",
+      "original_line": 2293,
+      "signature": "target: str, module: str='http', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='module', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='http'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute DotDotPwn for directory traversal testing with enhanced logging.\n\n        Args:\n            target: The target hostname or IP\n            module: Module to use (http, ftp, tftp, etc.)\n            additional_args: Additional DotDotPwn arguments\n\n        Returns:\n            Directory traversal test results\n        ",
+      "body_sha256": "df22ae6f12117818a51255de92998ffe3a863cd4de66dafca7950ba833c1afbe"
+    },
+    {
+      "name": "xsser_scan",
+      "original_line": 2319,
+      "signature": "url: str, params: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='params', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute XSSer for XSS vulnerability testing with enhanced logging.\n\n        Args:\n            url: The target URL\n            params: Parameters to test\n            additional_args: Additional XSSer arguments\n\n        Returns:\n            XSS vulnerability test results\n        ",
+      "body_sha256": "b2f1ac6af1a34989be39587dc8a5aa6ad622910c26b35fbdcab8b5ac587676fe"
+    },
+    {
+      "name": "wfuzz_scan",
+      "original_line": 2345,
+      "signature": "url: str, wordlist: str='/usr/share/wordlists/dirb/common.txt', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/usr/share/wordlists/dirb/common.txt'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Wfuzz for web application fuzzing with enhanced logging.\n\n        Args:\n            url: The target URL (use FUZZ where you want to inject payloads)\n            wordlist: Wordlist file to use\n            additional_args: Additional Wfuzz arguments\n\n        Returns:\n            Web application fuzzing results\n        ",
+      "body_sha256": "c05ae374c165714e637f77a2b2b9d02d259494bbec09525d776c020f66eb61ee"
+    },
+    {
+      "name": "dirsearch_scan",
+      "original_line": 2375,
+      "signature": "url: str, extensions: str='php,html,js,txt,xml,json', wordlist: str='/usr/share/wordlists/dirsearch/common.txt', threads: int=30, recursive: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='extensions', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='threads', annotation=Name(id='int', ctx=Load())), arg(arg='recursive', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='php,html,js,txt,xml,json'), Constant(value='/usr/share/wordlists/dirsearch/common.txt'), Constant(value=30), Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Dirsearch for advanced directory and file discovery with enhanced logging.\n\n        Args:\n            url: The target URL\n            extensions: File extensions to search for\n            wordlist: Wordlist file to use\n            threads: Number of threads to use\n            recursive: Enable recursive scanning\n            additional_args: Additional Dirsearch arguments\n\n        Returns:\n            Advanced directory discovery results\n        ",
+      "body_sha256": "626fefdf07af6900ad35194e0e50ed6951883a0e23c62f1bef7bee4b3018533d"
+    },
+    {
+      "name": "katana_crawl",
+      "original_line": 2409,
+      "signature": "url: str, depth: int=3, js_crawl: bool=True, form_extraction: bool=True, output_format: str='json', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='depth', annotation=Name(id='int', ctx=Load())), arg(arg='js_crawl', annotation=Name(id='bool', ctx=Load())), arg(arg='form_extraction', annotation=Name(id='bool', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=3), Constant(value=True), Constant(value=True), Constant(value='json'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Katana for next-generation crawling and spidering with enhanced logging.\n\n        Args:\n            url: The target URL to crawl\n            depth: Crawling depth\n            js_crawl: Enable JavaScript crawling\n            form_extraction: Enable form extraction\n            output_format: Output format (json, txt)\n            additional_args: Additional Katana arguments\n\n        Returns:\n            Advanced web crawling results with endpoints and forms\n        ",
+      "body_sha256": "3ca6374a019b126090e005616ec43841d2308cd1faceee0a8d154fb7d624c4de"
+    },
+    {
+      "name": "gau_discovery",
+      "original_line": 2443,
+      "signature": "domain: str, providers: str='wayback,commoncrawl,otx,urlscan', include_subs: bool=True, blacklist: str='png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='providers', annotation=Name(id='str', ctx=Load())), arg(arg='include_subs', annotation=Name(id='bool', ctx=Load())), arg(arg='blacklist', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='wayback,commoncrawl,otx,urlscan'), Constant(value=True), Constant(value='png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Gau (Get All URLs) for URL discovery from multiple sources with enhanced logging.\n\n        Args:\n            domain: The target domain\n            providers: Data providers to use\n            include_subs: Include subdomains\n            blacklist: File extensions to blacklist\n            additional_args: Additional Gau arguments\n\n        Returns:\n            Comprehensive URL discovery results from multiple sources\n        ",
+      "body_sha256": "3609e54b781ce2cd53d2f0c83bbe42ca5ca11c1051b0004c705a748f9b81db43"
+    },
+    {
+      "name": "waybackurls_discovery",
+      "original_line": 2475,
+      "signature": "domain: str, get_versions: bool=False, no_subs: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='get_versions', annotation=Name(id='bool', ctx=Load())), arg(arg='no_subs', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False), Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Waybackurls for historical URL discovery with enhanced logging.\n\n        Args:\n            domain: The target domain\n            get_versions: Get all versions of URLs\n            no_subs: Don't include subdomains\n            additional_args: Additional Waybackurls arguments\n\n        Returns:\n            Historical URL discovery results from Wayback Machine\n        ",
+      "body_sha256": "c220542fab435f7df0e9a227043aab1ef3754d87eec16f971f4a379ae97258ff"
+    },
+    {
+      "name": "arjun_parameter_discovery",
+      "original_line": 2504,
+      "signature": "url: str, method: str='GET', wordlist: str='', delay: int=0, threads: int=25, stable: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='method', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='delay', annotation=Name(id='int', ctx=Load())), arg(arg='threads', annotation=Name(id='int', ctx=Load())), arg(arg='stable', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='GET'), Constant(value=''), Constant(value=0), Constant(value=25), Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Arjun for HTTP parameter discovery with enhanced logging.\n\n        Args:\n            url: The target URL\n            method: HTTP method to use\n            wordlist: Custom wordlist file\n            delay: Delay between requests\n            threads: Number of threads\n            stable: Use stable mode\n            additional_args: Additional Arjun arguments\n\n        Returns:\n            HTTP parameter discovery results\n        ",
+      "body_sha256": "3197c4c015ecb951bc7dfe8f157ea83845fa61f91e3a5bed3b52a41365761930"
+    },
+    {
+      "name": "paramspider_mining",
+      "original_line": 2540,
+      "signature": "domain: str, level: int=2, exclude: str='png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico', output: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='level', annotation=Name(id='int', ctx=Load())), arg(arg='exclude', annotation=Name(id='str', ctx=Load())), arg(arg='output', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=2), Constant(value='png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute ParamSpider for parameter mining from web archives with enhanced logging.\n\n        Args:\n            domain: The target domain\n            level: Mining level depth\n            exclude: File extensions to exclude\n            output: Output file path\n            additional_args: Additional ParamSpider arguments\n\n        Returns:\n            Parameter mining results from web archives\n        ",
+      "body_sha256": "90c5b0091c35278eacb4d43383e23ae05eb8442b95d0f0d59a782be9080b8d1c"
+    },
+    {
+      "name": "x8_parameter_discovery",
+      "original_line": 2572,
+      "signature": "url: str, wordlist: str='/usr/share/wordlists/x8/params.txt', method: str='GET', body: str='', headers: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='method', annotation=Name(id='str', ctx=Load())), arg(arg='body', annotation=Name(id='str', ctx=Load())), arg(arg='headers', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/usr/share/wordlists/x8/params.txt'), Constant(value='GET'), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute x8 for hidden parameter discovery with enhanced logging.\n\n        Args:\n            url: The target URL\n            wordlist: Parameter wordlist\n            method: HTTP method\n            body: Request body\n            headers: Custom headers\n            additional_args: Additional x8 arguments\n\n        Returns:\n            Hidden parameter discovery results\n        ",
+      "body_sha256": "a0bff839805f0a545bf98ecedbdab901d3c7f68424f26077cd2ccf24d39026da"
+    },
+    {
+      "name": "jaeles_vulnerability_scan",
+      "original_line": 2606,
+      "signature": "url: str, signatures: str='', config: str='', threads: int=20, timeout: int=20, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='signatures', annotation=Name(id='str', ctx=Load())), arg(arg='config', annotation=Name(id='str', ctx=Load())), arg(arg='threads', annotation=Name(id='int', ctx=Load())), arg(arg='timeout', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=20), Constant(value=20), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Jaeles for advanced vulnerability scanning with custom signatures.\n\n        Args:\n            url: The target URL\n            signatures: Custom signature path\n            config: Configuration file\n            threads: Number of threads\n            timeout: Request timeout\n            additional_args: Additional Jaeles arguments\n\n        Returns:\n            Advanced vulnerability scanning results with custom signatures\n        ",
+      "body_sha256": "36cdf25244a5f683d32d7f87f48b5def38fb3c86bf86c2b0d2a194c2816d70fe"
+    },
+    {
+      "name": "dalfox_xss_scan",
+      "original_line": 2640,
+      "signature": "url: str, pipe_mode: bool=False, blind: bool=False, mining_dom: bool=True, mining_dict: bool=True, custom_payload: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='pipe_mode', annotation=Name(id='bool', ctx=Load())), arg(arg='blind', annotation=Name(id='bool', ctx=Load())), arg(arg='mining_dom', annotation=Name(id='bool', ctx=Load())), arg(arg='mining_dict', annotation=Name(id='bool', ctx=Load())), arg(arg='custom_payload', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False), Constant(value=False), Constant(value=True), Constant(value=True), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Dalfox for advanced XSS vulnerability scanning with enhanced logging.\n\n        Args:\n            url: The target URL\n            pipe_mode: Use pipe mode for input\n            blind: Enable blind XSS testing\n            mining_dom: Enable DOM mining\n            mining_dict: Enable dictionary mining\n            custom_payload: Custom XSS payload\n            additional_args: Additional Dalfox arguments\n\n        Returns:\n            Advanced XSS vulnerability scanning results\n        ",
+      "body_sha256": "bbbc78514bd94b261712b450e12a6633e77232fa12b131d277b0fc0a31e393d0"
+    },
+    {
+      "name": "httpx_probe",
+      "original_line": 2676,
+      "signature": "target: str, probe: bool=True, tech_detect: bool=False, status_code: bool=False, content_length: bool=False, title: bool=False, web_server: bool=False, threads: int=50, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='probe', annotation=Name(id='bool', ctx=Load())), arg(arg='tech_detect', annotation=Name(id='bool', ctx=Load())), arg(arg='status_code', annotation=Name(id='bool', ctx=Load())), arg(arg='content_length', annotation=Name(id='bool', ctx=Load())), arg(arg='title', annotation=Name(id='bool', ctx=Load())), arg(arg='web_server', annotation=Name(id='bool', ctx=Load())), arg(arg='threads', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=True), Constant(value=False), Constant(value=False), Constant(value=False), Constant(value=False), Constant(value=False), Constant(value=50), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute httpx for fast HTTP probing and technology detection.\n\n        Args:\n            target: Target file or single URL\n            probe: Enable probing\n            tech_detect: Enable technology detection\n            status_code: Show status codes\n            content_length: Show content length\n            title: Show page titles\n            web_server: Show web server\n            threads: Number of threads\n            additional_args: Additional httpx arguments\n\n        Returns:\n            Fast HTTP probing results with technology detection\n        ",
+      "body_sha256": "bf00d4911e84ebb6abbd05f62b1d3450b6101e9c9b6b16ab845f9f7be8ff1f2c"
+    },
+    {
+      "name": "anew_data_processing",
+      "original_line": 2717,
+      "signature": "input_data: str, output_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='input_data', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute anew for appending new lines to files (useful for data processing).\n\n        Args:\n            input_data: Input data to process\n            output_file: Output file path\n            additional_args: Additional anew arguments\n\n        Returns:\n            Data processing results with unique line filtering\n        ",
+      "body_sha256": "821033da510666970c4bb6d0f77d3d9cadbcd42b5961e46751fbfacb14ff7c03"
+    },
+    {
+      "name": "qsreplace_parameter_replacement",
+      "original_line": 2744,
+      "signature": "urls: str, replacement: str='FUZZ', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='urls', annotation=Name(id='str', ctx=Load())), arg(arg='replacement', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='FUZZ'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute qsreplace for query string parameter replacement.\n\n        Args:\n            urls: URLs to process\n            replacement: Replacement string for parameters\n            additional_args: Additional qsreplace arguments\n\n        Returns:\n            Parameter replacement results for fuzzing\n        ",
+      "body_sha256": "4e8915cb91988b06746445e162b2f412be7d99118b9c57835f8ed88b85c74caf"
+    },
+    {
+      "name": "uro_url_filtering",
+      "original_line": 2771,
+      "signature": "urls: str, whitelist: str='', blacklist: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='urls', annotation=Name(id='str', ctx=Load())), arg(arg='whitelist', annotation=Name(id='str', ctx=Load())), arg(arg='blacklist', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute uro for filtering out similar URLs.\n\n        Args:\n            urls: URLs to filter\n            whitelist: Whitelist patterns\n            blacklist: Blacklist patterns\n            additional_args: Additional uro arguments\n\n        Returns:\n            Filtered URL results with duplicates removed\n        ",
+      "body_sha256": "9db73b995f367fbb42cd0525e863e76f05832730e3cbc953d127b4d3ca88830c"
+    },
+    {
+      "name": "ai_generate_payload",
+      "original_line": 2804,
+      "signature": "attack_type: str, complexity: str='basic', technology: str='', url: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='attack_type', annotation=Name(id='str', ctx=Load())), arg(arg='complexity', annotation=Name(id='str', ctx=Load())), arg(arg='technology', annotation=Name(id='str', ctx=Load())), arg(arg='url', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='basic'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Generate AI-powered contextual payloads for security testing.\n\n        Args:\n            attack_type: Type of attack (xss, sqli, lfi, cmd_injection, ssti, xxe)\n            complexity: Complexity level (basic, advanced, bypass)\n            technology: Target technology (php, asp, jsp, python, nodejs)\n            url: Target URL for context\n\n        Returns:\n            Contextual payloads with risk assessment and test cases\n        ",
+      "body_sha256": "d2b33be481f44198629ca8c00f00b1842e783eb525ae728ea38d468999905be6"
+    },
+    {
+      "name": "ai_test_payload",
+      "original_line": 2845,
+      "signature": "payload: str, target_url: str, method: str='GET'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='payload', annotation=Name(id='str', ctx=Load())), arg(arg='target_url', annotation=Name(id='str', ctx=Load())), arg(arg='method', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='GET')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Test generated payload against target with AI analysis.\n\n        Args:\n            payload: The payload to test\n            target_url: Target URL to test against\n            method: HTTP method (GET, POST)\n\n        Returns:\n            Test results with AI analysis and vulnerability assessment\n        ",
+      "body_sha256": "8180164c874c4efd87bfa246aead2a52f217c7499f244db8b168ce00fce4463d"
+    },
+    {
+      "name": "ai_generate_attack_suite",
+      "original_line": 2880,
+      "signature": "target_url: str, attack_types: str='xss,sqli,lfi'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target_url', annotation=Name(id='str', ctx=Load())), arg(arg='attack_types', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='xss,sqli,lfi')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Generate comprehensive attack suite with multiple payload types.\n\n        Args:\n            target_url: Target URL for testing\n            attack_types: Comma-separated list of attack types\n\n        Returns:\n            Comprehensive attack suite with multiple payload types\n        ",
+      "body_sha256": "77905e67cec3fefc0e048873841340f8109827e41dc0278e2436275ef6e2efc1"
+    },
+    {
+      "name": "api_fuzzer",
+      "original_line": 2941,
+      "signature": "base_url: str, endpoints: str='', methods: str='GET,POST,PUT,DELETE', wordlist: str='/usr/share/wordlists/api/api-endpoints.txt'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='base_url', annotation=Name(id='str', ctx=Load())), arg(arg='endpoints', annotation=Name(id='str', ctx=Load())), arg(arg='methods', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='GET,POST,PUT,DELETE'), Constant(value='/usr/share/wordlists/api/api-endpoints.txt')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Advanced API endpoint fuzzing with intelligent parameter discovery.\n\n        Args:\n            base_url: Base URL of the API\n            endpoints: Comma-separated list of specific endpoints to test\n            methods: HTTP methods to test (comma-separated)\n            wordlist: Wordlist for endpoint discovery\n\n        Returns:\n            API fuzzing results with endpoint discovery and vulnerability assessment\n        ",
+      "body_sha256": "3827076d86c8d7ef63d85de3194f0495cec07facb67a6815a69e38dff0816e8c"
+    },
+    {
+      "name": "graphql_scanner",
+      "original_line": 2977,
+      "signature": "endpoint: str, introspection: bool=True, query_depth: int=10, test_mutations: bool=True",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='endpoint', annotation=Name(id='str', ctx=Load())), arg(arg='introspection', annotation=Name(id='bool', ctx=Load())), arg(arg='query_depth', annotation=Name(id='int', ctx=Load())), arg(arg='test_mutations', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=True), Constant(value=10), Constant(value=True)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Advanced GraphQL security scanning and introspection.\n\n        Args:\n            endpoint: GraphQL endpoint URL\n            introspection: Test introspection queries\n            query_depth: Maximum query depth to test\n            test_mutations: Test mutation operations\n\n        Returns:\n            GraphQL security scan results with vulnerability assessment\n        ",
+      "body_sha256": "1d4d27e07db97a2cf8a5d8de5f883288ec1a396a769fdec37be7c801306de116"
+    },
+    {
+      "name": "jwt_analyzer",
+      "original_line": 3019,
+      "signature": "jwt_token: str, target_url: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='jwt_token', annotation=Name(id='str', ctx=Load())), arg(arg='target_url', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Advanced JWT token analysis and vulnerability testing.\n\n        Args:\n            jwt_token: JWT token to analyze\n            target_url: Optional target URL for testing token manipulation\n\n        Returns:\n            JWT analysis results with vulnerability assessment and attack vectors\n        ",
+      "body_sha256": "83e477375c20bfd751c660a790fee6c62b9dc46240035202386ed359a412ac19"
+    },
+    {
+      "name": "api_schema_analyzer",
+      "original_line": 3058,
+      "signature": "schema_url: str, schema_type: str='openapi'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='schema_url', annotation=Name(id='str', ctx=Load())), arg(arg='schema_type', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='openapi')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Analyze API schemas and identify potential security issues.\n\n        Args:\n            schema_url: URL to the API schema (OpenAPI/Swagger/GraphQL)\n            schema_type: Type of schema (openapi, swagger, graphql)\n\n        Returns:\n            Schema analysis results with security issues and recommendations\n        ",
+      "body_sha256": "5de27f20baadf81c6b9b504abdf425962096bcdf09737cafbb769f3f237b1f3a"
+    },
+    {
+      "name": "comprehensive_api_audit",
+      "original_line": 3103,
+      "signature": "base_url: str, schema_url: str='', jwt_token: str='', graphql_endpoint: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='base_url', annotation=Name(id='str', ctx=Load())), arg(arg='schema_url', annotation=Name(id='str', ctx=Load())), arg(arg='jwt_token', annotation=Name(id='str', ctx=Load())), arg(arg='graphql_endpoint', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Comprehensive API security audit combining multiple testing techniques.\n\n        Args:\n            base_url: Base URL of the API\n            schema_url: Optional API schema URL\n            jwt_token: Optional JWT token for analysis\n            graphql_endpoint: Optional GraphQL endpoint\n\n        Returns:\n            Comprehensive audit results with all API security tests\n        ",
+      "body_sha256": "1910b7016b6f07bb07c08d4e516e8c85f9c1b494e96dd578451f15b0ec1159b6"
+    },
+    {
+      "name": "volatility3_analyze",
+      "original_line": 3201,
+      "signature": "memory_file: str, plugin: str, output_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='memory_file', annotation=Name(id='str', ctx=Load())), arg(arg='plugin', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Volatility3 for advanced memory forensics with enhanced logging.\n\n        Args:\n            memory_file: Path to memory dump file\n            plugin: Volatility3 plugin to execute\n            output_file: Output file path\n            additional_args: Additional Volatility3 arguments\n\n        Returns:\n            Advanced memory forensics results\n        ",
+      "body_sha256": "1b438adca6bfef3d80706faa0f23d46bb8b9312874b002088dbfa3cc07bcc0d4"
+    },
+    {
+      "name": "foremost_carving",
+      "original_line": 3229,
+      "signature": "input_file: str, output_dir: str='/tmp/foremost_output', file_types: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='input_file', annotation=Name(id='str', ctx=Load())), arg(arg='output_dir', annotation=Name(id='str', ctx=Load())), arg(arg='file_types', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='/tmp/foremost_output'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Foremost for file carving with enhanced logging.\n\n        Args:\n            input_file: Input file or device to carve\n            output_dir: Output directory for carved files\n            file_types: File types to carve (jpg,gif,png,etc.)\n            additional_args: Additional Foremost arguments\n\n        Returns:\n            File carving results\n        ",
+      "body_sha256": "25fdef92fb68de88758cdc05f59ab5f2e7f8dd2439b912854fcfba24dcfd655a"
+    },
+    {
+      "name": "steghide_analysis",
+      "original_line": 3257,
+      "signature": "action: str, cover_file: str, embed_file: str='', passphrase: str='', output_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='action', annotation=Name(id='str', ctx=Load())), arg(arg='cover_file', annotation=Name(id='str', ctx=Load())), arg(arg='embed_file', annotation=Name(id='str', ctx=Load())), arg(arg='passphrase', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Steghide for steganography analysis with enhanced logging.\n\n        Args:\n            action: Action to perform (extract, embed, info)\n            cover_file: Cover file for steganography\n            embed_file: File to embed (for embed action)\n            passphrase: Passphrase for steganography\n            output_file: Output file path\n            additional_args: Additional Steghide arguments\n\n        Returns:\n            Steganography analysis results\n        ",
+      "body_sha256": "0fe8af1b6f1a00177fe818d3059bee1e6574e486a36af67308ced0ceed5294ba"
+    },
+    {
+      "name": "exiftool_extract",
+      "original_line": 3289,
+      "signature": "file_path: str, output_format: str='', tags: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='file_path', annotation=Name(id='str', ctx=Load())), arg(arg='output_format', annotation=Name(id='str', ctx=Load())), arg(arg='tags', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute ExifTool for metadata extraction with enhanced logging.\n\n        Args:\n            file_path: Path to file for metadata extraction\n            output_format: Output format (json, xml, csv)\n            tags: Specific tags to extract\n            additional_args: Additional ExifTool arguments\n\n        Returns:\n            Metadata extraction results\n        ",
+      "body_sha256": "113563dae4db499eb22b83921539da6260846beae65d4f984368dcac4c57e556"
+    },
+    {
+      "name": "hashpump_attack",
+      "original_line": 3317,
+      "signature": "signature: str, data: str, key_length: str, append_data: str, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='signature', annotation=Name(id='str', ctx=Load())), arg(arg='data', annotation=Name(id='str', ctx=Load())), arg(arg='key_length', annotation=Name(id='str', ctx=Load())), arg(arg='append_data', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute HashPump for hash length extension attacks with enhanced logging.\n\n        Args:\n            signature: Original hash signature\n            data: Original data\n            key_length: Length of secret key\n            append_data: Data to append\n            additional_args: Additional HashPump arguments\n\n        Returns:\n            Hash length extension attack results\n        ",
+      "body_sha256": "c386cc8e4ea8e06831ee2b283bbae853675f1492b2fafcd7a8425d5b98573c00"
+    },
+    {
+      "name": "hakrawler_crawl",
+      "original_line": 3351,
+      "signature": "url: str, depth: int=2, forms: bool=True, robots: bool=True, sitemap: bool=True, wayback: bool=False, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='depth', annotation=Name(id='int', ctx=Load())), arg(arg='forms', annotation=Name(id='bool', ctx=Load())), arg(arg='robots', annotation=Name(id='bool', ctx=Load())), arg(arg='sitemap', annotation=Name(id='bool', ctx=Load())), arg(arg='wayback', annotation=Name(id='bool', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=2), Constant(value=True), Constant(value=True), Constant(value=True), Constant(value=False), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Hakrawler for web endpoint discovery with enhanced logging.\n\n        Note: Uses standard Kali Linux hakrawler (hakluke/hakrawler) with parameter mapping:\n        - url: Piped via echo to stdin (not -url flag)\n        - depth: Mapped to -d flag (not -depth)\n        - forms: Mapped to -s flag for showing sources\n        - robots/sitemap/wayback: Mapped to -subs for subdomain inclusion\n        - Always includes -u for unique URLs\n\n        Args:\n            url: Target URL to crawl\n            depth: Crawling depth (mapped to -d)\n            forms: Include forms in crawling (mapped to -s)\n            robots: Check robots.txt (mapped to -subs)\n            sitemap: Check sitemap.xml (mapped to -subs)\n            wayback: Use Wayback Machine (mapped to -subs)\n            additional_args: Additional Hakrawler arguments\n\n        Returns:\n            Web endpoint discovery results\n        ",
+      "body_sha256": "5137b3ab8852fc57123355f5736f291f5fc4ae270d34c5e1541eb85c68efd502"
+    },
+    {
+      "name": "httpx_probe",
+      "original_line": 3392,
+      "signature": "targets: str='', target_file: str='', ports: str='', methods: str='GET', status_code: str='', content_length: bool=False, output_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='targets', annotation=Name(id='str', ctx=Load())), arg(arg='target_file', annotation=Name(id='str', ctx=Load())), arg(arg='ports', annotation=Name(id='str', ctx=Load())), arg(arg='methods', annotation=Name(id='str', ctx=Load())), arg(arg='status_code', annotation=Name(id='str', ctx=Load())), arg(arg='content_length', annotation=Name(id='bool', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='GET'), Constant(value=''), Constant(value=False), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute HTTPx for HTTP probing with enhanced logging.\n\n        Args:\n            targets: Target URLs or IPs\n            target_file: File containing targets\n            ports: Ports to probe\n            methods: HTTP methods to use\n            status_code: Filter by status code\n            content_length: Show content length\n            output_file: Output file path\n            additional_args: Additional HTTPx arguments\n\n        Returns:\n            HTTP probing results\n        ",
+      "body_sha256": "7b96ed4877eb0f33fff2a8e2542414632674843378524d763bc93ed9c5f33ab9"
+    },
+    {
+      "name": "paramspider_discovery",
+      "original_line": 3428,
+      "signature": "domain: str, exclude: str='', output_file: str='', level: int=2, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='exclude', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='level', annotation=Name(id='int', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=2), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute ParamSpider for parameter discovery with enhanced logging.\n\n        Args:\n            domain: Target domain\n            exclude: Extensions to exclude\n            output_file: Output file path\n            level: Crawling level\n            additional_args: Additional ParamSpider arguments\n\n        Returns:\n            Parameter discovery results\n        ",
+      "body_sha256": "49da3eabcd7777c2d133d171ceb0d486d536c49a7724e9a82e2e167c39ee1f6d"
+    },
+    {
+      "name": "burpsuite_scan",
+      "original_line": 3462,
+      "signature": "project_file: str='', config_file: str='', target: str='', headless: bool=False, scan_type: str='', scan_config: str='', output_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='project_file', annotation=Name(id='str', ctx=Load())), arg(arg='config_file', annotation=Name(id='str', ctx=Load())), arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='headless', annotation=Name(id='bool', ctx=Load())), arg(arg='scan_type', annotation=Name(id='str', ctx=Load())), arg(arg='scan_config', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=False), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Burp Suite with enhanced logging.\n\n        Args:\n            project_file: Burp project file path\n            config_file: Burp configuration file path\n            target: Target URL\n            headless: Run in headless mode\n            scan_type: Type of scan to perform\n            scan_config: Scan configuration\n            output_file: Output file path\n            additional_args: Additional Burp Suite arguments\n\n        Returns:\n            Burp Suite scan results\n        ",
+      "body_sha256": "2e1df3a041b4725e297a16e0c9e1eb277b7a070050e1551e7d1f4fa0df9f112e"
+    },
+    {
+      "name": "zap_scan",
+      "original_line": 3498,
+      "signature": "target: str='', scan_type: str='baseline', api_key: str='', daemon: bool=False, port: str='8090', host: str='0.0.0.0', format_type: str='xml', output_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='scan_type', annotation=Name(id='str', ctx=Load())), arg(arg='api_key', annotation=Name(id='str', ctx=Load())), arg(arg='daemon', annotation=Name(id='bool', ctx=Load())), arg(arg='port', annotation=Name(id='str', ctx=Load())), arg(arg='host', annotation=Name(id='str', ctx=Load())), arg(arg='format_type', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='baseline'), Constant(value=''), Constant(value=False), Constant(value='8090'), Constant(value='0.0.0.0'), Constant(value='xml'), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute OWASP ZAP with enhanced logging.\n\n        Args:\n            target: Target URL\n            scan_type: Type of scan (baseline, full, api)\n            api_key: ZAP API key\n            daemon: Run in daemon mode\n            port: Port for ZAP daemon\n            host: Host for ZAP daemon\n            format_type: Output format (xml, json, html)\n            output_file: Output file path\n            additional_args: Additional ZAP arguments\n\n        Returns:\n            ZAP scan results\n        ",
+      "body_sha256": "c53121564cb90cf6b42f9cf37aa3406e84c1ea82ddd2bb6b023c73f680e5f6c1"
+    },
+    {
+      "name": "arjun_scan",
+      "original_line": 3536,
+      "signature": "url: str, method: str='GET', data: str='', headers: str='', timeout: str='', output_file: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='method', annotation=Name(id='str', ctx=Load())), arg(arg='data', annotation=Name(id='str', ctx=Load())), arg(arg='headers', annotation=Name(id='str', ctx=Load())), arg(arg='timeout', annotation=Name(id='str', ctx=Load())), arg(arg='output_file', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='GET'), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute Arjun for parameter discovery with enhanced logging.\n\n        Args:\n            url: Target URL\n            method: HTTP method (GET, POST, etc.)\n            data: POST data for testing\n            headers: Custom headers\n            timeout: Request timeout\n            output_file: Output file path\n            additional_args: Additional Arjun arguments\n\n        Returns:\n            Parameter discovery results\n        ",
+      "body_sha256": "ffea397a91555d8bc5161a52e26d40c4db7318ec99522cb1182bf23b500c0982"
+    },
+    {
+      "name": "wafw00f_scan",
+      "original_line": 3570,
+      "signature": "target: str, additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute wafw00f to identify and fingerprint WAF products with enhanced logging.\n\n        Args:\n            target: Target URL or IP\n            additional_args: Additional wafw00f arguments\n\n        Returns:\n            WAF detection results\n        ",
+      "body_sha256": "65a0d4d7d0044a6326252b8746e12a89b1e73ca0ee5b16ed8116a5e504db2d5a"
+    },
+    {
+      "name": "fierce_scan",
+      "original_line": 3594,
+      "signature": "domain: str, dns_server: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='dns_server', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute fierce for DNS reconnaissance with enhanced logging.\n\n        Args:\n            domain: Target domain\n            dns_server: DNS server to use\n            additional_args: Additional fierce arguments\n\n        Returns:\n            DNS reconnaissance results\n        ",
+      "body_sha256": "37b9e403a737f093278679bc861114945237787311c8973b750fa7ba6486f314"
+    },
+    {
+      "name": "dnsenum_scan",
+      "original_line": 3620,
+      "signature": "domain: str, dns_server: str='', wordlist: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='dns_server', annotation=Name(id='str', ctx=Load())), arg(arg='wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute dnsenum for DNS enumeration with enhanced logging.\n\n        Args:\n            domain: Target domain\n            dns_server: DNS server to use\n            wordlist: Wordlist for brute forcing\n            additional_args: Additional dnsenum arguments\n\n        Returns:\n            DNS enumeration results\n        ",
+      "body_sha256": "be997ec16a32a7e111184780156384c3ca80244e4312c7d70480c03d0688297d"
+    },
+    {
+      "name": "autorecon_scan",
+      "original_line": 3648,
+      "signature": "target: str='', target_file: str='', ports: str='', output_dir: str='', max_scans: str='', max_port_scans: str='', heartbeat: str='', timeout: str='', target_timeout: str='', config_file: str='', global_file: str='', plugins_dir: str='', add_plugins_dir: str='', tags: str='', exclude_tags: str='', port_scans: str='', service_scans: str='', reports: str='', single_target: bool=False, only_scans_dir: bool=False, no_port_dirs: bool=False, nmap: str='', nmap_append: str='', proxychains: bool=False, disable_sanity_checks: bool=False, disable_keyboard_control: bool=False, force_services: str='', accessible: bool=False, verbose: int=0, curl_path: str='', dirbuster_tool: str='', dirbuster_wordlist: str='', dirbuster_threads: str='', dirbuster_ext: str='', onesixtyone_community_strings: str='', global_username_wordlist: str='', global_password_wordlist: str='', global_domain: str='', additional_args: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='target_file', annotation=Name(id='str', ctx=Load())), arg(arg='ports', annotation=Name(id='str', ctx=Load())), arg(arg='output_dir', annotation=Name(id='str', ctx=Load())), arg(arg='max_scans', annotation=Name(id='str', ctx=Load())), arg(arg='max_port_scans', annotation=Name(id='str', ctx=Load())), arg(arg='heartbeat', annotation=Name(id='str', ctx=Load())), arg(arg='timeout', annotation=Name(id='str', ctx=Load())), arg(arg='target_timeout', annotation=Name(id='str', ctx=Load())), arg(arg='config_file', annotation=Name(id='str', ctx=Load())), arg(arg='global_file', annotation=Name(id='str', ctx=Load())), arg(arg='plugins_dir', annotation=Name(id='str', ctx=Load())), arg(arg='add_plugins_dir', annotation=Name(id='str', ctx=Load())), arg(arg='tags', annotation=Name(id='str', ctx=Load())), arg(arg='exclude_tags', annotation=Name(id='str', ctx=Load())), arg(arg='port_scans', annotation=Name(id='str', ctx=Load())), arg(arg='service_scans', annotation=Name(id='str', ctx=Load())), arg(arg='reports', annotation=Name(id='str', ctx=Load())), arg(arg='single_target', annotation=Name(id='bool', ctx=Load())), arg(arg='only_scans_dir', annotation=Name(id='bool', ctx=Load())), arg(arg='no_port_dirs', annotation=Name(id='bool', ctx=Load())), arg(arg='nmap', annotation=Name(id='str', ctx=Load())), arg(arg='nmap_append', annotation=Name(id='str', ctx=Load())), arg(arg='proxychains', annotation=Name(id='bool', ctx=Load())), arg(arg='disable_sanity_checks', annotation=Name(id='bool', ctx=Load())), arg(arg='disable_keyboard_control', annotation=Name(id='bool', ctx=Load())), arg(arg='force_services', annotation=Name(id='str', ctx=Load())), arg(arg='accessible', annotation=Name(id='bool', ctx=Load())), arg(arg='verbose', annotation=Name(id='int', ctx=Load())), arg(arg='curl_path', annotation=Name(id='str', ctx=Load())), arg(arg='dirbuster_tool', annotation=Name(id='str', ctx=Load())), arg(arg='dirbuster_wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='dirbuster_threads', annotation=Name(id='str', ctx=Load())), arg(arg='dirbuster_ext', annotation=Name(id='str', ctx=Load())), arg(arg='onesixtyone_community_strings', annotation=Name(id='str', ctx=Load())), arg(arg='global_username_wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='global_password_wordlist', annotation=Name(id='str', ctx=Load())), arg(arg='global_domain', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=False), Constant(value=False), Constant(value=False), Constant(value=''), Constant(value=''), Constant(value=False), Constant(value=False), Constant(value=False), Constant(value=''), Constant(value=False), Constant(value=0), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value=''), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute AutoRecon for comprehensive target enumeration with full parameter support.\n\n        Args:\n            target: Single target to scan\n            target_file: File containing multiple targets\n            ports: Specific ports to scan\n            output_dir: Output directory\n            max_scans: Maximum number of concurrent scans\n            max_port_scans: Maximum number of concurrent port scans\n            heartbeat: Heartbeat interval\n            timeout: Global timeout\n            target_timeout: Per-target timeout\n            config_file: Configuration file path\n            global_file: Global configuration file\n            plugins_dir: Plugins directory\n            add_plugins_dir: Additional plugins directory\n            tags: Plugin tags to include\n            exclude_tags: Plugin tags to exclude\n            port_scans: Port scan plugins to run\n            service_scans: Service scan plugins to run\n            reports: Report plugins to run\n            single_target: Use single target directory structure\n            only_scans_dir: Only create scans directory\n            no_port_dirs: Don't create port directories\n            nmap: Custom nmap command\n            nmap_append: Arguments to append to nmap\n            proxychains: Use proxychains\n            disable_sanity_checks: Disable sanity checks\n            disable_keyboard_control: Disable keyboard control\n            force_services: Force service detection\n            accessible: Enable accessible output\n            verbose: Verbosity level (0-3)\n            curl_path: Custom curl path\n            dirbuster_tool: Directory busting tool\n            dirbuster_wordlist: Directory busting wordlist\n            dirbuster_threads: Directory busting threads\n            dirbuster_ext: Directory busting extensions\n            onesixtyone_community_strings: SNMP community strings\n            global_username_wordlist: Global username wordlist\n            global_password_wordlist: Global password wordlist\n            global_domain: Global domain\n            additional_args: Additional AutoRecon arguments\n\n        Returns:\n            Comprehensive enumeration results with full configurability\n        ",
+      "body_sha256": "1e3ff9725b3a2d389fe6c957db1efb0df2bb0cd0e3f701ef41622ac3bd8620ab"
+    },
+    {
+      "name": "server_health",
+      "original_line": 3790,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Check the health status of the HexStrike AI server.\n\n        Returns:\n            Server health information with tool availability and telemetry\n        ",
+      "body_sha256": "800c4bc366c588ba4be20563826fde8b87e78f6145bffd9147db5a8da801b093"
+    },
+    {
+      "name": "get_cache_stats",
+      "original_line": 3806,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Get cache statistics from the HexStrike AI server.\n\n        Returns:\n            Cache performance statistics\n        ",
+      "body_sha256": "3843a77e2ad815265bba453feeef905f5296464725ae599a9364c1b118d12ded"
+    },
+    {
+      "name": "clear_cache",
+      "original_line": 3820,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Clear the cache on the HexStrike AI server.\n\n        Returns:\n            Cache clear operation results\n        ",
+      "body_sha256": "627661bbbd652255620e2936deb1501d070d0b0bb489f0c258ea34cf40745c1e"
+    },
+    {
+      "name": "get_telemetry",
+      "original_line": 3836,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Get system telemetry from the HexStrike AI server.\n\n        Returns:\n            System performance and usage telemetry\n        ",
+      "body_sha256": "952dcf51324c7ccb52975dd3bd20d2b0e09614c94e09e12820f9a0a803fb2c25"
+    },
+    {
+      "name": "list_active_processes",
+      "original_line": 3854,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        List all active processes on the HexStrike AI server.\n\n        Returns:\n            List of active processes with their status and progress\n        ",
+      "body_sha256": "53e7374bcc1a1916393819f734c20f6452aaa8f86ad146a40fac89c51451672d"
+    },
+    {
+      "name": "get_process_status",
+      "original_line": 3870,
+      "signature": "pid: int",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='pid', annotation=Name(id='int', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Get the status of a specific process.\n\n        Args:\n            pid: Process ID to check\n\n        Returns:\n            Process status information including progress and runtime\n        ",
+      "body_sha256": "0dec23713f26c8b517428ab7804ef1114f3d3f90f363e2a8d2958a8fed47f54e"
+    },
+    {
+      "name": "terminate_process",
+      "original_line": 3889,
+      "signature": "pid: int",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='pid', annotation=Name(id='int', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Terminate a specific running process.\n\n        Args:\n            pid: Process ID to terminate\n\n        Returns:\n            Success status of the termination operation\n        ",
+      "body_sha256": "515cc0b1470bea02edea589217c146df8f61a108af2f51cbdff15c2c16255890"
+    },
+    {
+      "name": "pause_process",
+      "original_line": 3908,
+      "signature": "pid: int",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='pid', annotation=Name(id='int', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Pause a specific running process.\n\n        Args:\n            pid: Process ID to pause\n\n        Returns:\n            Success status of the pause operation\n        ",
+      "body_sha256": "f434bf08eca012e292715f83d60de8178d4fe746696f0a7f59da8b8fb35b085e"
+    },
+    {
+      "name": "resume_process",
+      "original_line": 3927,
+      "signature": "pid: int",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='pid', annotation=Name(id='int', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Resume a paused process.\n\n        Args:\n            pid: Process ID to resume\n\n        Returns:\n            Success status of the resume operation\n        ",
+      "body_sha256": "4127ead78f37bddbd05403054ddb1cc3d8a00ff0520170cc2dcd09632afcfa8c"
+    },
+    {
+      "name": "get_process_dashboard",
+      "original_line": 3946,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Get enhanced process dashboard with visual status indicators.\n\n        Returns:\n            Real-time dashboard with progress bars, system metrics, and process status\n        ",
+      "body_sha256": "e1b9e40328a9eb176b0da643d10ae67a45a1cf05fea430fb7d80f0e1aae04a3d"
+    },
+    {
+      "name": "execute_command",
+      "original_line": 3969,
+      "signature": "command: str, use_cache: bool=True",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='command', annotation=Name(id='str', ctx=Load())), arg(arg='use_cache', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=True)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute an arbitrary command on the HexStrike AI server with enhanced logging.\n\n        Args:\n            command: The command to execute\n            use_cache: Whether to use caching for this command\n\n        Returns:\n            Command execution results with enhanced telemetry\n        ",
+      "body_sha256": "7ff4c89de46b440170dbdc609ebb817cd2504b9c77946bd7a81ac955922457b1"
+    },
+    {
+      "name": "monitor_cve_feeds",
+      "original_line": 4013,
+      "signature": "hours: int=24, severity_filter: str='HIGH,CRITICAL', keywords: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='hours', annotation=Name(id='int', ctx=Load())), arg(arg='severity_filter', annotation=Name(id='str', ctx=Load())), arg(arg='keywords', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=24), Constant(value='HIGH,CRITICAL'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Monitor CVE databases for new vulnerabilities with AI analysis.\n\n        Args:\n            hours: Hours to look back for new CVEs (default: 24)\n            severity_filter: Filter by CVSS severity - comma-separated values (LOW,MEDIUM,HIGH,CRITICAL,ALL)\n            keywords: Filter CVEs by keywords in description (comma-separated)\n\n        Returns:\n            Latest CVEs with exploitability analysis and threat intelligence\n\n        Example:\n            monitor_cve_feeds(48, \"CRITICAL\", \"remote code execution\")\n        ",
+      "body_sha256": "b5ca7da7f719da080a891d96898335314b49decf280ef1609310e9bc38c37140"
+    },
+    {
+      "name": "generate_exploit_from_cve",
+      "original_line": 4044,
+      "signature": "cve_id: str, target_os: str='', target_arch: str='x64', exploit_type: str='poc', evasion_level: str='none'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='cve_id', annotation=Name(id='str', ctx=Load())), arg(arg='target_os', annotation=Name(id='str', ctx=Load())), arg(arg='target_arch', annotation=Name(id='str', ctx=Load())), arg(arg='exploit_type', annotation=Name(id='str', ctx=Load())), arg(arg='evasion_level', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='x64'), Constant(value='poc'), Constant(value='none')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Generate working exploits from CVE information using AI-powered analysis.\n\n        Args:\n            cve_id: CVE identifier (e.g., CVE-2024-1234)\n            target_os: Target operating system (windows, linux, macos, any)\n            target_arch: Target architecture (x86, x64, arm, any)\n            exploit_type: Type of exploit to generate (poc, weaponized, stealth)\n            evasion_level: Evasion sophistication (none, basic, advanced)\n\n        Returns:\n            Generated exploit code with testing instructions and evasion techniques\n\n        Example:\n            generate_exploit_from_cve(\"CVE-2024-1234\", \"linux\", \"x64\", \"weaponized\", \"advanced\")\n        ",
+      "body_sha256": "e18e6aacfa6369a5c72184cd20fe3e965ea6678c75677b36d0beae2761983a3d"
+    },
+    {
+      "name": "discover_attack_chains",
+      "original_line": 4083,
+      "signature": "target_software: str, attack_depth: int=3, include_zero_days: bool=False",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target_software', annotation=Name(id='str', ctx=Load())), arg(arg='attack_depth', annotation=Name(id='int', ctx=Load())), arg(arg='include_zero_days', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=3), Constant(value=False)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Discover multi-stage attack chains for target software with vulnerability correlation.\n\n        Args:\n            target_software: Target software/system (e.g., \"Apache HTTP Server\", \"Windows Server 2019\")\n            attack_depth: Maximum number of stages in attack chain (1-5)\n            include_zero_days: Include potential zero-day vulnerabilities in analysis\n\n        Returns:\n            Attack chains with vulnerability combinations, success probabilities, and exploit availability\n\n        Example:\n            discover_attack_chains(\"Apache HTTP Server 2.4\", 4, True)\n        ",
+      "body_sha256": "0ce586dc9888d0a34a029bc3dc9fc1335ac4b8eddce6dd219ff7ea8d58b3ea71"
+    },
+    {
+      "name": "research_zero_day_opportunities",
+      "original_line": 4117,
+      "signature": "target_software: str, analysis_depth: str='standard', source_code_url: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target_software', annotation=Name(id='str', ctx=Load())), arg(arg='analysis_depth', annotation=Name(id='str', ctx=Load())), arg(arg='source_code_url', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='standard'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Automated zero-day vulnerability research using AI analysis and pattern recognition.\n\n        Args:\n            target_software: Software to research for vulnerabilities (e.g., \"nginx\", \"OpenSSL\")\n            analysis_depth: Depth of analysis (quick, standard, comprehensive)\n            source_code_url: URL to source code repository for enhanced analysis\n\n        Returns:\n            Potential vulnerability areas with exploitation feasibility and research recommendations\n\n        Example:\n            research_zero_day_opportunities(\"nginx 1.20\", \"comprehensive\", \"https://github.com/nginx/nginx\")\n        ",
+      "body_sha256": "76c68ced0c3b2e8a2fbd1ffd524fd2ae2f25623bc9694e0a65d4917c61838807"
+    },
+    {
+      "name": "correlate_threat_intelligence",
+      "original_line": 4154,
+      "signature": "indicators: str, timeframe: str='30d', sources: str='all'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='indicators', annotation=Name(id='str', ctx=Load())), arg(arg='timeframe', annotation=Name(id='str', ctx=Load())), arg(arg='sources', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='30d'), Constant(value='all')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Correlate threat intelligence across multiple sources with advanced analysis.\n\n        Args:\n            indicators: Comma-separated IOCs (IPs, domains, hashes, CVEs, etc.)\n            timeframe: Time window for correlation (7d, 30d, 90d, 1y)\n            sources: Intelligence sources to query (cve, exploit-db, github, twitter, all)\n\n        Returns:\n            Correlated threat intelligence with attribution, timeline, and threat scoring\n\n        Example:\n            correlate_threat_intelligence(\"CVE-2024-1234,192.168.1.100,malware.exe\", \"90d\", \"all\")\n        ",
+      "body_sha256": "65e315298bfd9b2058cdd92af48a3a7d494a710892e02c64306f3d9f95783740"
+    },
+    {
+      "name": "advanced_payload_generation",
+      "original_line": 4200,
+      "signature": "attack_type: str, target_context: str='', evasion_level: str='standard', custom_constraints: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='attack_type', annotation=Name(id='str', ctx=Load())), arg(arg='target_context', annotation=Name(id='str', ctx=Load())), arg(arg='evasion_level', annotation=Name(id='str', ctx=Load())), arg(arg='custom_constraints', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='standard'), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Generate advanced payloads with AI-powered evasion techniques and contextual adaptation.\n\n        Args:\n            attack_type: Type of attack (rce, privilege_escalation, persistence, exfiltration, xss, sqli)\n            target_context: Target environment details (OS, software versions, security controls)\n            evasion_level: Evasion sophistication (basic, standard, advanced, nation-state)\n            custom_constraints: Custom payload constraints (size limits, character restrictions, etc.)\n\n        Returns:\n            Advanced payloads with multiple evasion techniques and deployment instructions\n\n        Example:\n            advanced_payload_generation(\"rce\", \"Windows 11 + Defender + AppLocker\", \"nation-state\", \"max_size:256,no_quotes\")\n        ",
+      "body_sha256": "bf8d0209a66fe2d3bd72697c5a8e77cd196613714c40203562b4cc971e48715e"
+    },
+    {
+      "name": "vulnerability_intelligence_dashboard",
+      "original_line": 4248,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Get a comprehensive vulnerability intelligence dashboard with latest threats and trends.\n\n        Returns:\n            Dashboard with latest CVEs, trending vulnerabilities, exploit availability, and threat landscape\n\n        Example:\n            vulnerability_intelligence_dashboard()\n        ",
+      "body_sha256": "47b18f9cf96bfa924503caf51c4e7146e0f5a4cc87fffc51bc3c79a78f7d3286"
+    },
+    {
+      "name": "threat_hunting_assistant",
+      "original_line": 4302,
+      "signature": "target_environment: str, threat_indicators: str='', hunt_focus: str='general'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target_environment', annotation=Name(id='str', ctx=Load())), arg(arg='threat_indicators', annotation=Name(id='str', ctx=Load())), arg(arg='hunt_focus', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='general')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        AI-powered threat hunting assistant with vulnerability correlation and attack simulation.\n\n        Args:\n            target_environment: Environment to hunt in (e.g., \"Windows Domain\", \"Cloud Infrastructure\")\n            threat_indicators: Known IOCs or suspicious indicators to investigate\n            hunt_focus: Focus area (general, apt, ransomware, insider_threat, supply_chain)\n\n        Returns:\n            Threat hunting playbook with detection queries, IOCs, and investigation steps\n\n        Example:\n            threat_hunting_assistant(\"Windows Domain\", \"suspicious_process.exe,192.168.1.100\", \"apt\")\n        ",
+      "body_sha256": "f67f7ed53072b5a6820e9dd2b1b17b43535b06b85273e6f51d27f9cc74ce6987"
+    },
+    {
+      "name": "get_live_dashboard",
+      "original_line": 4412,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Get a beautiful live dashboard showing all active processes with enhanced visual formatting.\n\n        Returns:\n            Live dashboard with visual process monitoring and system metrics\n        ",
+      "body_sha256": "e590590f9352dfc03fa76d92348624f9e91f1b76f2a9138bfe43d8490321ae48"
+    },
+    {
+      "name": "create_vulnerability_report",
+      "original_line": 4428,
+      "signature": "vulnerabilities: str, target: str='', scan_type: str='comprehensive'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='vulnerabilities', annotation=Name(id='str', ctx=Load())), arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='scan_type', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='comprehensive')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create a beautiful vulnerability report with severity-based styling and visual indicators.\n\n        Args:\n            vulnerabilities: JSON string containing vulnerability data\n            target: Target that was scanned\n            scan_type: Type of scan performed\n\n        Returns:\n            Formatted vulnerability report with visual enhancements\n        ",
+      "body_sha256": "43300123fcedf45d732a448026704c83460b074f5c4210878ab72138f2169df8"
+    },
+    {
+      "name": "format_tool_output_visual",
+      "original_line": 4482,
+      "signature": "tool_name: str, output: str, success: bool=True",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='tool_name', annotation=Name(id='str', ctx=Load())), arg(arg='output', annotation=Name(id='str', ctx=Load())), arg(arg='success', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=True)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Format tool output with beautiful visual styling, syntax highlighting, and structure.\n\n        Args:\n            tool_name: Name of the security tool\n            output: Raw output from the tool\n            success: Whether the tool execution was successful\n\n        Returns:\n            Beautifully formatted tool output with visual enhancements\n        ",
+      "body_sha256": "57624c3b4c6b70b18034ad9dcf78c8f5d1e2b31d37ddb170b8f2818d5fc4a2c2"
+    },
+    {
+      "name": "create_scan_summary",
+      "original_line": 4511,
+      "signature": "target: str, tools_used: str, vulnerabilities_found: int=0, execution_time: float=0.0, findings: str=''",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='tools_used', annotation=Name(id='str', ctx=Load())), arg(arg='vulnerabilities_found', annotation=Name(id='int', ctx=Load())), arg(arg='execution_time', annotation=Name(id='float', ctx=Load())), arg(arg='findings', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=0), Constant(value=0.0), Constant(value='')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create a comprehensive scan summary report with beautiful visual formatting.\n\n        Args:\n            target: Target that was scanned\n            tools_used: Comma-separated list of tools used\n            vulnerabilities_found: Number of vulnerabilities discovered\n            execution_time: Total execution time in seconds\n            findings: Additional findings or notes\n\n        Returns:\n            Beautiful scan summary report with visual enhancements\n        ",
+      "body_sha256": "1b46d6f2d30cb19357ec30988e07fda13773c066ea22de6ceb645ec531784175"
+    },
+    {
+      "name": "display_system_metrics",
+      "original_line": 4547,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Display current system metrics and performance indicators with visual formatting.\n\n        Returns:\n            System metrics with beautiful visual presentation\n        ",
+      "body_sha256": "19ec378ee90fb3a80fb692d79ea2c87253511c1c38bae01ccf5278ab4bd23011"
+    },
+    {
+      "name": "analyze_target_intelligence",
+      "original_line": 4596,
+      "signature": "target: str",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Analyze target using AI-powered intelligence to create comprehensive profile.\n\n        Args:\n            target: Target URL, IP address, or domain to analyze\n\n        Returns:\n            Comprehensive target profile with technology detection, risk assessment, and recommendations\n        ",
+      "body_sha256": "accf8f1a37ca5d2d0f6694ba7496a95b772d495f0fd0d6c5850f862cf71f39cf"
+    },
+    {
+      "name": "select_optimal_tools_ai",
+      "original_line": 4620,
+      "signature": "target: str, objective: str='comprehensive'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='objective', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='comprehensive')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Use AI to select optimal security tools based on target analysis and testing objective.\n\n        Args:\n            target: Target to analyze\n            objective: Testing objective - \"comprehensive\", \"quick\", or \"stealth\"\n\n        Returns:\n            AI-selected optimal tools with effectiveness ratings and target profile\n        ",
+      "body_sha256": "aee77856c15f43dc18a30ef840e55f46245639e7524f0d8ccb9cf1f7c60ab37b"
+    },
+    {
+      "name": "optimize_tool_parameters_ai",
+      "original_line": 4648,
+      "signature": "target: str, tool: str, context: str='{}'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='tool', annotation=Name(id='str', ctx=Load())), arg(arg='context', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='{}')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Use AI to optimize tool parameters based on target profile and context.\n\n        Args:\n            target: Target to test\n            tool: Security tool to optimize\n            context: JSON string with additional context (stealth, aggressive, etc.)\n\n        Returns:\n            AI-optimized parameters for maximum effectiveness\n        ",
+      "body_sha256": "71022caf2b52425bea1c9bde91c3a190c2d3401ad9747cf6eb220446bc32ab94"
+    },
+    {
+      "name": "create_attack_chain_ai",
+      "original_line": 4685,
+      "signature": "target: str, objective: str='comprehensive'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='objective', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='comprehensive')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create an intelligent attack chain using AI-driven tool sequencing and optimization.\n\n        Args:\n            target: Target for the attack chain\n            objective: Attack objective - \"comprehensive\", \"quick\", or \"stealth\"\n\n        Returns:\n            AI-generated attack chain with success probability and time estimates\n        ",
+      "body_sha256": "dce81d584efde6397522babc1fd39bd57558982d97ebb00f4c0ac55c8dd80b1b"
+    },
+    {
+      "name": "intelligent_smart_scan",
+      "original_line": 4717,
+      "signature": "target: str, objective: str='comprehensive', max_tools: int=5",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='objective', annotation=Name(id='str', ctx=Load())), arg(arg='max_tools', annotation=Name(id='int', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='comprehensive'), Constant(value=5)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute an intelligent scan using AI-driven tool selection and parameter optimization.\n\n        Args:\n            target: Target to scan\n            objective: Scanning objective - \"comprehensive\", \"quick\", or \"stealth\"\n            max_tools: Maximum number of tools to use\n\n        Returns:\n            Results from AI-optimized scanning with tool execution summary\n        ",
+      "body_sha256": "b23eccce240474dea5d1f34de12d3ed4ac8783520dbb4b9d06b542103509a154"
+    },
+    {
+      "name": "detect_technologies_ai",
+      "original_line": 4770,
+      "signature": "target: str",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Use AI to detect technologies and provide technology-specific testing recommendations.\n\n        Args:\n            target: Target to analyze for technology detection\n\n        Returns:\n            Detected technologies with AI-generated testing recommendations\n        ",
+      "body_sha256": "89f7e5c71220c936bdcf2995ee29f6085cfddc9f6e94ef90f48385ba01cfd030"
+    },
+    {
+      "name": "ai_reconnaissance_workflow",
+      "original_line": 4802,
+      "signature": "target: str, depth: str='standard'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='depth', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='standard')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Execute AI-driven reconnaissance workflow with intelligent tool chaining.\n\n        Args:\n            target: Target for reconnaissance\n            depth: Reconnaissance depth - \"surface\", \"standard\", or \"deep\"\n\n        Returns:\n            Comprehensive reconnaissance results with AI-driven insights\n        ",
+      "body_sha256": "325a117e7e81cca6f286058aac837f514b2d0a3fe38037dbae9d8c737c902c9b"
+    },
+    {
+      "name": "ai_vulnerability_assessment",
+      "original_line": 4851,
+      "signature": "target: str, focus_areas: str='all'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='focus_areas', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='all')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Perform AI-driven vulnerability assessment with intelligent prioritization.\n\n        Args:\n            target: Target for vulnerability assessment\n            focus_areas: Comma-separated focus areas - \"web\", \"network\", \"api\", \"all\"\n\n        Returns:\n            Prioritized vulnerability assessment results with AI insights\n        ",
+      "body_sha256": "89a8dd90926fded743423462000dd08a6035a2e636ef7087c36b0dbbbeb9c8bf"
+    },
+    {
+      "name": "bugbounty_reconnaissance_workflow",
+      "original_line": 4911,
+      "signature": "domain: str, scope: str='', out_of_scope: str='', program_type: str='web'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='scope', annotation=Name(id='str', ctx=Load())), arg(arg='out_of_scope', annotation=Name(id='str', ctx=Load())), arg(arg='program_type', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value=''), Constant(value='web')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create comprehensive reconnaissance workflow for bug bounty hunting.\n\n        Args:\n            domain: Target domain for bug bounty\n            scope: Comma-separated list of in-scope domains/IPs\n            out_of_scope: Comma-separated list of out-of-scope domains/IPs\n            program_type: Type of program (web, api, mobile, iot)\n\n        Returns:\n            Comprehensive reconnaissance workflow with phases and tools\n        ",
+      "body_sha256": "a86d3ae07a90cbc097d53034140207a0ea96372c2fc335239a006246ab8565f0"
+    },
+    {
+      "name": "bugbounty_vulnerability_hunting",
+      "original_line": 4944,
+      "signature": "domain: str, priority_vulns: str='rce,sqli,xss,idor,ssrf', bounty_range: str='unknown'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='priority_vulns', annotation=Name(id='str', ctx=Load())), arg(arg='bounty_range', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='rce,sqli,xss,idor,ssrf'), Constant(value='unknown')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create vulnerability hunting workflow prioritized by impact and bounty potential.\n\n        Args:\n            domain: Target domain for bug bounty\n            priority_vulns: Comma-separated list of priority vulnerability types\n            bounty_range: Expected bounty range (low, medium, high, critical)\n\n        Returns:\n            Vulnerability hunting workflow prioritized by impact\n        ",
+      "body_sha256": "34f8b3af2ed887330f1fae195a06aec2d796fc2498a84b0cc417ae6f9b5be713"
+    },
+    {
+      "name": "bugbounty_business_logic_testing",
+      "original_line": 4975,
+      "signature": "domain: str, program_type: str='web'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='program_type', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='web')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create business logic testing workflow for advanced bug bounty hunting.\n\n        Args:\n            domain: Target domain for bug bounty\n            program_type: Type of program (web, api, mobile)\n\n        Returns:\n            Business logic testing workflow with manual and automated tests\n        ",
+      "body_sha256": "c6e9a743780e1888823e082ca3311b90fd504eaabf884c47c4c2a7ef0d5dd5ab"
+    },
+    {
+      "name": "bugbounty_osint_gathering",
+      "original_line": 5004,
+      "signature": "domain: str",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create OSINT (Open Source Intelligence) gathering workflow for bug bounty reconnaissance.\n\n        Args:\n            domain: Target domain for OSINT gathering\n\n        Returns:\n            OSINT gathering workflow with multiple intelligence phases\n        ",
+      "body_sha256": "34591059fde8edd449e00362a5b509875b5785a8aa271794f73686790b9ed8cb"
+    },
+    {
+      "name": "bugbounty_file_upload_testing",
+      "original_line": 5029,
+      "signature": "target_url: str",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target_url', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create file upload vulnerability testing workflow with bypass techniques.\n\n        Args:\n            target_url: Target URL with file upload functionality\n\n        Returns:\n            File upload testing workflow with malicious files and bypass techniques\n        ",
+      "body_sha256": "5e596c42ee047771b131454962b13859672e349635156560902d37ed33c48c66"
+    },
+    {
+      "name": "bugbounty_comprehensive_assessment",
+      "original_line": 5054,
+      "signature": "domain: str, scope: str='', priority_vulns: str='rce,sqli,xss,idor,ssrf', include_osint: bool=True, include_business_logic: bool=True",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='domain', annotation=Name(id='str', ctx=Load())), arg(arg='scope', annotation=Name(id='str', ctx=Load())), arg(arg='priority_vulns', annotation=Name(id='str', ctx=Load())), arg(arg='include_osint', annotation=Name(id='bool', ctx=Load())), arg(arg='include_business_logic', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=''), Constant(value='rce,sqli,xss,idor,ssrf'), Constant(value=True), Constant(value=True)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create comprehensive bug bounty assessment combining all specialized workflows.\n\n        Args:\n            domain: Target domain for bug bounty\n            scope: Comma-separated list of in-scope domains/IPs\n            priority_vulns: Comma-separated list of priority vulnerability types\n            include_osint: Include OSINT gathering workflow\n            include_business_logic: Include business logic testing workflow\n\n        Returns:\n            Comprehensive bug bounty assessment with all workflows and summary\n        ",
+      "body_sha256": "2a87ecacc11bdbf72931117c0d3210669a0deb3d296889772a7e01cab23b7c2e"
+    },
+    {
+      "name": "bugbounty_authentication_bypass_testing",
+      "original_line": 5092,
+      "signature": "target_url: str, auth_type: str='form'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target_url', annotation=Name(id='str', ctx=Load())), arg(arg='auth_type', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='form')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Create authentication bypass testing workflow for bug bounty hunting.\n\n        Args:\n            target_url: Target URL with authentication\n            auth_type: Type of authentication (form, jwt, oauth, saml)\n\n        Returns:\n            Authentication bypass testing strategies and techniques\n        ",
+      "body_sha256": "173d75cfce758bb407b5a6c4489d5b7f826e2996b23f0fef6fa4d41f7ef583a3"
+    },
+    {
+      "name": "http_framework_test",
+      "original_line": 5157,
+      "signature": "url: str, method: str='GET', data: dict={}, headers: dict={}, cookies: dict={}, action: str='request'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='method', annotation=Name(id='str', ctx=Load())), arg(arg='data', annotation=Name(id='dict', ctx=Load())), arg(arg='headers', annotation=Name(id='dict', ctx=Load())), arg(arg='cookies', annotation=Name(id='dict', ctx=Load())), arg(arg='action', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='GET'), Dict(keys=[], values=[]), Dict(keys=[], values=[]), Dict(keys=[], values=[]), Constant(value='request')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Enhanced HTTP testing framework (Burp Suite alternative) for comprehensive web security testing.\n\n        Args:\n            url: Target URL to test\n            method: HTTP method (GET, POST, PUT, DELETE, etc.)\n            data: Request data/parameters\n            headers: Custom headers\n            cookies: Custom cookies\n            action: Action to perform (request, spider, proxy_history, set_rules, set_scope, repeater, intruder)\n\n        Returns:\n            HTTP testing results with vulnerability analysis\n        ",
+      "body_sha256": "e446a7bfab563c6a532bd71995a9d401c6455e1a1e29931d7833eea2a2864ca9"
+    },
+    {
+      "name": "browser_agent_inspect",
+      "original_line": 5198,
+      "signature": "url: str, headless: bool=True, wait_time: int=5, action: str='navigate', proxy_port: int=None, active_tests: bool=False",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='headless', annotation=Name(id='bool', ctx=Load())), arg(arg='wait_time', annotation=Name(id='int', ctx=Load())), arg(arg='action', annotation=Name(id='str', ctx=Load())), arg(arg='proxy_port', annotation=Name(id='int', ctx=Load())), arg(arg='active_tests', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=True), Constant(value=5), Constant(value='navigate'), Constant(value=None), Constant(value=False)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        AI-powered browser agent for comprehensive web application inspection and security analysis.\n\n        Args:\n            url: Target URL to inspect\n            headless: Run browser in headless mode\n            wait_time: Time to wait after page load\n            action: Action to perform (navigate, screenshot, close, status)\n            proxy_port: Optional proxy port for request interception\n            active_tests: Run lightweight active reflected XSS tests (safe GET-only)\n\n        Returns:\n            Browser inspection results with security analysis\n        ",
+      "body_sha256": "cc8c78a87472d04bbbdfaa44e468a606c59be74441a32f42322fb0778a59d16b"
+    },
+    {
+      "name": "http_set_rules",
+      "original_line": 5246,
+      "signature": "rules: list",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='rules', annotation=Name(id='list', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "Set match/replace rules used to rewrite parts of URL/query/headers/body before sending.\n        Rule format: {'where':'url|query|headers|body','pattern':'regex','replacement':'string'}",
+      "body_sha256": "20356d58fbc550a36d197dd9fe3852c9513ccbb07b0f05e6a259aaa23c306aea"
+    },
+    {
+      "name": "http_set_scope",
+      "original_line": 5253,
+      "signature": "host: str, include_subdomains: bool=True",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='host', annotation=Name(id='str', ctx=Load())), arg(arg='include_subdomains', annotation=Name(id='bool', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=True)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "Define in-scope host (and optionally subdomains) so out-of-scope requests are skipped.",
+      "body_sha256": "9df72200715a29d3fd4e82ce619334cf3d937d2452faaad4a3adaab557f22ec0"
+    },
+    {
+      "name": "http_repeater",
+      "original_line": 5259,
+      "signature": "request_spec: dict",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='request_spec', annotation=Name(id='dict', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "Send a crafted request (Burp Repeater equivalent). request_spec keys: url, method, headers, cookies, data.",
+      "body_sha256": "1669e163c3daa29f766c693356f37132d48eb9c86259460ce8f0f63b613ba62c"
+    },
+    {
+      "name": "http_intruder",
+      "original_line": 5265,
+      "signature": "url: str, method: str='GET', location: str='query', params: list=None, payloads: list=None, base_data: dict=None, max_requests: int=100",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='url', annotation=Name(id='str', ctx=Load())), arg(arg='method', annotation=Name(id='str', ctx=Load())), arg(arg='location', annotation=Name(id='str', ctx=Load())), arg(arg='params', annotation=Name(id='list', ctx=Load())), arg(arg='payloads', annotation=Name(id='list', ctx=Load())), arg(arg='base_data', annotation=Name(id='dict', ctx=Load())), arg(arg='max_requests', annotation=Name(id='int', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='GET'), Constant(value='query'), Constant(value=None), Constant(value=None), Constant(value=None), Constant(value=100)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "Simple Intruder (sniper) fuzzing. Iterates payloads over each param individually.\n        location: query|body|headers|cookie.",
+      "body_sha256": "4cfac9e2f19b5f4524577132e225cf2462b764ab9598cc4f6d6a8693e5a51661"
+    },
+    {
+      "name": "burpsuite_alternative_scan",
+      "original_line": 5282,
+      "signature": "target: str, scan_type: str='comprehensive', headless: bool=True, max_depth: int=3, max_pages: int=50",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='scan_type', annotation=Name(id='str', ctx=Load())), arg(arg='headless', annotation=Name(id='bool', ctx=Load())), arg(arg='max_depth', annotation=Name(id='int', ctx=Load())), arg(arg='max_pages', annotation=Name(id='int', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='comprehensive'), Constant(value=True), Constant(value=3), Constant(value=50)])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Comprehensive Burp Suite alternative combining HTTP framework and browser agent for complete web security testing.\n\n        Args:\n            target: Target URL or domain to scan\n            scan_type: Type of scan (comprehensive, spider, passive, active)\n            headless: Run browser in headless mode\n            max_depth: Maximum crawling depth\n            max_pages: Maximum pages to analyze\n\n        Returns:\n            Comprehensive security assessment results\n        ",
+      "body_sha256": "1cc0134a8a11c82f9b636f785e9bbc279eb119e501b9660d60aae1540842530d"
+    },
+    {
+      "name": "error_handling_statistics",
+      "original_line": 5343,
+      "signature": "",
+      "arguments_ast": "arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Get intelligent error handling system statistics and recent error patterns.\n\n        Returns:\n            Error handling statistics and patterns\n        ",
+      "body_sha256": "4b17c68ec1804fecc35bd47e6b32bf20ee920798a8c646d6fcf6aa0f34ea8dce"
+    },
+    {
+      "name": "test_error_recovery",
+      "original_line": 5374,
+      "signature": "tool_name: str, error_type: str='timeout', target: str='example.com'",
+      "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='tool_name', annotation=Name(id='str', ctx=Load())), arg(arg='error_type', annotation=Name(id='str', ctx=Load())), arg(arg='target', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='timeout'), Constant(value='example.com')])",
+      "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
+      "docstring": "\n        Test the intelligent error recovery system with simulated failures.\n\n        Args:\n            tool_name: Name of tool to simulate error for\n            error_type: Type of error to simulate (timeout, permission_denied, network_unreachable, etc.)\n            target: Target for the simulated test\n\n        Returns:\n            Recovery strategy and system response\n        ",
+      "body_sha256": "3b5ae3752ac1160b75dc6e35e731f74cadde81d6f0ecd9254fd0d49f9f056756"
+    }
+  ]
+}

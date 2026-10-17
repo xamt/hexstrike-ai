@@ -24,6 +24,18 @@
 
 ---
 
+## 本项目的 Docker 双接口接入
+
+当前源码构建的应用镜像默认同时提供原 HTTP API（`8888`）与 Streamable HTTP MCP（`8889/mcp`），保留 stdio 兼容入口。Agent 通过 MCP URL 直接接入，不需要启动本地脚本。
+
+- [构建、启动与 MCP 接入说明](docs/MCP_HTTP.md)
+- [工具基础镜像与应用镜像构建说明](docs/DOCKER_BUILD.md)
+- 原 151 次工具声明全部保留；`httpx_probe` 原有重名，因此实际发现 150 个唯一工具。
+- 当前不提供鉴权，API 和 MCP 均须限制网络访问，后续由网关统一管理权限。
+- 手工启动 MCP 时，在独立虚拟环境安装 `requirements-mcp.txt`；下方原始安装流程中的 `requirements.txt` 仅用于 API 环境，不再包含 MCP SDK。
+
+---
+
 <div align="center">
 
 ## Follow Our Social Accounts

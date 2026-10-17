@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from source import ROOT, SOURCE, definitions, executable, parameters
+from source import ROOT, SOURCE, definitions, executable, parameters, source_paths
 from translate import Translator
 
 DEST = ROOT / "skills/pentest-tools"
@@ -15,7 +15,7 @@ def artifacts():
     """生成代码、参数清单和按需阅读的原始工具说明。"""
     nodes = definitions()
     translator = Translator(n.name for n in nodes)
-    digest = hashlib.sha256(SOURCE.read_bytes()).hexdigest()
+    digest = hashlib.sha256(b"\0".join(path.read_bytes() for path in [SOURCE, *source_paths()])).hexdigest()
     catalog = {}
     functions = []
     docs = {}
@@ -25,10 +25,10 @@ def artifacts():
         calls = [ast.unparse(n) for n in ast.walk(cleaned) if isinstance(n, ast.Call)
                  and ast.unparse(n.func).startswith(("hexstrike_client.", "self."))]
         catalog[node.name] = {"parameters": parameters(node),
-                              "sourceLine": node.lineno,
+                              "sourceFile": node.source_file, "sourceLine": node.lineno,
                               "description": ast.get_docstring(node), "calls": calls}
         docs[f"references/tools/{node.name}.md"] = tool_doc(node, catalog[node.name])
-    text = "// 自动生成；维护源为 hexstrike_mcp.py。不要手工修改。\n"
+    text = "// 自动生成；维护源为 hexstrike_tools/ 工具目录。不要手工修改。\n"
     text += f"// 源文件 SHA256: {digest}\nimport {{ py, defaultClock }} from './python-values.mjs';\n\n"
     text += "/** 构造兼容原工具调用的函数，不在初始化时发出网络请求。 */\n"
     text += "export function createTools(client, clock = defaultClock) {\n  const tools = Object.create(null);\n"

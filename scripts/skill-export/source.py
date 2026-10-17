@@ -4,28 +4,42 @@ import copy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "hexstrike_mcp.py"
+SOURCE = ROOT / "hexstrike_tools/__init__.py"
+
+
+def source_paths():
+    """依据真实注册入口顺序解析源文件，不额外维护工具目录。"""
+    module = ast.parse(SOURCE.read_text(encoding="utf-8"))
+    imports = {alias.asname or alias.name: item.module
+               for item in module.body if isinstance(item, ast.ImportFrom)
+               for alias in item.names}
+    register = next(item for item in module.body if isinstance(item, ast.FunctionDef)
+                    and item.name == "register_tools")
+    return [SOURCE.parent / (imports[item.value.func.id] + ".py")
+            for item in register.body if isinstance(item, ast.Expr)
+            and isinstance(item.value, ast.Call)]
 
 
 def definitions():
     """返回全部声明，重复 httpx 名称采用显式别名，不丢弃任何参数。"""
-    module = ast.parse(SOURCE.read_text(encoding="utf-8"))
-    setup = next(n for n in module.body if isinstance(n, ast.FunctionDef)
-                 and n.name == "setup_mcp_server")
     seen = set()
     result = []
-    for node in setup.body:
-        if not isinstance(node, ast.FunctionDef):
-            continue
-        node = copy.deepcopy(node)
-        original = node.name
-        if original in seen:
-            if original != "httpx_probe":
-                raise ValueError(f"未处理的重复工具: {original}")
-            node.name = "httpx_probe_extended"
-        seen.add(original)
-        node.source_file = str(SOURCE.relative_to(ROOT))
-        result.append(node)
+    for path in source_paths():
+        module = ast.parse(path.read_text(encoding="utf-8"))
+        setup = next(n for n in module.body if isinstance(n, ast.FunctionDef)
+                     and n.name == "register")
+        for node in setup.body:
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            node = copy.deepcopy(node)
+            original = node.name
+            if original in seen:
+                if original != "httpx_probe":
+                    raise ValueError(f"未处理的重复工具: {original}")
+                node.name = "httpx_probe_extended"
+            seen.add(original)
+            node.source_file = str(path.relative_to(ROOT))
+            result.append(node)
     return result
 
 

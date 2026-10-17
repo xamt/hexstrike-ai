@@ -10,7 +10,7 @@
 | 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-arm64` |
 
 - 基础镜像：Kali、安全工具、小型字典、Python 3.11，以及隔离的 Volatility 2/3、JWT-Tool、ParamSpider、Kube-Hunter 环境；默认进入 Bash，不启动服务。
-- 应用镜像：继承同架构基础镜像，安装项目依赖、复制代码、配置 8888 端口和健康检查，不重复安装安全工具。
+- 应用镜像：继承同架构基础镜像，隔离安装 API/MCP 依赖；默认同时启动 HTTP API（8888）与 Streamable HTTP MCP（8889/mcp），不重复安装安全工具。
 - 两类镜像版本独立管理，应用镜像引用同架构的基础镜像。
 - 本项目发布标签不使用 `latest`；已发布的版本标签不可覆盖。调整版本时直接修改对应命令中的完整镜像名。
 
@@ -83,6 +83,8 @@ docker buildx build \
 
 ## 4. 启动应用镜像
 
+本节双接口启动要求使用当前源码构建的应用镜像，已发布旧镜像不会自动获得 MCP 接口。新功能建议使用独立本地标签构建，完整命令、Agent 配置及网关网络限制见 [MCP 接入说明](MCP_HTTP.md)。本版本不增加鉴权，默认仅发布到主机回环。
+
 应用可以直接启动，**不强制挂载字典或模板**。按任务补充数据，可扩展密码测试和漏洞检测能力，准备方法见 4.3、4.4。
 离线运行前，请先将对应架构的应用镜像导入 Docker 主机，或确保可从内网 Harbor 获取。
 
@@ -93,6 +95,8 @@ docker run --detach \
   --name pentest-tools-amd64 \
   --platform linux/amd64 \
   --publish 127.0.0.1:8888:8888 \
+  --publish 127.0.0.1:8889:8889 \
+  --stop-timeout 15 \
   harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-amd64
 ```
 
@@ -103,10 +107,12 @@ docker run --detach \
   --name pentest-tools-arm64 \
   --platform linux/arm64 \
   --publish 127.0.0.1:8888:8888 \
+  --publish 127.0.0.1:8889:8889 \
+  --stop-timeout 15 \
   harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-arm64
 ```
 
-服务地址为 `http://127.0.0.1:8888`，两条命令占用同一端口，不要同时运行。
+API 地址为 `http://127.0.0.1:8888`，MCP 地址为 `http://127.0.0.1:8889/mcp`；两条命令占用相同宿主端口，不要同时运行。
 通过 `docker logs pentest-tools-amd64` 或 `docker logs pentest-tools-arm64` 查看日志。
 
 需要挂载时，将下文的 `--mount` 参数添加在对应启动命令的**镜像名之前**，替换为 Docker 主机上的真实绝对路径。

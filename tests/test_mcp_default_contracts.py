@@ -1,35 +1,32 @@
 """从真实 MCP 函数默认值开始验证请求；不启动服务、工具或网络。"""
-import ast
-import copy
 import importlib.util
 import io
-import logging
 import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
-from typing import Any, Dict
 from unittest.mock import Mock, patch
 
 from test_server_command_contracts import ROOT, endpoint
 
-MCP_TREE = ast.parse((ROOT / "hexstrike_mcp.py").read_text())
+sys.path.insert(0, str(ROOT))
+from hexstrike_tools import register_tools
 
 
 def mcp_request(name, **arguments):
     """载入原 MCP 函数，不重写其签名与数据构造，再捕获 HTTP 请求。"""
-    node = copy.deepcopy(next(item for item in ast.walk(MCP_TREE)
-                              if isinstance(item, ast.FunctionDef) and item.name == name))
-    node.decorator_list = []
     client = Mock()
     client.safe_post.return_value = {"success": True}
-    namespace = {"hexstrike_client": client, "logger": logging.getLogger(__name__),
-                 "HexStrikeColors": Mock(),
-                 "Dict": Dict, "Any": Any}
-    exec(compile(ast.Module(body=[node], type_ignores=[]), "isolated-mcp", "exec"), namespace)
-    namespace[name](**arguments)
+    functions = {}
+    def register(function):
+        functions.setdefault(function.__name__, function)
+        return function
+    mcp = Mock()
+    mcp.tool.return_value = register
+    register_tools(mcp, client)
+    functions[name](**arguments)
     return client.safe_post.call_args.args
 
 

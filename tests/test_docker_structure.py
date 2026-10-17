@@ -8,9 +8,9 @@ CATEGORIES = {"network", "web", "authentication", "binary", "container", "forens
 
 
 class DockerStructureTests(unittest.TestCase):
-    def test_only_documentation_at_docker_root(self):
-        self.assertEqual(["README.md"], sorted(p.name for p in (ROOT / "docker").iterdir()
-                                             if p.is_file()))
+    def test_only_documentation_and_service_entrypoints_at_docker_root(self):
+        self.assertEqual(["README.md", "service_health.py", "service_manager.py"],
+                         sorted(p.name for p in (ROOT / "docker").iterdir() if p.is_file()))
 
     def test_seven_categories_have_installation_method_scripts(self):
         tools = ROOT / "docker/tools"
