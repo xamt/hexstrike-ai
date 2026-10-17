@@ -83,14 +83,18 @@ class NucleiOfflineTests(unittest.TestCase):
                 self.assertEqual(self.adapter.main(["-version"]), 2)
             self.assertIn("missing binary", errors.getvalue())
 
-    def test_both_documented_start_commands_mount_templates_readonly(self):
+    def test_documented_start_commands_leave_data_mounts_optional(self):
         import re
         docs = (ROOT / "docs/DOCKER_BUILD.md").read_text()
         blocks = re.findall(r"```bash\n(docker run[\s\S]*?)```", docs)
         self.assertEqual(len(blocks), 2)
         mount = "type=bind,source=/path/to/nuclei-templates,target=/opt/nuclei-templates,readonly"
         for block in blocks:
-            self.assertIn(mount, shlex.split(block.replace("\\\n", " ")))
+            self.assertNotIn("--mount", shlex.split(block.replace("\\\n", " ")))
+        self.assertIn(mount, docs)
+        self.assertIn("### 4.3 John/Hashcat 默认字典（可选）", docs)
+        self.assertIn("### 4.4 Nuclei 离线模板（可选）", docs)
+        self.assertNotIn("### 4.5", docs)
 
     def test_remote_templates_and_updates_are_not_silent_network_fallback(self):
         for args in (["-ut"], ["-update"], ["-t", "https://example.test/template.yaml"],
