@@ -29,7 +29,7 @@ class ToolVersionVerifierTests(unittest.TestCase):
     def test_required_non_apt_records_are_frozen(self):
         expected = {
             "gem": {"wpscan"},
-            "go": {"gau", "waybackurls", "anew"},
+            "go": {"gau", "waybackurls", "anew", "dalfox"},
             "rust": {"x8"},
             "source": {"nikto", "jwt_tool", "paramspider", "python2", "volatility2", "kube-bench", "kube-bench-config"},
             "python": {"pip", "setuptools", "wheel"},

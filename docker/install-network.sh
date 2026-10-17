@@ -155,3 +155,19 @@ apt-get install -y --no-install-recommends \
       "enum4linux-ng=${ENUM4LINUX_NG_VERSION}" && \
     bash "${script_dir}/record-tool-version.sh" apt enum4linux-ng "${ENUM4LINUX_NG_VERSION}" "${TARGETARCH}"
 )
+
+# AUTORECON_SMALL_DATA
+# 在 APT 安装的同一层从 SecLists 缓存保留默认枚举必需的小字典。
+# 不在后续层依赖缓存仍然存在，不复制整个 SecLists，也不缩减原字典覆盖。
+autorecon_data=/opt/hexstrike-compat/autorecon-data
+autorecon_wordlists=(
+    Discovery/DNS/subdomains-top1million-110000.txt
+    Usernames/top-usernames-shortlist.txt
+    Discovery/SNMP/common-snmp-community-strings-onesixtyone.txt
+)
+for relative in "${autorecon_wordlists[@]}"; do
+    test -s "/usr/share/seclists/${relative}"
+    install -d "${autorecon_data}/$(dirname -- "${relative}")"
+    install -m 0644 "/usr/share/seclists/${relative}" "${autorecon_data}/${relative}"
+done
+printf '%s\n' "${autorecon_wordlists[@]}" > "${autorecon_data}/manifest.txt"

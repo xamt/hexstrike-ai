@@ -1,6 +1,7 @@
 """在临时目录验证安装记录，不安装软件、不调用 Docker。"""
 import hashlib
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -58,7 +59,18 @@ class ToolVersionRecordTests(unittest.TestCase):
                 log, records = root / "calls", root / "records"
                 env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}", TARGETARCH=arch,
                            TOOL_RECORD_DIR=str(records), TEST_LOG=str(log), NMAP_VERSION="unexpected")
-                result = subprocess.run(["bash", str(ROOT / "docker/install-network.sh")],
+                from test_autorecon_wordlists import WORDS
+                for relative in WORDS:
+                    source = root / "seclists" / relative
+                    source.parent.mkdir(parents=True, exist_ok=True)
+                    source.write_text("字典替身\n")
+                script = (ROOT / "docker/install-network.sh").read_text().replace(
+                    "/usr/share/seclists", str(root / "seclists")).replace(
+                    "/opt/hexstrike-compat/autorecon-data", str(root / "data"))
+                installer = root / "install-network.sh"
+                installer.write_text(script)
+                shutil.copyfile(RECORDER, root / RECORDER.name)
+                result = subprocess.run(["bash", str(installer)],
                                         env=env, text=True, capture_output=True)
                 self.assertEqual(0, result.returncode, result.stderr)
                 self.assertEqual(13, len(list(records.glob("*.tsv"))))

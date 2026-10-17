@@ -19,6 +19,7 @@ Framework: FastMCP integration for AI agent communication
 """
 
 import argparse
+import shlex
 import json
 import logging
 import os
@@ -8634,31 +8635,36 @@ cve_intelligence = CVEIntelligenceManager()
 exploit_generator = AIExploitGenerator()
 vulnerability_correlator = VulnerabilityCorrelator()
 
-def execute_command(command: str, use_cache: bool = True) -> Dict[str, Any]:
+def execute_command(command: str, use_cache: bool = True, timeout: int = COMMAND_TIMEOUT) -> Dict[str, Any]:
     """
     Execute a shell command with enhanced features
 
     Args:
         command: The command to execute
         use_cache: Whether to use caching for this command
+        timeout: Positive execution time limit in seconds
 
     Returns:
         A dictionary containing the stdout, stderr, return code, and metadata
     """
 
+    if isinstance(timeout, bool) or not isinstance(timeout, int) or timeout <= 0:
+        raise ValueError("timeout 必须为正整数秒")
+    cache_params = {"timeout": timeout}
+
     # Check cache first
     if use_cache:
-        cached_result = cache.get(command, {})
+        cached_result = cache.get(command, cache_params)
         if cached_result:
             return cached_result
 
     # Execute command
-    executor = EnhancedCommandExecutor(command)
+    executor = EnhancedCommandExecutor(command, timeout=timeout)
     result = executor.execute()
 
     # Cache successful results
     if use_cache and result.get("success", False):
-        cache.set(command, {}, result)
+        cache.set(command, cache_params, result)
 
     return result
 
@@ -9833,10 +9839,10 @@ def execute_nmap_scan(target, params):
         # Build nmap command
         cmd_parts = ['nmap', scan_type]
         if ports:
-            cmd_parts.extend(['-p', ports])
+            cmd_parts.extend(['-p', shlex.quote(ports)])
         if additional_args:
-            cmd_parts.extend(additional_args.split())
-        cmd_parts.append(target)
+            cmd_parts.append(additional_args)
+        cmd_parts.append(shlex.quote(target))
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9849,9 +9855,9 @@ def execute_gobuster_scan(target, params):
         wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
         additional_args = params.get('additional_args', '')
 
-        cmd_parts = ['gobuster', mode, '-u', target, '-w', wordlist]
+        cmd_parts = ['gobuster', shlex.quote(mode), '-u', shlex.quote(target), '-w', shlex.quote(wordlist)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9864,13 +9870,13 @@ def execute_nuclei_scan(target, params):
         tags = params.get('tags', '')
         additional_args = params.get('additional_args', '')
 
-        cmd_parts = ['nuclei', '-u', target]
+        cmd_parts = ['nuclei', '-u', shlex.quote(target)]
         if severity:
-            cmd_parts.extend(['-severity', severity])
+            cmd_parts.extend(['-severity', shlex.quote(severity)])
         if tags:
-            cmd_parts.extend(['-tags', tags])
+            cmd_parts.extend(['-tags', shlex.quote(tags)])
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9880,9 +9886,9 @@ def execute_nikto_scan(target, params):
     """Execute nikto scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '')
-        cmd_parts = ['nikto', '-h', target]
+        cmd_parts = ['nikto', '-h', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9892,9 +9898,9 @@ def execute_sqlmap_scan(target, params):
     """Execute sqlmap scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '--batch --random-agent')
-        cmd_parts = ['sqlmap', '-u', target]
+        cmd_parts = ['sqlmap', '-u', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9910,9 +9916,9 @@ def execute_ffuf_scan(target, params):
         if 'FUZZ' not in target:
             target = target.rstrip('/') + '/FUZZ'
 
-        cmd_parts = ['ffuf', '-u', target, '-w', wordlist]
+        cmd_parts = ['ffuf', '-u', shlex.quote(target), '-w', shlex.quote(wordlist)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9924,9 +9930,9 @@ def execute_feroxbuster_scan(target, params):
         wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
         additional_args = params.get('additional_args', '')
 
-        cmd_parts = ['feroxbuster', '-u', target, '-w', wordlist]
+        cmd_parts = ['feroxbuster', '-u', shlex.quote(target), '-w', shlex.quote(wordlist)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9936,9 +9942,9 @@ def execute_katana_scan(target, params):
     """Execute katana scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '')
-        cmd_parts = ['katana', '-u', target]
+        cmd_parts = ['katana', '-u', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9949,7 +9955,7 @@ def execute_httpx_scan(target, params):
     try:
         additional_args = params.get('additional_args', '-tech-detect -status-code')
         # Use shell command with pipe for httpx
-        cmd = f"echo {target} | httpx {additional_args}"
+        cmd = f"printf '%s\\n' {shlex.quote(target)} | httpx {additional_args}"
 
         return execute_command(cmd)
     except Exception as e:
@@ -9959,9 +9965,9 @@ def execute_wpscan_scan(target, params):
     """Execute wpscan scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '--enumerate p,t,u')
-        cmd_parts = ['wpscan', '--url', target]
+        cmd_parts = ['wpscan', '--url', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9971,9 +9977,9 @@ def execute_dirsearch_scan(target, params):
     """Execute dirsearch scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '')
-        cmd_parts = ['dirsearch', '-u', target]
+        cmd_parts = ['dirsearch', '-u', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9983,9 +9989,9 @@ def execute_arjun_scan(target, params):
     """Execute arjun scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '')
-        cmd_parts = ['arjun', '-u', target]
+        cmd_parts = ['arjun', '-u', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -9995,9 +10001,9 @@ def execute_paramspider_scan(target, params):
     """Execute paramspider scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '')
-        cmd_parts = ['paramspider', '-d', target]
+        cmd_parts = ['paramspider', '-d', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -10007,9 +10013,9 @@ def execute_dalfox_scan(target, params):
     """Execute dalfox scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '')
-        cmd_parts = ['dalfox', 'url', target]
+        cmd_parts = ['dalfox', 'url', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -10019,9 +10025,9 @@ def execute_amass_scan(target, params):
     """Execute amass scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '')
-        cmd_parts = ['amass', 'enum', '-d', target]
+        cmd_parts = ['amass', 'enum', '-d', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -10031,9 +10037,9 @@ def execute_subfinder_scan(target, params):
     """Execute subfinder scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '')
-        cmd_parts = ['subfinder', '-d', target]
+        cmd_parts = ['subfinder', '-d', shlex.quote(target)]
         if additional_args:
-            cmd_parts.extend(additional_args.split())
+            cmd_parts.append(additional_args)
 
         return execute_command(' '.join(cmd_parts))
     except Exception as e:
@@ -10350,7 +10356,7 @@ def nmap():
         if additional_args:
             command += f" {additional_args}"
 
-        command += f" {target}"
+        command += f" {shlex.quote(target)}"
 
         logger.info(f"🔍 Starting Nmap scan: {target}")
 
@@ -10399,7 +10405,7 @@ def gobuster():
                 "error": f"Invalid mode: {mode}. Must be one of: dir, dns, fuzz, vhost"
             }), 400
 
-        command = f"gobuster {mode} -u {url} -w {wordlist}"
+        command = f"gobuster {mode} -u {shlex.quote(url)} -w {shlex.quote(wordlist)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -10445,7 +10451,7 @@ def nuclei():
                 "error": "Target parameter is required"
             }), 400
 
-        command = f"nuclei -u {target}"
+        command = f"nuclei -u {shlex.quote(target)}"
 
         if severity:
             command += f" -severity {severity}"
@@ -10454,7 +10460,7 @@ def nuclei():
             command += f" -tags {tags}"
 
         if template:
-            command += f" -t {template}"
+            command += f" -t {shlex.quote(template)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -10970,7 +10976,7 @@ def dirb():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"dirb {url} {wordlist}"
+        command = f"dirb {shlex.quote(url)} {shlex.quote(wordlist)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -10999,7 +11005,7 @@ def nikto():
                 "error": "Target parameter is required"
             }), 400
 
-        command = f"nikto -h {target}"
+        command = f"nikto -h {shlex.quote(target)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -11029,10 +11035,10 @@ def sqlmap():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"sqlmap -u {url} --batch"
+        command = f"sqlmap -u {shlex.quote(url)} --batch"
 
         if data:
-            command += f" --data=\"{data}\""
+            command += f" --data={shlex.quote(data)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -11119,19 +11125,19 @@ def hydra():
         command = f"hydra -t 4"
 
         if username:
-            command += f" -l {username}"
+            command += f" -l {shlex.quote(username)}"
         elif username_file:
-            command += f" -L {username_file}"
+            command += f" -L {shlex.quote(username_file)}"
 
         if password:
-            command += f" -p {password}"
+            command += f" -p {shlex.quote(password)}"
         elif password_file:
-            command += f" -P {password_file}"
+            command += f" -P {shlex.quote(password_file)}"
 
         if additional_args:
             command += f" {additional_args}"
 
-        command += f" {target} {service}"
+        command += f" {shlex.quote(target)} {service}"
 
         logger.info(f"🔑 Starting Hydra attack: {target}:{service}")
         result = execute_command(command)
@@ -11165,12 +11171,12 @@ def john():
             command += f" --format={format_type}"
 
         if wordlist:
-            command += f" --wordlist={wordlist}"
+            command += f" --wordlist={shlex.quote(wordlist)}"
 
         if additional_args:
             command += f" {additional_args}"
 
-        command += f" {hash_file}"
+        command += f" {shlex.quote(hash_file)}"
 
         logger.info(f"🔐 Starting John the Ripper: {hash_file}")
         result = execute_command(command)
@@ -11196,7 +11202,7 @@ def wpscan():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"wpscan --url {url}"
+        command = f"wpscan --url {shlex.quote(url)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -11257,13 +11263,13 @@ def ffuf():
         command = f"ffuf"
 
         if mode == "directory":
-            command += f" -u {url}/FUZZ -w {wordlist}"
+            command += f" -u {shlex.quote(url + '/FUZZ')} -w {shlex.quote(wordlist)}"
         elif mode == "vhost":
-            command += f" -u {url} -H 'Host: FUZZ' -w {wordlist}"
+            command += f" -u {shlex.quote(url)} -H 'Host: FUZZ' -w {shlex.quote(wordlist)}"
         elif mode == "parameter":
-            command += f" -u {url}?FUZZ=value -w {wordlist}"
+            command += f" -u {shlex.quote(url + '?FUZZ=value')} -w {shlex.quote(wordlist)}"
         else:
-            command += f" -u {url} -w {wordlist}"
+            command += f" -u {shlex.quote(url)} -w {shlex.quote(wordlist)}"
 
         command += f" -mc {match_codes}"
 
@@ -11299,16 +11305,16 @@ def netexec():
                 "error": "Target parameter is required"
             }), 400
 
-        command = f"nxc {protocol} {target}"
+        command = f"nxc {protocol} {shlex.quote(target)}"
 
         if username:
-            command += f" -u {username}"
+            command += f" -u {shlex.quote(username)}"
 
         if password:
-            command += f" -p {password}"
+            command += f" -p {shlex.quote(password)}"
 
         if hash_value:
-            command += f" -H {hash_value}"
+            command += f" -H {shlex.quote(hash_value)}"
 
         if module:
             command += f" -M {module}"
@@ -11344,9 +11350,9 @@ def amass():
         command = f"amass {mode}"
 
         if mode == "enum":
-            command += f" -d {domain}"
+            command += f" -d {shlex.quote(domain)}"
         else:
-            command += f" -d {domain}"
+            command += f" -d {shlex.quote(domain)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -11385,12 +11391,12 @@ def hashcat():
                 "error": "Hash type parameter is required"
             }), 400
 
-        command = f"hashcat -m {hash_type} -a {attack_mode} {hash_file}"
+        command = f"hashcat -m {hash_type} -a {attack_mode} {shlex.quote(hash_file)}"
 
         if attack_mode == "0" and wordlist:
-            command += f" {wordlist}"
+            command += f" {shlex.quote(wordlist)}"
         elif attack_mode == "3" and mask:
-            command += f" {mask}"
+            command += f" {shlex.quote(mask)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -11421,7 +11427,7 @@ def subfinder():
                 "error": "Domain parameter is required"
             }), 400
 
-        command = f"subfinder -d {domain}"
+        command = f"subfinder -d {shlex.quote(domain)}"
 
         if silent:
             command += " -silent"
@@ -11504,7 +11510,7 @@ def rustscan():
             logger.warning("🎯 Rustscan called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"rustscan -a {target} --ulimit {ulimit} -b {batch_size} -t {timeout}"
+        command = f"rustscan -a {shlex.quote(target)} --ulimit {ulimit} -b {batch_size} -t {timeout}"
 
         if ports:
             command += f" -p {ports}"
@@ -11541,7 +11547,7 @@ def masscan():
             logger.warning("🎯 Masscan called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"masscan {target} -p{ports} --rate={rate}"
+        command = f"masscan {shlex.quote(target)} -p{ports} --rate={rate}"
 
         if interface:
             command += f" -e {interface}"
@@ -11586,7 +11592,7 @@ def nmap_advanced():
             logger.warning("🎯 Advanced Nmap called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"nmap {scan_type} {target}"
+        command = f"nmap {scan_type} {shlex.quote(target)}"
 
         if ports:
             command += f" -p {ports}"
@@ -11625,7 +11631,12 @@ def nmap_advanced():
 def autorecon():
     """Execute AutoRecon for comprehensive automated reconnaissance"""
     try:
-        params = request.json
+        params = dict(request.json)
+        # 两个既有 MCP 入口分别发送完整默认值和空字符串，统一在入口补齐。
+        for name, default in {"output_dir": "/tmp/autorecon", "port_scans": "top-100-ports",
+                              "service_scans": "default", "heartbeat": 60, "timeout": 300}.items():
+            if params.get(name) in (None, ""):
+                params[name] = default
         target = params.get("target", "")
         output_dir = params.get("output_dir", "/tmp/autorecon")
         port_scans = params.get("port_scans", "top-100-ports")
@@ -11638,13 +11649,14 @@ def autorecon():
             logger.warning("🎯 AutoRecon called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"autorecon {target} -o {output_dir} --heartbeat {heartbeat} --timeout {timeout}"
+        command = (f"autorecon {shlex.quote(target)} -o {shlex.quote(output_dir)}"
+                   f" --heartbeat {shlex.quote(str(heartbeat))} --timeout {shlex.quote(str(timeout))}")
 
         if port_scans != "default":
-            command += f" --port-scans {port_scans}"
+            command += f" --port-scans {shlex.quote(port_scans)}"
 
         if service_scans != "default":
-            command += f" --service-scans {service_scans}"
+            command += f" --service-scans {shlex.quote(service_scans)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -11676,16 +11688,16 @@ def enum4linux_ng():
             logger.warning("🎯 Enum4linux-ng called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"enum4linux-ng {target}"
+        command = f"enum4linux-ng {shlex.quote(target)}"
 
         if username:
-            command += f" -u {username}"
+            command += f" -u {shlex.quote(username)}"
 
         if password:
-            command += f" -p {password}"
+            command += f" -p {shlex.quote(password)}"
 
         if domain:
-            command += f" -d {domain}"
+            command += f" -d {shlex.quote(domain)}"
 
         # Add specific enumeration options
         enum_options = []
@@ -11842,7 +11854,7 @@ def responder():
             logger.warning("🎯 Responder called without interface parameter")
             return jsonify({"error": "Interface parameter is required"}), 400
 
-        command = f"timeout {duration} responder -I {interface}"
+        command = f"timeout {duration} responder -I {shlex.quote(interface)}"
 
         if analyze:
             command += " -A"
@@ -11889,7 +11901,7 @@ def volatility():
                 "error": "Plugin parameter is required"
             }), 400
 
-        command = f"volatility -f {memory_file}"
+        command = f"volatility -f {shlex.quote(memory_file)}"
 
         if profile:
             command += f" --profile={profile}"
@@ -11974,16 +11986,16 @@ def gdb():
                 "error": "Binary parameter is required"
             }), 400
 
-        command = f"gdb {binary}"
+        command = f"gdb {shlex.quote(binary)}"
 
         if script_file:
-            command += f" -x {script_file}"
+            command += f" -x {shlex.quote(script_file)}"
 
         if commands:
             temp_script = "/tmp/gdb_commands.txt"
             with open(temp_script, "w") as f:
                 f.write(commands)
-            command += f" -x {temp_script}"
+            command += f" -x {shlex.quote(temp_script)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -12026,9 +12038,9 @@ def radare2():
             temp_script = "/tmp/r2_commands.txt"
             with open(temp_script, "w") as f:
                 f.write(commands)
-            command = f"r2 -i {temp_script} -q {binary}"
+            command = f"r2 -i {shlex.quote(temp_script)} -q {shlex.quote(binary)}"
         else:
-            command = f"r2 -q {binary}"
+            command = f"r2 -q {shlex.quote(binary)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -12073,7 +12085,7 @@ def binwalk():
         if additional_args:
             command += f" {additional_args}"
 
-        command += f" {file_path}"
+        command += f" {shlex.quote(file_path)}"
 
         logger.info(f"🔧 Starting Binwalk analysis: {file_path}")
         result = execute_command(command)
@@ -12131,7 +12143,7 @@ def checksec():
                 "error": "Binary parameter is required"
             }), 400
 
-        command = f"checksec --file={binary}"
+        command = f"checksec --file={shlex.quote(binary)}"
 
         logger.info(f"🔧 Starting Checksec analysis: {binary}")
         result = execute_command(command)
@@ -12167,7 +12179,7 @@ def xxd():
         if additional_args:
             command += f" {additional_args}"
 
-        command += f" {file_path}"
+        command += f" {shlex.quote(file_path)}"
 
         logger.info(f"🔧 Starting XXD hex dump: {file_path}")
         result = execute_command(command)
@@ -12236,7 +12248,7 @@ def objdump():
         if additional_args:
             command += f" {additional_args}"
 
-        command += f" {binary}"
+        command += f" {shlex.quote(binary)}"
 
         logger.info(f"🔧 Starting Objdump analysis: {binary}")
         result = execute_command(command)
@@ -12268,18 +12280,21 @@ def ghidra():
             logger.warning("🔧 Ghidra called without binary parameter")
             return jsonify({"error": "Binary parameter is required"}), 400
 
+        if isinstance(analysis_timeout, bool) or not isinstance(analysis_timeout, int) or analysis_timeout <= 0:
+            return jsonify({"error": "analysis_timeout 必须为正整数秒"}), 400
+
         # Create Ghidra project directory
         project_dir = f"/tmp/ghidra_projects/{project_name}"
         os.makedirs(project_dir, exist_ok=True)
 
         # Base Ghidra command for headless analysis
-        command = f"analyzeHeadless {project_dir} {project_name} -import {binary} -deleteProject"
+        command = f"analyzeHeadless {shlex.quote(project_dir)} {shlex.quote(project_name)} -import {shlex.quote(binary)} -deleteProject"
 
         if script_file:
-            command += f" -postScript {script_file}"
+            command += f" -postScript {shlex.quote(script_file)}"
 
         if output_format == "xml":
-            command += f" -postScript ExportXml.java {project_dir}/analysis.xml"
+            command += f" -postScript ExportXml.java {shlex.quote(project_dir + '/analysis.xml')}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -12691,7 +12706,7 @@ def feroxbuster():
                 "error": "URL parameter is required"
             }), 400
 
-        command = f"feroxbuster -u {url} -w {wordlist} -t {threads}"
+        command = f"feroxbuster -u {shlex.quote(url)} -w {shlex.quote(wordlist)} -t {threads}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -12821,7 +12836,7 @@ def dirsearch():
             logger.warning("🌐 Dirsearch called without URL parameter")
             return jsonify({"error": "URL parameter is required"}), 400
 
-        command = f"dirsearch -u {url} -e {extensions} -w {wordlist} -t {threads}"
+        command = f"dirsearch -u {shlex.quote(url)} -e {extensions} -w {shlex.quote(wordlist)} -t {threads}"
 
         if recursive:
             command += " -r"
@@ -12853,7 +12868,7 @@ def katana():
             logger.warning("🌐 Katana called without URL parameter")
             return jsonify({"error": "URL parameter is required"}), 400
 
-        command = f"katana -u {url} -d {depth}"
+        command = f"katana -u {shlex.quote(url)} -d {depth}"
 
         if js_crawl:
             command += " -jc"
@@ -12890,7 +12905,7 @@ def gau():
             logger.warning("🌐 Gau called without domain parameter")
             return jsonify({"error": "Domain parameter is required"}), 400
 
-        command = f"gau {domain}"
+        command = f"gau {shlex.quote(domain)}"
 
         if providers != "wayback,commoncrawl,otx,urlscan":
             command += f" --providers {providers}"
@@ -12926,7 +12941,7 @@ def waybackurls():
             logger.warning("🌐 Waybackurls called without domain parameter")
             return jsonify({"error": "Domain parameter is required"}), 400
 
-        command = f"waybackurls {domain}"
+        command = f"waybackurls {shlex.quote(domain)}"
 
         if get_versions:
             command += " --get-versions"
@@ -12962,10 +12977,10 @@ def arjun():
             logger.warning("🌐 Arjun called without URL parameter")
             return jsonify({"error": "URL parameter is required"}), 400
 
-        command = f"arjun -u {url} -m {method} -t {threads}"
+        command = f"arjun -u {shlex.quote(url)} -m {method} -t {threads}"
 
         if wordlist:
-            command += f" -w {wordlist}"
+            command += f" -w {shlex.quote(wordlist)}"
 
         if delay > 0:
             command += f" -d {delay}"
@@ -13002,7 +13017,7 @@ def paramspider():
         # 旧版上游只有普通/high 两档，不支持任意爬取深度。
         if type(level) is not int or level not in (1, 2):
             return jsonify({"error": "level must be 1 (normal) or 2 (high)"}), 400
-        command = f"paramspider -d {domain}"
+        command = f"paramspider -d {shlex.quote(domain)}"
         if level == 2:
             command += " -l high"
 
@@ -13010,7 +13025,7 @@ def paramspider():
             command += f" --exclude {exclude}"
 
         if output:
-            command += f" -o {output}"
+            command += f" -o {shlex.quote(output)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -13039,13 +13054,13 @@ def x8():
             logger.warning("🌐 x8 called without URL parameter")
             return jsonify({"error": "URL parameter is required"}), 400
 
-        command = f"x8 -u {url} -w {wordlist} -X {method}"
+        command = f"x8 -u {shlex.quote(url)} -w {shlex.quote(wordlist)} -X {method}"
 
         if body:
-            command += f" -b '{body}'"
+            command += f" -b {shlex.quote(body)}"
 
         if headers:
-            command += f" -H '{headers}'"
+            command += f" -H {shlex.quote(headers)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -13106,26 +13121,31 @@ def dalfox():
         custom_payload = params.get("custom_payload", "")
         additional_args = params.get("additional_args", "")
 
-        if not url and not pipe_mode:
+        if not url:
             logger.warning("🌐 Dalfox called without URL parameter")
             return jsonify({"error": "URL parameter is required"}), 400
 
-        if pipe_mode:
-            command = "dalfox pipe"
-        else:
-            command = f"dalfox url {url}"
-
         if blind:
-            command += " --blind"
+            try:
+                options = shlex.split(additional_args)
+            except ValueError:
+                return jsonify({"error": "additional_args 的引号格式无效"}), 400
+            callbacks = [item.split("=", 1)[1] for item in options if item.startswith("--blind=")]
+            callbacks.extend(options[index + 1] for index, item in enumerate(options[:-1])
+                             if item in ("--blind", "-b"))
+            if not any(value and not value.startswith("-") for value in callbacks):
+                return jsonify({"error": "blind=true 时必须在 additional_args 中提供 --blind URL 或 -b URL"}), 400
 
-        if mining_dom:
-            command += " --mining-dom"
+        if pipe_mode:
+            command = f"printf '%s\\n' {shlex.quote(url)} | dalfox pipe"
+        else:
+            command = f"dalfox url {shlex.quote(url)}"
 
-        if mining_dict:
-            command += " --mining-dict"
+        command += f" --mining-dom={str(bool(mining_dom)).lower()}"
+        command += f" --mining-dict={str(bool(mining_dict)).lower()}"
 
         if custom_payload:
-            command += f" --custom-payload '{custom_payload}'"
+            command += f" --custom-payload {shlex.quote(custom_payload)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -13164,11 +13184,11 @@ def httpx():
         # httpx 1.9.0: -u is a target, while -l is a file containing targets.
         # Keep both MCP payload variants compatible with that exact CLI contract.
         if target_file:
-            command = f"httpx -l {target_file} -t {threads}"
+            command = f"httpx -l {shlex.quote(target_file)} -t {threads}"
         elif os.path.isfile(target):
-            command = f"httpx -l {target} -t {threads}"
+            command = f"httpx -l {shlex.quote(target)} -t {threads}"
         else:
-            command = f"httpx -u {target} -t {threads}"
+            command = f"httpx -u {shlex.quote(target)} -t {threads}"
 
         if probe:
             command += " -probe"
@@ -13197,7 +13217,7 @@ def httpx():
             command += f" -x {methods}"
 
         if output_file:
-            command += f" -o {output_file}"
+            command += f" -o {shlex.quote(output_file)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -13224,9 +13244,9 @@ def anew():
             return jsonify({"error": "Input data is required"}), 400
 
         if output_file:
-            command = f"echo '{input_data}' | anew {output_file}"
+            command = f"printf '%s\\n' {shlex.quote(input_data)} | anew {shlex.quote(output_file)}"
         else:
-            command = f"echo '{input_data}' | anew"
+            command = f"printf '%s\\n' {shlex.quote(input_data)} | anew"
 
         if additional_args:
             command += f" {additional_args}"
@@ -14407,7 +14427,7 @@ def wafw00f():
                 "error": "Target parameter is required"
             }), 400
 
-        command = f"wafw00f {target}"
+        command = f"wafw00f {shlex.quote(target)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -14437,10 +14457,10 @@ def fierce():
                 "error": "Domain parameter is required"
             }), 400
 
-        command = f"fierce --domain {domain}"
+        command = f"fierce --domain {shlex.quote(domain)}"
 
         if dns_server:
-            command += f" --dns-servers {dns_server}"
+            command += f" --dns-servers {shlex.quote(dns_server)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -14471,13 +14491,13 @@ def dnsenum():
                 "error": "Domain parameter is required"
             }), 400
 
-        command = f"dnsenum {domain}"
+        command = f"dnsenum {shlex.quote(domain)}"
 
         if dns_server:
-            command += f" --dnsserver {dns_server}"
+            command += f" --dnsserver {shlex.quote(dns_server)}"
 
         if wordlist:
-            command += f" --file {wordlist}"
+            command += f" --file {shlex.quote(wordlist)}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -15282,7 +15302,7 @@ def volatility3():
                 "error": "Plugin parameter is required"
             }), 400
 
-        command = f"vol.py -f {memory_file} {plugin}"
+        command = f"vol.py -f {shlex.quote(memory_file)} {plugin}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -15319,7 +15339,7 @@ def foremost():
         # Ensure output directory exists
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-        command = f"foremost -o {output_dir}"
+        command = f"foremost -o {shlex.quote(output_dir)}"
 
         if file_types:
             command += f" -t {file_types}"
@@ -15327,7 +15347,7 @@ def foremost():
         if additional_args:
             command += f" {additional_args}"
 
-        command += f" {input_file}"
+        command += f" {shlex.quote(input_file)}"
 
         logger.info(f"📁 Starting Foremost file carving: {input_file}")
         result = execute_command(command)
@@ -15359,20 +15379,20 @@ def steghide():
             }), 400
 
         if action == "extract":
-            command = f"steghide extract -sf {cover_file}"
+            command = f"steghide extract -sf {shlex.quote(cover_file)}"
             if output_file:
-                command += f" -xf {output_file}"
+                command += f" -xf {shlex.quote(output_file)}"
         elif action == "embed":
             if not embed_file:
                 return jsonify({"error": "Embed file required for embed action"}), 400
-            command = f"steghide embed -cf {cover_file} -ef {embed_file}"
+            command = f"steghide embed -cf {shlex.quote(cover_file)} -ef {shlex.quote(embed_file)}"
         elif action == "info":
-            command = f"steghide info {cover_file}"
+            command = f"steghide info {shlex.quote(cover_file)}"
         else:
             return jsonify({"error": "Invalid action. Use: extract, embed, info"}), 400
 
         if passphrase:
-            command += f" -p {passphrase}"
+            command += f" -p {shlex.quote(passphrase)}"
         else:
             command += " -p ''"  # Empty passphrase
 
@@ -15416,7 +15436,7 @@ def exiftool():
         if additional_args:
             command += f" {additional_args}"
 
-        command += f" {file_path}"
+        command += f" {shlex.quote(file_path)}"
 
         logger.info(f"📷 Starting ExifTool analysis: {file_path}")
         result = execute_command(command)
@@ -15466,17 +15486,7 @@ def hashpump():
 
 @app.route("/api/tools/hakrawler", methods=["POST"])
 def hakrawler():
-    """
-    Execute Hakrawler for web endpoint discovery with enhanced logging
-
-    Note: This implementation uses the standard Kali Linux hakrawler (hakluke/hakrawler)
-    command line arguments, NOT the Elsfa7-110 fork. The standard version uses:
-    - echo URL | hakrawler (stdin input)
-    - -d for depth (not -depth)
-    - -s for showing sources (not -forms)
-    - -u for unique URLs
-    - -subs for subdomain inclusion
-    """
+    """将原 MCP 的功能开关完整交给基础镜像兼容入口，不改变调用方接口。"""
     try:
         params = request.json
         url = params.get("url", "")
@@ -15493,16 +15503,11 @@ def hakrawler():
                 "error": "URL parameter is required"
             }), 400
 
-        # Build command for standard Kali Linux hakrawler (hakluke version)
-        command = f"echo '{url}' | hakrawler -d {depth}"
-
-        if forms:
-            command += " -s"  # Show sources (includes forms)
-        if robots or sitemap or wayback:
-            command += " -subs"  # Include subdomains for better coverage
-
-        # Add unique URLs flag for cleaner output
-        command += " -u"
+        command = f"printf '%s\\n' {shlex.quote(url)} | hakrawler -d {shlex.quote(str(depth))} -u"
+        for name, enabled in (("forms", forms), ("robots", robots), ("sitemap", sitemap), ("wayback", wayback)):
+            if not isinstance(enabled, bool):
+                return jsonify({"error": f"{name} must be a boolean"}), 400
+            command += f" --hexstrike-{name}={str(enabled).lower()}"
 
         if additional_args:
             command += f" {additional_args}"

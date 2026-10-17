@@ -1,0 +1,54 @@
+"""原有接口的精确 TCP top-N 配置；由 AutoRecon 继续执行服务枚举。"""
+from autorecon.plugins import PortScan
+
+
+async def scan_top_ports(self, target, count):
+    """扫描指定数量的常见 TCP 端口，返回上游识别出的服务对象。"""
+    if target.ports:
+        raise ValueError("top-N 配置不能同时指定其他端口列表")
+    command = (
+        "nmap {nmap_extra} -sT -sV -sC --version-all --top-ports " + str(count)
+        + ' -oN "{scandir}/_top_' + str(count) + '_tcp_nmap.txt"'
+        + ' -oX "{scandir}/xml/_top_' + str(count) + '_tcp_nmap.xml" {address}'
+    )
+    # 上游 Target.execute 读取调用帧的 self 以取得插件；此参数不能删除或改名。
+    process, stdout, _stderr = await target.execute(command, blocking=False)
+    services = await target.extract_services(stdout)
+    returncode = await process.wait()
+    if returncode != 0:
+        raise RuntimeError(f"TCP top-{count} Nmap 扫描失败，退出码 {returncode}")
+    return services
+
+
+class Top100Ports(PortScan):
+    """兼容 MCP 的 top-100-ports 名称。"""
+
+    def __init__(self):
+        super().__init__()
+        self.name = "Top 100 Ports"
+        self.slug = "top-100-ports"
+        self.description = "扫描最常见的 100 个 TCP 端口并识别服务。"
+        self.type = "tcp"
+        self.tags = ["hexstrike-port-profile"]
+        self.priority = 0
+
+    async def run(self, target):
+        """将服务对象交回 AutoRecon 的后续枚举流程。"""
+        return await scan_top_ports(self, target, 100)
+
+
+class Top1000Ports(PortScan):
+    """兼容 MCP 的 top-1000-ports 名称。"""
+
+    def __init__(self):
+        super().__init__()
+        self.name = "Top 1000 Ports"
+        self.slug = "top-1000-ports"
+        self.description = "扫描最常见的 1000 个 TCP 端口并识别服务。"
+        self.type = "tcp"
+        self.tags = ["hexstrike-port-profile"]
+        self.priority = 0
+
+    async def run(self, target):
+        """将服务对象交回 AutoRecon 的后续枚举流程。"""
+        return await scan_top_ports(self, target, 1000)

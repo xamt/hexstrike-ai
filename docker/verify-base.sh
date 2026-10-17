@@ -2,11 +2,22 @@
 # 验证工具镜像，无外部扫描；任意缺失或版本不符立即失败。
 set -euo pipefail
 
-# AutoRecon 的 APT 依赖会安装 SecLists；安装时只写构建缓存，运行时必须挂卷。
-if [ -d /usr/share/seclists ] && [ -n "$(find /usr/share/seclists -mindepth 1 -print -quit)" ]; then
-    echo "基础镜像不应包含 SecLists 大型数据，请检查构建缓存挂载" >&2
-    exit 1
-fi
+# 只允许 AutoRecon 默认枚举的三份小字典；其他 SecLists 数据仍须挂卷。
+/usr/local/bin/python3.11 - <<'PY'
+from pathlib import Path
+
+data = Path("/opt/hexstrike-compat/autorecon-data")
+root = Path("/usr/share/seclists")
+expected = set((data / "manifest.txt").read_text().splitlines())
+assert len(expected) == 3, "AutoRecon 小字典清单不完整"
+actual = {str(path.relative_to(root)) for path in root.rglob("*") if path.is_file() or path.is_symlink()}
+assert actual == expected, "SecLists 包含额外数据或缺少默认小字典"
+for relative in expected:
+    source = data / relative
+    assert source.is_file() and source.stat().st_size > 0, f"缺少字典: {relative}"
+    assert (root / relative).is_symlink() and (root / relative).resolve() == source.resolve(), f"字典路径错误: {relative}"
+assert sum((data / relative).stat().st_size for relative in expected) <= 4 * 1024 * 1024, "小字典超过 4 MiB 预算"
+PY
 
 expected_commands=(
     nmap masscan rustscan amass subfinder nuclei fierce dnsenum
@@ -47,7 +58,7 @@ import struct
 from pathlib import Path
 
 machine = {"amd64": 62, "arm64": 183}[os.environ["TARGETARCH"]]
-executables = [Path("/usr/local/bin", name) for name in ("gau", "waybackurls", "anew", "x8")]
+executables = [Path("/usr/local/bin", name) for name in ("gau", "waybackurls", "anew", "dalfox", "x8")]
 executables.append(Path("/opt/python2/bin/python2.7"))
 executables.append(Path("/opt/kube-bench/kube-bench"))
 for executable in executables:
@@ -60,6 +71,7 @@ PY
 
 timeout 30 nmap --version
 timeout 30 x8 --version
+timeout 30 dalfox version
 timeout 30 vol -h >/dev/null
 
 # 原接口的隔离环境与兼容入口；不读取内存样本，不访问目标。
@@ -84,3 +96,16 @@ timeout 30 kubectl version --client=true --output=json
 timeout 30 helm version --short
 timeout 30 kube-bench version
 timeout 30 kube-hunter --help >/dev/null
+
+# 兼容入口使用显式 PATH，不覆盖上面验证摘要和 ELF 架构的原始二进制。
+for name in enum4linux-ng gobuster checksec binwalk waybackurls anew analyzeHeadless autorecon hakrawler; do
+    test "$(command -v "${name}")" = "/opt/hexstrike-compat/bin/${name}"
+done
+test "$(id -u hexstrike-extract)" -ne 0
+test "$(id -u hexstrike-extract)" = "$(id -g hexstrike-extract)"
+test -r /opt/hexstrike-compat/ghidra/ExportXml.java
+/usr/local/bin/python3.11 -m py_compile /opt/hexstrike-compat/cli-compat.py
+/usr/local/bin/python3.11 -m py_compile /opt/hexstrike-compat/autorecon-compat.py \
+    /opt/hexstrike-compat/autorecon-plugins/hexstrike-tcp-profiles.py \
+    /opt/hexstrike-compat/hakrawler-compat.py /opt/hexstrike-compat/hakrawler_runtime.py \
+    /opt/hexstrike-compat/hakrawler_sources.py /opt/hexstrike-compat/hakrawler_process.py

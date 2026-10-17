@@ -52,6 +52,11 @@ RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-to
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     bash /tmp/install-go-tool.sh anew
+RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
+    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    bash /tmp/install-go-tool.sh dalfox
 
 # =============================================================================
 # 3. Rust 工具：目标架构编译 X8，编译器不进入最终镜像
@@ -199,6 +204,7 @@ RUN --mount=type=bind,source=docker/install-volatility2-runtime.sh,target=/tmp/i
 # =============================================================================
 FROM security-tools AS base
 ARG TARGETARCH
+ENV PATH="/opt/hexstrike-compat/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 COPY --from=python-runtime /usr/local/ /usr/local/
 COPY --from=python-runtime /opt/volatility3-venv/ /opt/volatility3-venv/
 COPY --from=python-runtime /opt/jwt-tool-venv/ /opt/jwt-tool-venv/
@@ -210,6 +216,14 @@ COPY --from=python-runtime /opt/kube-hunter-venv/ /opt/kube-hunter-venv/
 COPY --from=legacy-python-runtime /out/ /
 COPY --from=python-runtime /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 RUN --mount=type=bind,source=docker/install-cli-compat.sh,target=/tmp/install-cli-compat.sh \
+    --mount=type=bind,source=docker/cli-compat.py,target=/tmp/cli-compat.py \
+    --mount=type=bind,source=docker/ExportXml.java,target=/tmp/ExportXml.java \
+    --mount=type=bind,source=docker/autorecon-compat.py,target=/tmp/autorecon-compat.py \
+    --mount=type=bind,source=docker/autorecon-plugins,target=/tmp/autorecon-plugins \
+    --mount=type=bind,source=docker/hakrawler-compat.py,target=/tmp/hakrawler-compat.py \
+    --mount=type=bind,source=docker/hakrawler_runtime.py,target=/tmp/hakrawler_runtime.py \
+    --mount=type=bind,source=docker/hakrawler_sources.py,target=/tmp/hakrawler_sources.py \
+    --mount=type=bind,source=docker/hakrawler_process.py,target=/tmp/hakrawler_process.py \
     bash /tmp/install-cli-compat.sh
 RUN --mount=type=bind,source=docker/finalize-base.sh,target=/tmp/finalize-base.sh \
     bash /tmp/finalize-base.sh

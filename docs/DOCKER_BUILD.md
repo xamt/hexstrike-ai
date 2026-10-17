@@ -6,8 +6,8 @@
 
 | 用途 | AMD64 | ARM64 |
 | --- | --- | --- |
-| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-arm64` |
-| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-arm64` |
+| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-arm64` |
+| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-arm64` |
 
 - 基础镜像：Kali、安全工具、小型字典、Python 3.11，以及隔离的 Volatility 2/3、JWT-Tool、ParamSpider、Kube-Hunter 环境；默认进入 Bash，不启动服务。
 - 应用镜像：继承同架构基础镜像，安装项目依赖、复制代码、配置 8888 端口和健康检查，不重复安装安全工具。
@@ -18,7 +18,8 @@
 保留原有 SQLMap 等安全工具自身的数据库测试能力；其间接依赖不作为独立数据库客户端能力承诺。
 恢复以 `1c865493^` 为基准的 MCP 参数契约，优先由固定工具版本、隔离运行时和命令入口适配原接口；
 不以新版工具的参数替换原有接口。五个补充工具 testssl.sh、WhatWeb、JWT-Tool、TruffleHog、tcpdump 及其版本保持不变。
-1.3.1 优先覆盖 Kube-Bench、Kube-Hunter、kubectl、Helm，保留 Docker CLI；移除默认 Trivy，暂不加入 Clair，体积及运行前提见第 6.6 节。
+1.3.2 保留上一版的 Kube-Bench、Kube-Hunter、kubectl、Helm 和 Docker CLI，不默认安装 Trivy 或 Clair。
+本版主要修复旧接口的命令兼容：Dalfox 固定为官方 `v2.12.0`，其他工具版本不变；AutoRecon、Hakrawler 的既有 MCP 默认参数由基础镜像兼容入口承接，不要求调用方更改默认值。版本差异与接口使用边界见第 6.8 节。
 
 以下命令全部在项目根目录执行，不需要预先设置任何 Shell 变量。
 本地两步构建使用 Docker Desktop 的 `docker` 驱动，基础镜像通过 `--load` 保存到本机。
@@ -33,7 +34,7 @@
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-amd64 \
   --load \
   --progress=plain \
   "."
@@ -45,7 +46,7 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-arm64 \
   --load \
   --progress=plain \
   "."
@@ -63,8 +64,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-amd64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-amd64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-amd64 \
   --load \
   --progress=plain \
   "."
@@ -78,8 +79,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.1-arm64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-arm64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.2-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-arm64 \
   --load \
   --progress=plain \
   "."
@@ -97,7 +98,7 @@ docker run --detach \
   --name pentest-tools-amd64 \
   --platform linux/amd64 \
   --publish 127.0.0.1:8888:8888 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-amd64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-amd64
 ```
 
 ### 4.2 ARM64 应用
@@ -107,7 +108,7 @@ docker run --detach \
   --name pentest-tools-arm64 \
   --platform linux/arm64 \
   --publish 127.0.0.1:8888:8888 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.1-arm64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-arm64
 ```
 
 服务地址为 `http://127.0.0.1:8888`。两条命令使用相同的宿主机端口，不要同时运行。
@@ -125,7 +126,7 @@ docker run --detach \
 | --- | --- | --- |
 | Kali 软件包 | 阿里云 Kali 镜像 `https://mirrors.aliyun.com/kali` | `KALI_APT_MIRROR` |
 | 基础镜像及应用镜像的 Python 包 | 清华 PyPI 镜像 `https://pypi.tuna.tsinghua.edu.cn/simple` | `PIP_INDEX_URL` |
-| Gau、Waybackurls、Anew 的 Go 模块 | `https://goproxy.cn` | `GOPROXY` |
+| Gau、Waybackurls、Anew、Dalfox 的 Go 模块 | `https://goproxy.cn` | `GOPROXY` |
 | Go 模块校验数据 | `sum.golang.org https://goproxy.cn/sumdb/sum.golang.org` | `GOSUMDB` |
 | Rust、RubyGems、GitHub 固定源码归档及 Kube-Bench 发布包 | 各自配置的上游来源 | 不由上述参数覆盖 |
 
@@ -143,7 +144,7 @@ Kali 和 Go 参数只用于基础镜像构建，PyPI 参数可用于两种镜像
 
 ## 6. 基础镜像包含的工具
 
-以下按基础镜像 1.3.1 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
+以下按基础镜像 1.3.2 的显式安装配置列出主要工具及用途，不把间接依赖当作单独承诺的工具。
 AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不同，表中以实际命令入口为准。
 
 ### 6.1 网络发现与资产收集
@@ -191,7 +192,7 @@ AMD64 与 ARM64 提供相同的工具类别。命令名与软件包名可能不�
 | Nikto | `nikto` | 检查 Web 服务器危险文件、错误配置和已知风险。 |
 | SQLMap | `sqlmap` | 检测和验证 SQL 注入及其影响。 |
 | WPScan | `wpscan` | 枚举 WordPress 核心、主题、插件并检查相关风险。 |
-| Dalfox | `dalfox` | 发现和验证 XSS 问题。 |
+| Dalfox v2.12.0 | `dalfox` | 发现和验证 XSS 问题；固定官方 v2 版本以原生支持现有 mining、deep-domxss 参数，通过 Go 阶段编译，不安装 Kali 的 v3 包。 |
 | Wafw00f | `wafw00f` | 识别 Web 应用防火墙。 |
 | WhatWeb | `whatweb` | 识别 Web 技术、服务器和 CMS 指纹。 |
 | testssl.sh | `testssl` | 检查 TLS 协议、密码套件、证书及相关配置风险。 |
@@ -312,7 +313,49 @@ Kube-Hunter 的完整环境含 Kubernetes Python 客户端和 netifaces 扩展�
 - Volatility 2 与 Python 2 已停止维护，此处保留是为兼容旧接口和旧内存样本；不能视为仍受维护的通用 Python 环境。Volatility 3 不支持 Volatility 2 的 profile，两个命令不互相冒充；自定义 Linux/macOS profile、符号表与可选 XLSX 输出依赖仍需按需准备。
 - ParamSpider 原接口的整数 `level` 明确为两档：`1` 普通提取，`2` 对应上游 `high` 提取；不是任意爬取深度，其他值返回参数错误。`output` 与另一旧入口的 `output_file` 均映射到旧工具 `-o`；无目录文件名遵循旧工具的 `output/` 目录规则。
 - Volatility 3 的 `output_file` 保存成功命令的标准输出文本，而不是映射到含义不同的 `-o` 产物目录；HTTP 响应仍保留原命令输出。
-- 服务端仅保留原接口无法靠工具版本纠正的必要修复：CTF 目标占位符和缺失参数、HTTPX 两个原入口的字段传递、ParamSpider 输出字段与两档参数、Volatility 3 报告文件语义。Arjun、Fierce 的旧参数及 JWT-Tool 的旧路径由基础镜像兼容入口处理，不修改原调用代码；Arjun 原 GET+POST 意图分别转为两次明确调用，任一步失败即返回失败。未增加上述五个工具的新专用接口。
+- 原有 CTF 目标占位符、HTTPX 字段传递、ParamSpider 两档参数和 Volatility 3 报告修复保持不变；未增加五个补充工具的新专用接口。Arjun 的 GET+POST 仍分别执行，任一步失败即返回失败；Fierce 参数与 JWT-Tool 旧路径仍由基础镜像适配。
 - 工具选择以实际渗透复用为准：调试、逆向与内存取证工具保留其漏洞分析用途，不为了补齐 CTF 清单增加仅限赛题的工具；云与容器限定 Docker、Kubernetes 等通用环境，不增加 AWS/Azure 专用组件。
 - Trivy、Clair 的原接口仍保留在代码中，但本版不提供其运行环境；接口存在不能作为工具可用的依据。
 - kubectl 1.33.x 应配合受支持的 Kubernetes API 版本使用，不能保证兼容所有旧集群；连接前核对服务端版本与官方版本偏差范围。[Kubernetes 版本偏差策略](https://kubernetes.io/releases/version-skew-policy/#kubectl)
+
+#### 1.3.2 的兼容入口与接口参数
+
+基础镜像和应用镜像均优先使用 `/opt/hexstrike-compat/bin`，原始 APT 与 Go 命令保留在原路径。
+兼容入口不改写目标、不吞掉退出状态，也不以“找到命令”替代工具能力判断。
+本次兼容能力需要使用包含下述入口的基础镜像；不能只更新应用代码而继续继承旧基础镜像。
+
+| 工具 | 当前兼容行为 |
+| --- | --- |
+| enum4linux-ng | 原接口的 `-A S,U,G,P` 转为独立 `-S -U -G -P`；目标后面的旧 `-d DOMAIN` 转为 `-w DOMAIN`。直接调用现代语法时使用 `-w` 指定域；详细输出的 `-d` 放在目标前或命令末尾，避免与旧语法歧义。 |
+| Gobuster | DNS 模式的旧 `-u DOMAIN` 转为 `--domain DOMAIN`，其他模式不改；DNS 的 `url` 字段应填纯域名，不填带协议或路径的 URL。 |
+| Checksec | `--file PATH` 转为 `--file=PATH`；两条既有分析路径使用同一真实工具。 |
+| Ghidra | 保留原始 `analyzeHeadless`，兼容入口补充脚本搜索目录；提供使用官方 XML 导出器的 `ExportXml.java`，满足原接口默认 XML 报告调用，不假设上游内置该脚本。 |
+| Waybackurls、Anew | 将已知布尔开关移到域名或输出文件前，避免被 Go 参数解析器忽略；未知开关和多余操作数明确报错。 |
+| Binwalk | 默认 root 环境中的提取操作使用专用低权限用户 `hexstrike-extract` 运行外部解包程序；该用户使用相同的非零 UID/GID，避开 2.x 历史权限处理差异。显式 `--run-as` 保留。普通识别不变，提取输出目录须允许该用户访问，私有挂载和只读目录需要单独安排。 |
+| Dalfox | 官方 v2.12.0 原生接受现有旧参数，不使用 v3 删除参数的假兼容；两个 mining 字段的 false 会实际关闭对应功能。`custom_payload` 是镜像内文件路径，不是载荷正文。 |
+| AutoRecon | 为 `top-100-ports`、`top-1000-ports` 提供实际的 TCP 前 100／1000 端口扫描插件，将 Nmap 识别出的服务交回 AutoRecon 枚举。使用这些配置时排除其余默认端口扫描插件，不暗中附加全 TCP 或 UDP 扫描；默认服务枚举仍保留。 |
+| Hakrawler | 保留 2.1 原生爬取，兼容入口分别实现表单 action 收集、robots 路径发现、sitemap 解析和可选 Waybackurls 历史 URL 获取。默认同主机、合并去重，不把功能开关误转为 `-subs`。不带兼容参数的直接命令仍转交原生工具。 |
+
+Dalfox v2 的 DOM 动态验证仍需要可用的 Chromium/Chrome；本版不额外安装浏览器，不将静态分析结果冒充动态验证。[固定版本参数](https://github.com/hahwul/dalfox/blob/v2.12.0/cmd/root.go)。
+Dalfox 的 Go 产物继续纳入摘要、架构与版本清单；无需在最终镜像安装 Go 编译器。
+
+环境无法恢复调用方未提供的信息或修复 Python 调用错误，因此保留以下最小服务端修正，`hexstrike_mcp.py` 不变：
+
+- **Ghidra**：`analysis_timeout` 必须为正整数秒，真实传给执行器；不同超时不复用同一缓存条目。
+- **Dalfox**：`blind=true` 时，须在 `additional_args` 中提供 `--blind URL` 或 `-b URL`，不能只传无值开关。`pipe_mode=true` 时仍须提供 `url`，服务会把它送入标准输入；缺少输入返回 400。
+- **AutoRecon**：`autorecon_comprehensive(target=...)` 的默认 `top-100-ports` 可直接交给环境执行；`autorecon_scan(target=...)` 发送的空输出目录、扫描配置、心跳和超时会在服务端补齐，同样默认 TCP 前 100 端口。显式 `port_scans="default"` 才使用上游原生默认策略，该策略不限制为前 100 端口。`timeout` 沿用工具的分钟单位，公共命令执行器仍有独立秒级上限。
+- **Hakrawler**：`hakrawler_crawl(url=...)` 默认深度为 2，启用 `forms`、`robots`、`sitemap`，关闭 `wayback`；不需要调用方改参数。`forms` 收集表单 action、不提交表单；设为 false 则过滤表单来源。robots、sitemap、Wayback 的补充 URL 仅作为发现结果输出，不重新投喂爬虫，避免绕过 `depth`。`wayback=false` 不查询历史归档；为 true 时使用已安装的 Waybackurls。需要子域名时仍通过 `additional_args` 显式传 `-subs`。
+- **职责边界**：服务端只补齐 AutoRecon 的空默认值、将 Hakrawler 的四个布尔值分别传递给兼容入口；不在服务端重新实现扫描。`hexstrike_mcp.py` 的函数、默认值及请求字段保持不变，其中 Hakrawler 的旧参数映射注释不再代表实际运行行为。目标不可达、真实工具失败和超时仍应报告失败，不能把“默认参数兼容”理解为所有目标都会扫描成功。
+- **参数保真**：已安装常用工具的专用路由与扫描辅助函数对 URL、路径和凭据作 Shell 引用，保留 `&`、空格、引号和 `$` 等内容。没有整体重写所有可选工具接口、CTF 模板或通用命令接口；`additional_args` 等高级原始命令字段仍按原约定解释，不能当作不可信普通文本传入。
+
+AutoRecon 的 top-N 配置与显式端口列表不能同时使用，也不能同时覆盖其附加插件目录；冲突会明确报错，不忽略用户设置。显式追加的其他端口插件仍按用户配置运行。
+AutoRecon 默认枚举用到的 DNS 110000 条字典、用户名短字典和 SNMP community 字典从已有安装数据中保留，当前合计约 1.25 MiB（具体以安装包为准，上限 4 MiB），不是完整 SecLists。
+这三份文件保存在 `/opt/hexstrike-compat/autorecon-data`，在 `/usr/share/seclists` 下保留对应原生路径；无需调用方改字典参数，也不覆盖用户自定义配置。目录枚举继续使用 AutoRecon 自带的 `dirbuster.txt`。
+Hakrawler 兼容调用默认有 120 秒总预算，可通过 `additional_args` 的 `-timeout` 指定正整数秒（仍受服务端执行上限约束）；`-timeout=-1` 不取消兼容层上限。
+补充文档单个最多 2 MiB、站点图最多 16 个、结果最多 10000 条；达到数量或总时间上限会明确失败，不把截断结果当作完整成功。
+robots/sitemap 的 404 或 410 视为文件不存在；其他下载错误、错误 XML 或 HTML 回退页会在标准错误中提示“补充来源不可用”，保留主体爬取结果，不声称这些补充来源已成功检查。
+
+默认数据路径也属于运行条件：John/Hashcat 使用的 `/usr/share/wordlists/rockyou.txt`，以及部分工作流使用的
+`/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt` 不由本版自动下载或保证存在。
+使用这些默认值前，将真实字典只读挂载到对应路径，或通过接口的 `wordlist` 指定已有文件；不使用小字典冒充 RockYou，也不靠解压大型字典增加基础镜像层。
+Amass 5.1.1 会尝试自动启动本地引擎，仍需要可写数据目录及启动时间；本版没有另加守护服务。

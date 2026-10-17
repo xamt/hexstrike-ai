@@ -14,7 +14,6 @@ HAKRAWLER_VERSION=2.1-0kali1
 SQLMAP_VERSION=1.10.9-1
 WPSCAN_VERSION=4.0.0
 ARJUN_VERSION=2.2.7-1
-DALFOX_VERSION=3.2.2-0kali1
 WAFW00F_VERSION=2.4.2-1
 QSREPLACE_VERSION=0.0.3-0kali1
 URO_VERSION=1.0.2-0kali1
@@ -154,15 +153,7 @@ apt-get install -y --no-install-recommends \
 
 # ParamSpider 在独立 Python 运行时阶段安装兼容原接口的固定源码。
 
-# 工具: Dalfox
-# 分类: Web Application Security / XSS
-# 描述: 发现和验证反射型、存储型及 DOM 型 XSS。
-# 安装: Kali 软件包 dalfox。
-(
-apt-get install -y --no-install-recommends \
-      "dalfox=${DALFOX_VERSION}" && \
-    bash "${script_dir}/record-tool-version.sh" apt dalfox "${DALFOX_VERSION}" "${TARGETARCH}"
-)
+# Dalfox 在 Go 阶段编译固定 v2 版本，原生保留旧接口的参数能力。
 
 # 工具: Wafw00f
 # 分类: Web Application Security / WAF 识别

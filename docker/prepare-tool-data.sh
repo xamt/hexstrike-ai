@@ -4,7 +4,7 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 # 共享字典与工具数据路径
 # -----------------------------------------------------------------------------
-# 只复制工具正常启动所需的小型字典。SecLists、Nuclei 模板、彩虹表、
+# 只复制工具正常启动所需的小型字典。完整 SecLists、Nuclei 模板、彩虹表、
 # Volatility 符号表等大型数据应在运行时通过只读卷挂载。
 (
 install -d \
@@ -23,3 +23,12 @@ install -d \
     test -n "${arjun_words}" && \
     cp "${arjun_words}" /usr/share/wordlists/x8/params.txt
 )
+
+# AUTORECON_SMALL_DATA
+# 使用原生默认路径，不用 CLI 覆盖用户配置中的字典选项。
+autorecon_data=/opt/hexstrike-compat/autorecon-data
+while IFS= read -r relative; do
+    test -s "${autorecon_data}/${relative}"
+    install -d "/usr/share/seclists/$(dirname -- "${relative}")"
+    ln -s "${autorecon_data}/${relative}" "/usr/share/seclists/${relative}"
+done < "${autorecon_data}/manifest.txt"

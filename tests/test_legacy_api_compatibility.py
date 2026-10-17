@@ -2,6 +2,7 @@
 import ast
 import logging
 import os
+import shlex
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,7 +21,7 @@ def endpoint(name, payload, result=None):
     namespace = {
         "request": SimpleNamespace(json=payload), "jsonify": lambda value: value,
         "execute_command": execute, "logger": logging.getLogger(__name__),
-        "Path": Path, "os": os,
+        "Path": Path, "os": os, "shlex": shlex,
     }
     exec(compile(ast.Module(body=[node], type_ignores=[]), "endpoint", "exec"), namespace)
     return namespace[name](), execute

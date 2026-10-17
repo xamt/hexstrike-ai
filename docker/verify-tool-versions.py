@@ -11,13 +11,13 @@ from typing import NamedTuple
 REQUIRED = {
     "apt": """nmap masscan rustscan amass subfinder nuclei fierce dnsenum autorecon
         theharvester responder netexec enum4linux-ng gobuster feroxbuster dirsearch
-        ffuf dirb httpx-toolkit katana hakrawler sqlmap arjun dalfox wafw00f
+        ffuf dirb httpx-toolkit katana hakrawler sqlmap arjun wafw00f
         qsreplace uro wfuzz hydra john hashcat medusa patator crackmapexec evil-winrm
         hash-identifier ophcrack-cli gdb radare2 binwalk ghidra checksec binutils xxd
         foremost steghide libimage-exiftool-perl testssl.sh whatweb trufflehog tcpdump
         docker-cli kubectl kubernetes-helm""".split(),
     "gem": ["wpscan"],
-    "go": ["gau", "waybackurls", "anew"],
+    "go": ["gau", "waybackurls", "anew", "dalfox"],
     "rust": ["x8"],
     "source": ["nikto", "jwt_tool", "paramspider", "python2", "volatility2", "kube-bench", "kube-bench-config"],
     "python": ["pip", "setuptools", "wheel"],
