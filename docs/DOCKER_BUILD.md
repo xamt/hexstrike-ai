@@ -91,6 +91,10 @@ docker buildx build \
 
 ## 4. 启动应用镜像
 
+下面两条启动命令包含 John/Hashcat 默认字典的只读挂载。执行前，将 `/path/to/rockyou.txt`
+替换为宿主机上真实、可读且已解压的 `rockyou.txt` 文件的绝对路径；不能直接挂载 `rockyou.txt.gz`。
+宿主机文件须提前准备好，离线运行环境应提前传入该文件。`--mount` 在源文件不存在时会直接报错，避免误建同名目录。
+
 ### 4.1 AMD64 应用
 
 ```bash
@@ -98,6 +102,7 @@ docker run --detach \
   --name pentest-tools-amd64 \
   --platform linux/amd64 \
   --publish 127.0.0.1:8888:8888 \
+  --mount "type=bind,source=/path/to/rockyou.txt,target=/usr/share/wordlists/rockyou.txt,readonly" \
   harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-amd64
 ```
 
@@ -108,6 +113,7 @@ docker run --detach \
   --name pentest-tools-arm64 \
   --platform linux/arm64 \
   --publish 127.0.0.1:8888:8888 \
+  --mount "type=bind,source=/path/to/rockyou.txt,target=/usr/share/wordlists/rockyou.txt,readonly" \
   harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.2-arm64
 ```
 
@@ -117,6 +123,17 @@ docker run --detach \
 
 默认仅绑定本机地址。确需原始套接字或网络管理时再添加 `--cap-add NET_RAW --cap-add NET_ADMIN`，不要直接使用 `--privileged`。
 实时抓包和内网协议工具只能操作容器可见的网络接口；Docker Desktop 不等同于 Linux 宿主机二层网络直通。
+
+### 4.3 John/Hashcat 默认字典为什么需要挂载
+
+John 和 Hashcat 的现有 MCP 接口默认读取 `/usr/share/wordlists/rockyou.txt`。
+基础镜像安装了工具程序，但为控制镜像体积、避免重复构建携带大型数据，没有内置或自动下载这份字典。
+因此，服务能够启动、工具命令能够被发现，并不代表默认字典攻击可以执行；未挂载且未指定其他字典时，会因缺少文件而失败。
+
+只挂载上述单个文件，不要用不完整的宿主机目录覆盖整个 `/usr/share/wordlists`，以免遮蔽镜像内已有的小型字典。
+只读挂载不增加镜像层，也能避免容器修改宿主机字典。
+不使用 John/Hashcat 的默认字典功能时，可以省略这项挂载；使用其他字典时，应先将其挂载到容器，再通过接口的 `wordlist` 指定容器内路径。
+待处理的哈希文件也需另行提供给容器，字典挂载不包含输入文件。
 
 ## 5. 构建下载源
 
@@ -357,5 +374,5 @@ robots/sitemap 的 404 或 410 视为文件不存在；其他下载错误、错�
 
 默认数据路径也属于运行条件：John/Hashcat 使用的 `/usr/share/wordlists/rockyou.txt`，以及部分工作流使用的
 `/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt` 不由本版自动下载或保证存在。
-使用这些默认值前，将真实字典只读挂载到对应路径，或通过接口的 `wordlist` 指定已有文件；不使用小字典冒充 RockYou，也不靠解压大型字典增加基础镜像层。
+RockYou 的挂载命令与原因见第 4 章；其他字典同样应只读挂载到对应路径，或通过接口的 `wordlist` 指定容器内已有文件。不使用小字典冒充 RockYou，也不靠解压大型字典增加基础镜像层。
 Amass 5.1.1 会尝试自动启动本地引擎，仍需要可写数据目录及启动时间；本版没有另加守护服务。
