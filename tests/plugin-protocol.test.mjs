@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '../plugins/pentest-tools/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js';
 import { StdioClientTransport } from '../plugins/pentest-tools/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js';
+import { verifyWorkflowProtocol } from './fixtures/plugin-workflow-protocol.mjs';
 
 async function verifyActivityContract(call, task) {
   const wrong = { id: 'act-001', tool: 'nmap_scan', target: 'example.test', status: 'running',
@@ -63,6 +64,7 @@ test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时�
     assert.equal(bad.structuredContent.success, false);
     await verifyActivityContract(call, task);
     await verifyPlanEvents(call);
+    await verifyWorkflowProtocol(call);
     assert.equal(errors, '');
   } finally {
     await client.close();

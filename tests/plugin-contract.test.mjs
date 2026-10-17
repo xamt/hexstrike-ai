@@ -38,6 +38,8 @@ test('页面只允许读取固定记录工具，原子视图字段不被宿主�
   const fields = panel.dataSources.find(item => item.id === 'view').fields;
   assert.equal(fields.plan.type, 'string');
   assert.equal(fields.plan.required, false, '旧快照未保存计划也能读取');
+  assert.deepEqual(fields.planSteps, { type: 'array', required: false });
+  assert.deepEqual(fields.preflight, { type: 'object', required: false });
   for (const key of ['taskId', 'revision', 'assets', 'findings', 'activities',
     'attackChains', 'report', 'targets', 'scope', 'exclusions', 'updatedAt']) {
     assert.equal(fields[key].required, true, key);

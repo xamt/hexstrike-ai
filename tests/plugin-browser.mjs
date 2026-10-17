@@ -152,10 +152,48 @@ async function planChecks() {
   await legacy.page.close();
 }
 
+async function stepStatusChecks() {
+  const view = sampleView();
+  view.plan = '验证过程按实际结果更新，不以扫描调用成功代替完成。';
+  view.planSteps = ['pending', 'running', 'completed', 'blocked'].map((status, index) => ({
+    id: `s${index}`, title: ['资产识别', '访问控制验证', '基线证据核对', '需账号的验证'][index], status,
+    summary: ['尚未执行', '已保存正常请求，等待对照结果', '已核对现有证据', '缺少测试角色账号'][index], evidenceRefs: [],
+  }));
+  view.preflight = { status: 'passed', checkedAt: view.updatedAt, server: 'plugin:pentest-tools:hexstrike',
+    tool: 'mcp__plugin_pentest-tools_hexstrike__server_health', summary: '合成健康响应，核心工具及本轮所用工具可用' };
+  const { page, errors } = await pageFor('live', view);
+  assert.deepEqual(await page.locator('.plan-step .badge').allTextContents(), ['待执行', '执行中', '已完成', '受阻']); assertions++;
+  assert.match(await page.locator('.plan-counts').innerText(), /待执行 1 · 执行中 1 · 已完成 1 · 受阻 1/); assertions++;
+  assert.match(await page.locator('.preflight').innerText(), /最近检查通过.*检查于/s); assertions++;
+  await capture(page, 'steps-wide');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.test-plan').scrollIntoViewIfNeeded();
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); assertions++;
+  await capture(page, 'steps-narrow');
+  await page.evaluate(() => {
+    const current = window.mockState.document.data.runtime.dataSources.view.value;
+    current.revision++;
+    current.status = 'paused';
+    current.preflight.status = 'failed';
+    current.preflight.summary = '合成MCP断连，停止新的目标测试';
+    current.planSteps[1].status = 'blocked';
+    current.planSteps[1].summary = '远端执行状态未知，不重放';
+    window.emit();
+  });
+  assert.deepEqual(await page.locator('.plan-step .badge').allTextContents(), ['待执行', '受阻', '已完成', '受阻']); assertions++;
+  assert.match(await page.locator('.preflight').innerText(), /检查未通过.*已暂停测试派发/s); assertions++;
+  assert.match(await page.locator('[data-step-id="s1"]').innerText(), /远端执行状态未知/); assertions++;
+  assert.equal(await page.evaluate(() => window.calls.length), 1, '状态更新不追加查询或打开'); assertions++;
+  await capture(page, 'steps-blocked');
+  assert.deepEqual(errors, []); assertions++;
+  await page.close();
+}
+
 try {
   await liveChecks();
   await stateChecks();
   await missingRecordChecks();
   await planChecks();
+  await stepStatusChecks();
   console.log(`PASS：浏览器离线交互 ${assertions} 项断言；截图目录 ${output}`);
 } finally { await browser.close(); }
