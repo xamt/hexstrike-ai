@@ -4,7 +4,7 @@
 
 本次命名调整将项目镜像目录统一为 `/opt/pentest-tools`、兼容工具目录统一为 `/opt/pentest-tools-compat`，API/MCP 独立环境分别为 `/opt/pentest-tools-venv` 和 `/opt/pentest-tools-mcp-venv`。构建缓存、解包用户和工具适配器也使用 `pentest-tools` 命名；第三方工具名称及许可证不变。
 
-**必须先用当前源码重建基础镜像，再基于该镜像构建应用镜像。** 应用构建会检查新目录布局，不能直接搭配旧基础镜像。以下版本号是现有发布示例；发布新版时为基础和应用选择新的未使用标签，并同步应用构建的 `BASE_IMAGE`，不要覆盖已发布标签。旧镜像和旧构建层不会因修改源码自动变化，验证应针对新镜像。
+**必须先用当前源码重建基础镜像，再基于该镜像构建应用镜像。** 应用构建会检查新目录布局，不能直接搭配旧基础镜像。本次基础镜像和应用镜像统一使用 `1.3.4` 作为待构建版本，两个架构分别带 `-amd64`、`-arm64` 后缀；下方构建和启动命令已同步，版本号更新不代表镜像已构建或发布。不要覆盖旧版已发布标签。旧镜像和旧构建层不会因修改源码自动变化，验证应针对新镜像。
 
 新部署使用 `PENTEST_TOOLS_*` 环境变量；程序仍集中兼容读取旧 `HEXSTRIKE_*` 变量，同名新变量优先。镜像不预设端口和超时环境变量，避免遮蔽旧部署的显式配置；默认 API/MCP 端口仍为 8888/8889。容器 API 默认监听 `0.0.0.0`，本地启动仍为回环地址。
 
@@ -14,8 +14,8 @@
 
 | 用途 | AMD64 | ARM64 |
 | --- | --- | --- |
-| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-arm64` |
-| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-arm64` |
+| 基础镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.4-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.4-arm64` |
+| 应用镜像 | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.4-amd64` | `harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.4-arm64` |
 
 - 基础镜像：Kali、安全工具、小型字典、Python 3.11，以及隔离的 Volatility 2/3、JWT-Tool、ParamSpider、Kube-Hunter 环境；默认进入 Bash，不启动服务。
 - 应用镜像：继承同架构基础镜像，隔离安装 API/MCP 依赖；默认同时启动 HTTP API（8888）与 Streamable HTTP MCP（8889/mcp），不重复安装安全工具。
@@ -35,7 +35,7 @@
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.4-amd64 \
   --load \
   --progress=plain \
   "."
@@ -47,7 +47,7 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile.base" \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.4-arm64 \
   --load \
   --progress=plain \
   "."
@@ -65,8 +65,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/amd64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-amd64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-amd64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.4-amd64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.4-amd64 \
   --load \
   --progress=plain \
   "."
@@ -80,8 +80,8 @@ docker buildx build \
 docker buildx build \
   --platform linux/arm64 \
   --file "Dockerfile" \
-  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.3-arm64 \
-  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-arm64 \
+  --build-arg BASE_IMAGE=harbor.everoffice.cn/harbor-cucc/pentest-tools-base:1.3.4-arm64 \
+  --tag harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.4-arm64 \
   --load \
   --progress=plain \
   "."
@@ -105,7 +105,7 @@ docker run --detach \
   --publish 127.0.0.1:8888:8888 \
   --publish 127.0.0.1:8889:8889 \
   --stop-timeout 15 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-amd64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.4-amd64
 ```
 
 ### 4.2 ARM64 应用
@@ -117,7 +117,7 @@ docker run --detach \
   --publish 127.0.0.1:8888:8888 \
   --publish 127.0.0.1:8889:8889 \
   --stop-timeout 15 \
-  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.3-arm64
+  harbor.everoffice.cn/harbor-cucc/pentest-tools:1.3.4-arm64
 ```
 
 API 地址为 `http://127.0.0.1:8888`，MCP 地址为 `http://127.0.0.1:8889/mcp`；两条命令占用相同宿主端口，不要同时运行。
@@ -249,7 +249,7 @@ John/Hashcat 默认字典路径为 `/usr/share/wordlists/rockyou.txt`。
 Kali 和 Go 参数只用于基础镜像构建，PyPI 参数可用于两种镜像构建。
 ## 6. 基础镜像包含的工具
 
-以下按 1.3.3 的安装配置分类，每个工具只列一次，别名不重复计数；AMD64、ARM64 提供相同类别。
+以下按 1.3.4 的安装配置分类，每个工具只列一次，别名不重复计数；AMD64、ARM64 提供相同类别。
 清单描述已配置安装的主要工具，不代表每个工具都有独立 HTTP 接口，也不把依赖包计为额外安全工具。
 
 ### 6.1 🔍 网络侦察与扫描（8 项）
@@ -360,7 +360,7 @@ Volatility 2 使用隔离的 Python 2，已停止维护；Volatility 3 使用独
 | Anew | `anew` | 对文本行去重，仅追加尚未出现的结果。 |
 | TruffleHog | `trufflehog` | 在文件、源码和 Git 历史中检测凭据泄漏，可按需验证凭据。 |
 
-基础镜像与应用镜像的默认工作目录均为 `/opt/pentest-tools`。应用代码中的 API 入口为 `server.py`，运行模块为 `runtime/`，工具注册为 `tools/`；MCP 入口为 `mcp_server.py`，仅提供 Streamable HTTP。镜像启动和健康检查配置已同步，内部虚拟环境和兼容目录名称保持不变。
+基础镜像与应用镜像的默认工作目录均为 `/opt/pentest-tools`。应用代码中的 API 入口为 `server.py`，运行模块为 `runtime/`，工具注册为 `tools/`；MCP 入口为 `mcp_server.py`，仅提供 Streamable HTTP。镜像启动和健康检查配置已同步，内部虚拟环境和兼容目录已统一使用 `pentest-tools` 前缀。
 
 **基础运行环境：**Kali、Bash、curl、Git、Perl、Ruby、Python 3.11、pip、venv、tini、CA 证书及运行库；安全工具的专用 Python 环境与应用依赖隔离。内置小型目录、参数字典及 AutoRecon 必需的小字典，不携带完整 SecLists、大型字典、彩虹表或完整符号表。实际工具版本记录位于 `/opt/pentest-tools/tool-versions.lock`。
 
