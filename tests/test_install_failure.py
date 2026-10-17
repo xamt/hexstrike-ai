@@ -34,7 +34,7 @@ class InstallFailureTests(unittest.TestCase):
             env = dict(os.environ, PATH=f"{directory}:{os.environ['PATH']}",
                        TEST_LOG=str(log), TEST_FAIL_ON=str(fail_on), TARGETARCH="arm64",
                        TOOL_RECORD_DIR=str(records))
-            result = subprocess.run(["bash", str(ROOT / "docker/install-network.sh")],
+            result = subprocess.run(["bash", str(ROOT / "docker/tools/network/apt.sh")],
                                     env=env, capture_output=True, text=True)
             self.assertEqual(37, result.returncode, result.stderr)
             self.assertEqual(fail_on, len(log.read_text().splitlines()))

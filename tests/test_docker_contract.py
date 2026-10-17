@@ -24,21 +24,21 @@ class DockerContractTests(unittest.TestCase):
         self.assertNotIn("ARG BUILDPLATFORM", base.split("FROM ", 1)[0])
 
     def test_approved_versions_are_preserved(self):
-        scripts = "\n".join(path.read_text() for path in (ROOT / "docker").glob("install-*.sh"))
+        scripts = "\n".join(path.read_text() for path in (ROOT / "docker").rglob("*.sh"))
         entries = re.findall(r"^\s*(\w+_VERSION(?:_AMD64|_ARM64)?)=([^\s]+)$", scripts, re.M)
         versions = dict(entries)
         self.assertEqual(len(entries), len(versions), "每个版本只能有一个定义")
         self.assertEqual(CONTRACT["versions"] | SECURITY["versions"] | CONTAINER["versions"], versions)
 
     def test_command_coverage_is_preserved(self):
-        script = (ROOT / "docker/verify-base.sh").read_text()
+        script = (ROOT / "docker/verify/base.sh").read_text()
         array = re.search(r"expected_commands=\(([\s\S]*?)\)", script)[1]
         expected = set(CONTRACT["commands"] + SECURITY["commands"] + CONTAINER["commands"])
         self.assertEqual(expected, set(array.split()))
 
     def test_all_locked_packages_are_installed_and_verified(self):
-        scripts = "\n".join(path.read_text() for path in (ROOT / "docker").glob("install-*.sh"))
-        verification = (ROOT / "docker/verify-tool-versions.py").read_text()
+        scripts = "\n".join(path.read_text() for path in (ROOT / "docker").rglob("*.sh"))
+        verification = (ROOT / "docker/verify/verify-tool-versions.py").read_text()
         arch_packages = {"masscan", "dirb", "ophcrack-cli", "foremost"}
         for package, version in CONTRACT["aptPackages"].items():
             with self.subTest(package=package):
@@ -64,7 +64,7 @@ class DockerContractTests(unittest.TestCase):
         base = (ROOT / "Dockerfile.base").read_text()
         self.assertIn("/opt/volatility3-venv", base)
         self.assertNotIn("/opt/hexstrike-venv", base)
-        self.assertIn("ldconfig", (ROOT / "docker/finalize-base.sh").read_text())
+        self.assertIn("ldconfig", (ROOT / "docker/assembly/finalize-base.sh").read_text())
 
     def test_image_repository_names_are_consistent(self):
         docs = (ROOT / "docs/DOCKER_BUILD.md").read_text()
@@ -90,10 +90,10 @@ class DockerContractTests(unittest.TestCase):
     def test_certificate_bootstrap_precedes_https(self):
         base = (ROOT / "Dockerfile.base").read_text()
         self.assertLess(base.index("COPY --from=python-source /etc/ssl/certs"),
-                        base.index("bash /tmp/install-system.sh"))
-        system = (ROOT / "docker/install-system.sh").read_text()
+                        base.index("bash /tmp/docker/runtime/system.sh"))
+        system = (ROOT / "docker/runtime/system.sh").read_text()
         self.assertIn('Acquire::https::CaInfo "/etc/ssl/certs/ca-certificates.crt"', system)
-        for script in (ROOT / "docker").glob("install-*.sh"):
+        for script in (ROOT / "docker").rglob("*.sh"):
             content = script.read_text()
             self.assertNotIn("apt-get update", content)
             self.assertNotIn("Verify-Peer=false", content)
@@ -102,19 +102,19 @@ class DockerContractTests(unittest.TestCase):
         base = (ROOT / "Dockerfile.base").read_text()
         security = base.split("FROM security-packages AS security-tools", 1)[1].split("FROM python-source", 1)[0]
         runtime = base.split("FROM python-source AS python-runtime", 1)[1].split("FROM ${LEGACY_PYTHON", 1)[0]
-        for mode in ("apt", "bench"):
-            self.assertIn(f"bash /tmp/install-container-tools.sh {mode}", security)
+        for mode in ("apt", "release"):
+            self.assertIn(f"bash /tmp/docker/tools/container/{mode}.sh", security)
         self.assertIn("ARG TARGETARCH", runtime)
-        self.assertIn("bash /tmp/install-container-tools.sh python", runtime)
+        self.assertIn("bash /tmp/docker/tools/container/python.sh", runtime)
         self.assertIn("COPY --from=python-runtime /opt/kube-hunter-venv/ /opt/kube-hunter-venv/", base)
         self.assertNotIn("COPY --from=python-runtime /usr/bin", base)
-        verification = (ROOT / "docker/verify-base.sh").read_text()
+        verification = (ROOT / "docker/verify/base.sh").read_text()
         self.assertIn("sha256sum -c /opt/kube-bench/cfg.sha256", verification)
         self.assertIn("/opt/kube-hunter-venv/bin/python -m pip check", verification)
         self.assertIn('Path("/opt/kube-bench/kube-bench")', verification)
 
     def test_shell_syntax(self):
-        scripts = list((ROOT / "docker").glob("*.sh"))
+        scripts = list((ROOT / "docker").rglob("*.sh"))
         self.assertGreater(len(scripts), 4)
         for script in scripts:
             with self.subTest(script=script.name):
@@ -127,8 +127,8 @@ class DockerContractTests(unittest.TestCase):
 
     def test_large_transitive_wordlists_stay_out_of_layers(self):
         base = (ROOT / "Dockerfile.base").read_text()
-        self.assertEqual(5, base.count("target=/usr/share/seclists,sharing=locked"))
-        verification = (ROOT / "docker/verify-base.sh").read_text()
+        self.assertEqual(9, base.count("target=/usr/share/seclists,sharing=locked"))
+        verification = (ROOT / "docker/verify/base.sh").read_text()
         self.assertIn('Path("/usr/share/seclists")', verification)
         self.assertIn("assert actual == expected", verification)
         self.assertIn("4 * 1024 * 1024", verification)

@@ -15,8 +15,11 @@ class PythonDownloadSourceTests(unittest.TestCase):
         self.assertIn(f"ARG PIP_INDEX_URL={INDEX}", header)
         stage = base.split("FROM python-source AS python-runtime\n", 1)[1].split("\nFROM ", 1)[0]
         self.assertIn("ARG PIP_INDEX_URL\n", stage)
-        script = (ROOT / "docker/install-python-runtime.sh").read_text()
-        self.assertEqual(3, script.count('--index-url "${PIP_INDEX_URL}"'))
+        script = (ROOT / "docker/runtime/python.sh").read_text()
+        self.assertEqual(1, script.count('--index-url "${PIP_INDEX_URL}"'))
+        volatility = (ROOT / "docker/tools/forensics/python3.sh").read_text()
+        self.assertIn('--index-url "${PIP_INDEX_URL}"', volatility)
+        self.assertIn('runtime/python.sh" /opt/volatility3-venv vol-python', volatility)
 
     def test_application_installer_uses_same_configurable_index(self):
         app = (ROOT / "Dockerfile").read_text()
@@ -25,7 +28,7 @@ class PythonDownloadSourceTests(unittest.TestCase):
         self.assertLess(app.index("ARG PIP_INDEX_URL"), app.index("install -r requirements-runtime.txt"))
 
     def test_no_insecure_or_implicit_fallback_source(self):
-        for name in ("Dockerfile", "Dockerfile.base", "docker/install-python-runtime.sh"):
+        for name in ("Dockerfile", "Dockerfile.base", "docker/runtime/python.sh"):
             content = (ROOT / name).read_text()
             self.assertNotIn("--trusted-host", content)
             self.assertNotIn("--extra-index-url", content)

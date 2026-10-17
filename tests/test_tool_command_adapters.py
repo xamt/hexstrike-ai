@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("cli_compat", ROOT / "docker/cli-compat.py")
+spec = importlib.util.spec_from_file_location("cli_compat", ROOT / "docker/compat/cli-compat.py")
 compat = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(compat)
 
@@ -81,7 +81,7 @@ class ToolCommandAdaptersTests(unittest.TestCase):
         app = (ROOT / "Dockerfile").read_text()
         for content in (base, app):
             self.assertIn('PATH="/opt/hexstrike-compat/bin:', content)
-        install = (ROOT / "docker/install-cli-compat.sh").read_text()
+        install = (ROOT / "docker/compat/install.sh").read_text()
         self.assertIn("cli-compat.py", install)
         self.assertIn("hexstrike-extract", install)
         self.assertIn('test "$(id -u hexstrike-extract)" = "$(id -g hexstrike-extract)"', install)

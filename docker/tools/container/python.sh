@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-# 通用Docker/Kubernetes工具按apt、bench、python三层安装；不含可选重型扫描器或云厂商CLI。
+# 通用容器工具的 python 安装阶段；只执行本文件对应的安装方式。
 set -euo pipefail
 
-DOCKER_CLI_VERSION=28.5.2+dfsg4-5
-KUBECTL_VERSION=1.33.4+ds-1
-HELM_VERSION=4.3.0+ds1-0kali1
-KUBE_BENCH_VERSION=0.16.0
 KUBE_HUNTER_VERSION=0.6.8
 HUNTER_PIP_VERSION=25.3
 HUNTER_SETUPTOOLS_VERSION=80.9.0
@@ -44,45 +40,8 @@ case "${TARGETARCH:?缺少目标架构}" in
     *) echo "不支持的架构: ${TARGETARCH}" >&2; exit 1 ;;
 esac
 
-# 只装客户端包；kubernetes-helm不是Emacs的helm包。
-install_apt_tools() {
-    apt-get -o APT::Update::Error-Mode=any update
-    apt-get install -y --no-install-recommends \
-        "docker-cli=${DOCKER_CLI_VERSION}" "kubectl=${KUBECTL_VERSION}" \
-        "kubernetes-helm=${HELM_VERSION}"
-    bash "${script_dir}/record-tool-version.sh" apt docker-cli "${DOCKER_CLI_VERSION}" "${TARGETARCH}"
-    bash "${script_dir}/record-tool-version.sh" apt kubectl "${KUBECTL_VERSION}" "${TARGETARCH}"
-    bash "${script_dir}/record-tool-version.sh" apt kubernetes-helm "${HELM_VERSION}" "${TARGETARCH}"
-}
+if [ "$#" -ne 0 ]; then echo "此安装脚本不接受模式参数" >&2; exit 2; fi
 
-# 官方静态包包含二进制及CIS配置；摘要验证通过才解包。
-install_kube_bench() {
-    case "${TARGETARCH}" in
-        amd64) archive_sha256=82dbc7e598740dc9344d41f8ad0b8210d57c4c00bdb2c5f1d8a69a2b98baddcf ;;
-        arm64) archive_sha256=64500561f5fcaa3f86fe951ed26bbfc28f7bbf3d2eac13843abfd2924955d10b ;;
-    esac
-    temporary="$(mktemp -d)"
-    trap 'rm -rf "${temporary}"' EXIT
-    curl --fail --location --http1.1 --retry 5 --retry-all-errors --retry-delay 3 \
-        --proto '=https' --proto-redir '=https' \
-        "https://github.com/aquasecurity/kube-bench/releases/download/v${KUBE_BENCH_VERSION}/kube-bench_${KUBE_BENCH_VERSION}_linux_${TARGETARCH}.tar.gz" \
-        --output "${temporary}/kube-bench.tar.gz"
-    printf '%s  %s\n' "${archive_sha256}" "${temporary}/kube-bench.tar.gz" | sha256sum -c -
-    mkdir -p "${temporary}/unpack" "/opt/kube-bench" "/etc/kube-bench/cfg"
-    tar -xzf "${temporary}/kube-bench.tar.gz" -C "${temporary}/unpack"
-    test -s "${temporary}/unpack/cfg/config.yaml"
-    install -m 0755 "${temporary}/unpack/kube-bench" "/opt/kube-bench/kube-bench"
-    cp -a "${temporary}/unpack/cfg/." "/etc/kube-bench/cfg/"
-    # 记录清单摘要；最终校验还须sha256sum -c逐个核对配置内容。
-    find "/etc/kube-bench/cfg" -type f -print0 | sort -z | xargs -0 sha256sum > "/opt/kube-bench/cfg.sha256"
-    sha256sum -c "/opt/kube-bench/cfg.sha256"
-    bash "${script_dir}/record-tool-version.sh" source kube-bench "${KUBE_BENCH_VERSION}" "${TARGETARCH}" \
-        "/opt/kube-bench/kube-bench" "/opt/kube-bench/kube-bench"
-    bash "${script_dir}/record-tool-version.sh" source kube-bench-config "${KUBE_BENCH_VERSION}" all \
-        "/opt/kube-bench/cfg.sha256" "/opt/kube-bench/cfg.sha256"
-}
-
-# 完整运行依赖锁定，不让pip隐式解析升级未登记的依赖。
 hunter_requirements() {
     printf '%s\n' \
         "kube-hunter==${KUBE_HUNTER_VERSION}" "netaddr==${HUNTER_NETADDR_VERSION}" \
@@ -101,7 +60,6 @@ hunter_requirements() {
         "pyasn1-modules==${HUNTER_PYASN1_MODULES_VERSION}" "rsa==${HUNTER_RSA_VERSION}"
 }
 
-# 仅在Python构建阶段安装编译依赖；最终COPY该venv，不复制/usr/bin中的gcc。
 install_kube_hunter() {
     : "${PIP_INDEX_URL:?缺少 PyPI 下载源配置}"
     apt-get -o APT::Update::Error-Mode=any update
@@ -119,16 +77,11 @@ install_kube_hunter() {
     export TOOL_RECORD_DIR="/opt/tool-versions.d"
     for item in "pip==${HUNTER_PIP_VERSION}" "setuptools==${HUNTER_SETUPTOOLS_VERSION}" \
         "wheel==${HUNTER_WHEEL_VERSION}"; do
-        bash "${script_dir}/record-tool-version.sh" hunter-python "${item%%==*}" "${item#*==}" all
+        bash "${script_dir}/../../lib/record-tool-version.sh" hunter-python "${item%%==*}" "${item#*==}" all
     done
     while IFS= read -r item; do
-        bash "${script_dir}/record-tool-version.sh" hunter-python "${item%%==*}" "${item#*==}" all
+        bash "${script_dir}/../../lib/record-tool-version.sh" hunter-python "${item%%==*}" "${item#*==}" all
     done < "${temporary}/requirements.txt"
 }
 
-case "${1:-apt}" in
-    apt) install_apt_tools ;;
-    bench) install_kube_bench ;;
-    python) install_kube_hunter ;;
-    *) echo "不支持的容器工具安装模式: ${1}" >&2; exit 2 ;;
-esac
+install_kube_hunter

@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# 工具: Nikto
+# 分类: Web Application Security / Web 服务器检查
+# 描述: 检查 Web 服务器危险文件、错误配置和已知风险。
+# 安装: 从 nikto-source 阶段复制固定标签源码并创建命令包装器；版本由其安装脚本维护。
+(
+printf '%s\n' '#!/bin/sh' 'exec perl /opt/nikto/program/nikto.pl "$@"' \
+      > /usr/local/bin/nikto && chmod 0755 /usr/local/bin/nikto
+)
+
 # -----------------------------------------------------------------------------
 # 共享字典与工具数据路径
 # -----------------------------------------------------------------------------

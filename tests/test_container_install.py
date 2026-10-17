@@ -10,7 +10,16 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "docker/install-container-tools.sh"
+SCRIPT = ROOT / "docker/tools/container/apt.sh"
+RELEASE = ROOT / "docker/tools/container/release.sh"
+PYTHON = ROOT / "docker/tools/container/python.sh"
+
+
+def container_scripts():
+    """读取同一类别的三种安装方式，版本仍由各脚本独立定义。"""
+    return "\n".join(path.read_text() for path in (SCRIPT, RELEASE, PYTHON))
+
+
 CONTRACT = json.loads((ROOT / "tests/fixtures/container-tool-contract.json").read_text())
 
 
@@ -18,7 +27,7 @@ class ContainerInstallTests(unittest.TestCase):
     def test_prioritized_kubernetes_tools_without_optional_scanners(self):
         self.assertEqual(set(CONTRACT["commands"]),
                          {"docker", "kubectl", "helm", "kube-bench", "kube-hunter"})
-        script = SCRIPT.read_text()
+        script = container_scripts()
         for package in ("trivy", "clair", "awscli", "azure-cli"):
             self.assertNotRegex(script, rf'"{package}=')
 
@@ -77,7 +86,7 @@ class ContainerInstallTests(unittest.TestCase):
             self.assertFalse((root / "calls").exists())
 
     def test_versions_are_local_and_no_runtime_downloads(self):
-        script = SCRIPT.read_text()
+        script = container_scripts()
         variables = dict(re.findall(r"^([A-Z][A-Z0-9_]*_VERSION)=(\S+)$", script, re.M))
         self.assertEqual(variables, CONTRACT["versions"])
         for forbidden in ("--download-db-only", "--download-java-db-only", "systemctl "):
@@ -100,7 +109,7 @@ class ContainerInstallTests(unittest.TestCase):
                 extract.chmod(0o755)
                 env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}", TARGETARCH="arm64",
                            FAIL_PHASE=phase, DIGEST_INPUT=str(root / "digest"), TEST_LOG=str(root / "calls"))
-                result = subprocess.run(["bash", str(SCRIPT), "bench"], env=env,
+                result = subprocess.run(["bash", str(RELEASE)], env=env,
                                         capture_output=True, text=True)
                 self.assertEqual(expected, result.returncode, result.stderr)
                 self.assertFalse((root / "calls").exists())
@@ -108,7 +117,7 @@ class ContainerInstallTests(unittest.TestCase):
                     self.assertIn(CONTRACT["benchArchives"]["arm64"]["sha256"], (root / "digest").read_text())
 
     def test_bench_configuration_has_individual_file_digests(self):
-        script = SCRIPT.read_text()
+        script = RELEASE.read_text()
         for architecture in ("amd64", "arm64"):
             self.assertIn(CONTRACT["benchArchives"][architecture]["sha256"], script)
         self.assertLess(script.index("sha256sum -c -"), script.index("tar -xzf"))
@@ -129,7 +138,8 @@ class HunterInstallTests(unittest.TestCase):
     def prepare_sandbox(root):
         """Redirect only filesystem destinations and substitute apt/Python processes."""
         script = root / "install-container-tools.sh"
-        script.write_text(SCRIPT.read_text().replace("/opt/", str(root / "opt") + "/"))
+        script.write_text(PYTHON.read_text().replace("/opt/", str(root / "opt") + "/").replace(
+            "${script_dir}/../../lib/record-tool-version.sh", str(root / "record-tool-version.sh")))
         (root / "record-tool-version.sh").write_text(
             '#!/bin/sh\nmkdir -p "$TOOL_RECORD_DIR"\nprintf "%s\\n" "$*" >> "$TOOL_RECORD_DIR/records"\n'
         )
@@ -162,7 +172,7 @@ class HunterInstallTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             script, env = self.prepare_sandbox(root)
-            result = subprocess.run(["bash", str(script), "python"], env=env, capture_output=True, text=True)
+            result = subprocess.run(["bash", str(script)], env=env, capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stderr)
             requirements = (root / "requirements.txt").read_text().splitlines()
             bootstrap = {"pip", "setuptools", "wheel"}
@@ -187,7 +197,7 @@ class HunterInstallTests(unittest.TestCase):
             root = Path(directory)
             script, env = self.prepare_sandbox(root)
             env["FAIL_CHECK"] = "1"
-            result = subprocess.run(["bash", str(script), "python"], env=env, capture_output=True, text=True)
+            result = subprocess.run(["bash", str(script)], env=env, capture_output=True, text=True)
             self.assertEqual(33, result.returncode, result.stderr)
             self.assertFalse((root / "opt/tool-versions.d/records").exists())
 

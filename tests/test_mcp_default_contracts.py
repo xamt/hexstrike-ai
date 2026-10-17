@@ -65,7 +65,7 @@ class MCPDefaultContractTests(unittest.TestCase):
         self.assertNotIn("-subs", argv)
 
     def test_autorecon_defaults_reach_real_environment_adapter(self):
-        spec = importlib.util.spec_from_file_location("autorecon_default_adapter", ROOT / "docker/autorecon-compat.py")
+        spec = importlib.util.spec_from_file_location("autorecon_default_adapter", ROOT / "docker/compat/autorecon-compat.py")
         adapter = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(adapter)
         for name in ("autorecon_comprehensive", "autorecon_scan"):
@@ -81,7 +81,7 @@ class MCPDefaultContractTests(unittest.TestCase):
     def test_hakrawler_default_reaches_environment_and_native_command(self):
         # Import through the same sibling directory used by the installed entry point.
         import sys
-        with patch.object(sys, "path", [str(ROOT / "docker")] + sys.path):
+        with patch.object(sys, "path", [str(ROOT / "docker/compat")] + sys.path):
             import hakrawler_runtime as adapter
         argv = mcp_command("hakrawler_crawl", url="https://example.com/")
         output = io.StringIO()
@@ -101,12 +101,12 @@ class MCPDefaultContractTests(unittest.TestCase):
 
     def test_compatibility_assets_are_in_base_build_and_installation(self):
         base = (ROOT / "Dockerfile.base").read_text()
-        install = (ROOT / "docker/install-cli-compat.sh").read_text()
+        install = (ROOT / "docker/compat/install.sh").read_text()
         for name in ("autorecon-compat.py", "hakrawler-compat.py", "hakrawler_runtime.py",
                      "hakrawler_sources.py", "hakrawler_process.py"):
-            self.assertTrue((ROOT / "docker" / name).is_file())
-            self.assertIn(f"source=docker/{name},target=/tmp/{name}", base)
-        self.assertIn("source=docker/autorecon-plugins,target=/tmp/autorecon-plugins", base)
+            self.assertTrue((ROOT / "docker/compat" / name).is_file())
+            self.assertIn(f"source=docker/compat/{name},target=/tmp/docker/compat/{name}", base)
+        self.assertIn("source=docker/compat/autorecon-plugins/hexstrike-tcp-profiles.py,target=/tmp/docker/compat/autorecon-plugins/hexstrike-tcp-profiles.py", base)
         self.assertIn("for name in autorecon hakrawler; do", install)
         self.assertIn('ln -s "../${name}-compat.py"', install)
         self.assertIn("/opt/hexstrike-compat/autorecon-plugins/hexstrike-tcp-profiles.py", install)
@@ -119,7 +119,7 @@ class MCPDefaultContractTests(unittest.TestCase):
             (root / "bin").mkdir()
             for name in ("hakrawler-compat.py", "hakrawler_runtime.py",
                          "hakrawler_sources.py", "hakrawler_process.py"):
-                shutil.copyfile(ROOT / "docker" / name, root / name)
+                shutil.copyfile(ROOT / "docker/compat" / name, root / name)
             (root / "bin/hakrawler").symlink_to("../hakrawler-compat.py")
             result = subprocess.run([sys.executable, str(root / "bin/hakrawler"),
                                      "--hexstrike-forms=true"], input="", text=True,

@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def load_wrapper(name):
     """读取安装脚本中指定入口的 Python 源码。"""
-    script = (ROOT / "docker/install-cli-compat.sh").read_text()
+    script = (ROOT / "docker/compat/install.sh").read_text()
     source = script.split(f"cat > /usr/local/bin/{name} <<'PY'\n", 1)[1].split("\nPY", 1)[0]
     namespace = {"__name__": "compat_test"}
     exec(compile(source, name, "exec"), namespace)

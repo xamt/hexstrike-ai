@@ -15,7 +15,7 @@ from test_server_command_contracts import ROOT, load_function
 
 class NucleiOfflineTests(unittest.TestCase):
     def setUp(self):
-        spec = importlib.util.spec_from_file_location("nuclei_offline", ROOT / "docker/nuclei-compat.py")
+        spec = importlib.util.spec_from_file_location("nuclei_offline", ROOT / "docker/compat/nuclei-compat.py")
         self.adapter = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.adapter)
 
@@ -105,10 +105,10 @@ class NucleiOfflineTests(unittest.TestCase):
             self.assertTrue(error)
 
     def test_installer_and_build_include_adapter(self):
-        self.assertIn("source=docker/nuclei-compat.py,target=/tmp/nuclei-compat.py",
+        self.assertIn("source=docker/compat/nuclei-compat.py,target=/tmp/docker/compat/nuclei-compat.py",
                       (ROOT / "Dockerfile.base").read_text())
-        self.assertIn("nuclei-compat.py", (ROOT / "docker/install-cli-compat.sh").read_text())
-        self.assertIn("WPSCAN_VERSION=3.8.28", (ROOT / "docker/install-web.sh").read_text())
+        self.assertIn("nuclei-compat.py", (ROOT / "docker/compat/install.sh").read_text())
+        self.assertIn("WPSCAN_VERSION=3.8.28", (ROOT / "docker/tools/web/ruby.sh").read_text())
 
 
 if __name__ == "__main__":

@@ -46,10 +46,10 @@ WRAPPER
 chmod 0755 /usr/local/bin/jwt_tool
 
 export TOOL_RECORD_DIR=/opt/tool-versions.d
-bash "${script_dir}/record-tool-version.sh" source jwt_tool "${JWT_TOOL_VERSION}" all \
+bash "${script_dir}/../../lib/record-tool-version.sh" source jwt_tool "${JWT_TOOL_VERSION}" all \
     /opt/jwt-tool/jwt_tool.py /opt/jwt-tool/jwt_tool.py
-bash "${script_dir}/record-tool-version.sh" jwt-python termcolor "${JWT_TERMCOLOR_VERSION}" all
-bash "${script_dir}/record-tool-version.sh" jwt-python cprint "${JWT_CPRINT_VERSION}" all
-bash "${script_dir}/record-tool-version.sh" jwt-python pycryptodomex "${JWT_PYCRYPTODOMEX_VERSION}" all
-bash "${script_dir}/record-tool-version.sh" jwt-python requests "${JWT_REQUESTS_VERSION}" all
-bash "${script_dir}/record-tool-version.sh" jwt-python ratelimit "${JWT_RATELIMIT_VERSION}" all
+bash "${script_dir}/../../lib/record-tool-version.sh" jwt-python termcolor "${JWT_TERMCOLOR_VERSION}" all
+bash "${script_dir}/../../lib/record-tool-version.sh" jwt-python cprint "${JWT_CPRINT_VERSION}" all
+bash "${script_dir}/../../lib/record-tool-version.sh" jwt-python pycryptodomex "${JWT_PYCRYPTODOMEX_VERSION}" all
+bash "${script_dir}/../../lib/record-tool-version.sh" jwt-python requests "${JWT_REQUESTS_VERSION}" all
+bash "${script_dir}/../../lib/record-tool-version.sh" jwt-python ratelimit "${JWT_RATELIMIT_VERSION}" all

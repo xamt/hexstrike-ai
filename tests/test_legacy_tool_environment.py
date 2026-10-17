@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location(
-    "legacy_collector", ROOT / "docker/collect-python2-runtime.py"
+    "legacy_collector", ROOT / "docker/lib/collect-python2-runtime.py"
 )
 collector = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(collector)
@@ -20,18 +20,18 @@ spec.loader.exec_module(collector)
 class LegacyPackagingTests(unittest.TestCase):
     def test_shell_scripts_parse_without_execution(self):
         for filename in (
-            "install-paramspider-legacy.sh",
-            "install-volatility2-runtime.sh",
-            "install-volatility3-compat.sh",
+            "tools/web/python.sh",
+            "tools/forensics/python2.sh",
+            "compat/install-volatility3.sh",
         ):
             with self.subTest(filename=filename):
                 subprocess.run(["bash", "-n", str(ROOT / "docker" / filename)], check=True)
 
     def test_source_archives_are_exact_and_checked(self):
         for filename, commit, digest in (
-            ("install-paramspider-legacy.sh", "3add9faf11fa269624a2a9e92ea12be90338cb02",
+            ("tools/web/python.sh", "3add9faf11fa269624a2a9e92ea12be90338cb02",
              "18196d50530c8694d6f61175489c531641ae27550db2c8a1eaec1f5f47f0b745"),
-            ("install-volatility2-runtime.sh", "VOLATILITY2_VERSION=2.6.1",
+            ("tools/forensics/python2.sh", "VOLATILITY2_VERSION=2.6.1",
              "a8dfdbdb2aaa0885387b709b821bb8250e698086fb32015bc2896ea55f359058"),
         ):
             script = (ROOT / "docker" / filename).read_text()
@@ -40,14 +40,14 @@ class LegacyPackagingTests(unittest.TestCase):
             self.assertLess(script.index("sha256sum -c -"), script.index("tar -xzf"))
 
     def test_paramspider_keeps_caller_output_directory(self):
-        script = (ROOT / "docker/install-paramspider-legacy.sh").read_text()
+        script = (ROOT / "docker/tools/web/python.sh").read_text()
         wrapper = script.split("<<'WRAPPER'\n", 1)[1].split("\nWRAPPER", 1)[0]
         self.assertNotIn("cd ", wrapper)
         self.assertIn('/opt/paramspider-venv/bin/python /opt/paramspider/paramspider.py "$@"', wrapper)
         self.assertNotIn("--level high", wrapper)
 
     def test_volatility_versions_are_not_aliased(self):
-        script = (ROOT / "docker/install-volatility2-runtime.sh").read_text()
+        script = (ROOT / "docker/tools/forensics/python2.sh").read_text()
         self.assertIn("export PYTHONHOME=/opt/python2", script)
         self.assertIn("unset PYTHONPATH", script)
         self.assertIn("/opt/python2/lib:/opt/python2/lib/compat", script)
@@ -57,7 +57,7 @@ class LegacyPackagingTests(unittest.TestCase):
         self.assertNotIn("volatility3-venv", script)
 
     def test_volatility3_compatibility_path_is_python(self):
-        script = (ROOT / "docker/install-volatility3-compat.sh").read_text()
+        script = (ROOT / "docker/compat/install-volatility3.sh").read_text()
         source = script.split("<<'PY'\n", 1)[1].split("\nPY", 1)[0]
         ast.parse(source)
         self.assertIn("cat > /usr/local/bin/vol.py ", script)

@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RECORDER = ROOT / "docker/record-tool-version.sh"
+RECORDER = ROOT / "docker/lib/record-tool-version.sh"
 
 
 class ToolVersionRecordTests(unittest.TestCase):
@@ -64,16 +64,16 @@ class ToolVersionRecordTests(unittest.TestCase):
                     source = root / "seclists" / relative
                     source.parent.mkdir(parents=True, exist_ok=True)
                     source.write_text("字典替身\n")
-                script = (ROOT / "docker/install-network.sh").read_text().replace(
+                script = (ROOT / "docker/tools/network/apt.sh").read_text().replace(
                     "/usr/share/seclists", str(root / "seclists")).replace(
                     "/opt/hexstrike-compat/autorecon-data", str(root / "data"))
                 installer = root / "install-network.sh"
-                installer.write_text(script)
+                installer.write_text(script.replace('${script_dir}/../../lib/record-tool-version.sh', str(RECORDER)))
                 shutil.copyfile(RECORDER, root / RECORDER.name)
                 result = subprocess.run(["bash", str(installer)],
                                         env=env, text=True, capture_output=True)
                 self.assertEqual(0, result.returncode, result.stderr)
-                self.assertEqual(13, len(list(records.glob("*.tsv"))))
+                self.assertEqual(8, len(list(records.glob("*.tsv"))))
                 self.assertIn(f"masscan={version}", log.read_text())
                 self.assertIn(f"\tmasscan\t{version}\t{arch}\t", (records / "apt-masscan.tsv").read_text())
                 self.assertIn("nmap=7.991+dfsg-1kali1", log.read_text())

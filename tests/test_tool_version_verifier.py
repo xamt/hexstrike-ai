@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location("tool_version_verifier", ROOT / "docker/verify-tool-versions.py")
+SPEC = importlib.util.spec_from_file_location("tool_version_verifier", ROOT / "docker/verify/verify-tool-versions.py")
 VERIFIER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(VERIFIER)
 

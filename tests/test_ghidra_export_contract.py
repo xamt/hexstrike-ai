@@ -70,7 +70,7 @@ public class ExportHarness {
 
 class GhidraExportContractTests(unittest.TestCase):
     def test_script_preserves_existing_name_and_uses_official_exporter(self):
-        source = (ROOT / "docker/ExportXml.java").read_text()
+        source = (ROOT / "docker/compat/ExportXml.java").read_text()
         self.assertIn("public class ExportXml extends GhidraScript", source)
         self.assertIn("new XmlExporter()", source)
         self.assertIn("export(output, currentProgram, null, monitor)", source)
@@ -81,7 +81,7 @@ class GhidraExportContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="ghidra-export-contract-") as directory:
             root = Path(directory)
             sources = dict(STUBS)
-            sources["ExportXml.java"] = (ROOT / "docker/ExportXml.java").read_text()
+            sources["ExportXml.java"] = (ROOT / "docker/compat/ExportXml.java").read_text()
             for name, content in sources.items():
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)

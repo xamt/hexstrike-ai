@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = (ROOT / "docker/install-cli-compat.sh").read_text()
+SCRIPT = (ROOT / "docker/compat/install.sh").read_text()
 SOURCES = [section.split("\nPY", 1)[0] for section in SCRIPT.split("<<'PY'\n")[1:]]
 
 

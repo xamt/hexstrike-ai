@@ -3,7 +3,7 @@
 # =============================================================================
 # 1. 构建配置：只保留上游镜像、平台和软件源
 # =============================================================================
-# 工具版本与安装命令一起维护在 docker/install-*.sh；此处不重复声明。
+# 工具版本与安装命令一起维护在 docker/tools/<类别>/<安装方式>.sh；此处不重复声明。
 # 安装成功后生成预期版本记录，最终阶段读取记录校验并生成 tool-versions.lock。
 # BUILDPLATFORM/TARGETARCH 由 BuildKit 提供，不在全局重声明以免覆盖为空。
 ARG KALI_BASE_IMAGE=kalilinux/kali-rolling:latest
@@ -37,48 +37,52 @@ ENV CGO_ENABLED=0 \
     GOARCH=${TARGETARCH}
 
 # 每个工具单独一层；脚本负责处理 Go 本机/交叉编译输出目录。
-RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+RUN --mount=type=bind,source=docker/tools/osint/go.sh,target=/tmp/docker/tools/osint/go.sh \
+    --mount=type=bind,source=docker/lib/build-go-tool.sh,target=/tmp/docker/lib/build-go-tool.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh gau
-RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    bash /tmp/docker/tools/osint/go.sh gau
+RUN --mount=type=bind,source=docker/tools/osint/go.sh,target=/tmp/docker/tools/osint/go.sh \
+    --mount=type=bind,source=docker/lib/build-go-tool.sh,target=/tmp/docker/lib/build-go-tool.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh waybackurls
-RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    bash /tmp/docker/tools/osint/go.sh waybackurls
+RUN --mount=type=bind,source=docker/tools/osint/go.sh,target=/tmp/docker/tools/osint/go.sh \
+    --mount=type=bind,source=docker/lib/build-go-tool.sh,target=/tmp/docker/lib/build-go-tool.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh anew
-RUN --mount=type=bind,source=docker/install-go-tool.sh,target=/tmp/install-go-tool.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+    bash /tmp/docker/tools/osint/go.sh anew
+RUN --mount=type=bind,source=docker/tools/web/go.sh,target=/tmp/docker/tools/web/go.sh \
+    --mount=type=bind,source=docker/lib/build-go-tool.sh,target=/tmp/docker/lib/build-go-tool.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    bash /tmp/install-go-tool.sh dalfox
+    bash /tmp/docker/tools/web/go.sh
 
 # =============================================================================
 # 3. Rust 工具：目标架构编译 X8，编译器不进入最终镜像
 # =============================================================================
 FROM ${RUST_BUILD_IMAGE} AS rust-tools
 ARG TARGETARCH
-RUN --mount=type=bind,source=docker/install-rust-toolchain.sh,target=/tmp/install-rust-toolchain.sh \
-    bash /tmp/install-rust-toolchain.sh
-RUN --mount=type=bind,source=docker/install-x8.sh,target=/tmp/install-x8.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    bash /tmp/install-x8.sh
+RUN --mount=type=bind,source=docker/runtime/rust-toolchain.sh,target=/tmp/docker/runtime/rust-toolchain.sh \
+    bash /tmp/docker/runtime/rust-toolchain.sh
+RUN --mount=type=bind,source=docker/tools/web/rust.sh,target=/tmp/docker/tools/web/rust.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/tools/web/rust.sh
 
 # =============================================================================
 # 4. Nikto：只获取固定标签的源码，不保留 Git 元数据
 # =============================================================================
 FROM --platform=${BUILDPLATFORM} ${NIKTO_BUILD_IMAGE} AS nikto-source
-RUN --mount=type=bind,source=docker/install-nikto-source.sh,target=/tmp/install-nikto-source.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    bash /tmp/install-nikto-source.sh
+RUN --mount=type=bind,source=docker/tools/web/source.sh,target=/tmp/docker/tools/web/source.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/tools/web/source.sh
 
 # =============================================================================
-# 5. Kali 工具：按类别安装，保留独立缓存层
+# 5. Kali 软件包与 Ruby 工具：用途分类与安装方式分离
 # =============================================================================
 FROM ${PYTHON_RUNTIME_IMAGE} AS python-source
 FROM ${KALI_BASE_IMAGE} AS security-packages
@@ -94,98 +98,118 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # 后续由 Kali ca-certificates 包接管，不关闭 HTTPS 或 APT 签名校验。
 COPY --from=python-source /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-RUN --mount=type=bind,source=docker/install-system.sh,target=/tmp/install-system.sh \
+RUN --mount=type=bind,source=docker/runtime/system.sh,target=/tmp/docker/runtime/system.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
-    bash /tmp/install-system.sh
+    bash /tmp/docker/runtime/system.sh
 
-RUN --mount=type=bind,source=docker/install-network.sh,target=/tmp/install-network.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+RUN --mount=type=bind,source=docker/tools/network/apt.sh,target=/tmp/docker/tools/network/apt.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
-    bash /tmp/install-network.sh
+    bash /tmp/docker/tools/network/apt.sh
 
 COPY --from=nikto-source /opt/nikto/ /opt/nikto/
 COPY --from=nikto-source /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 
-RUN --mount=type=bind,source=docker/install-web.sh,target=/tmp/install-web.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+RUN --mount=type=bind,source=docker/tools/web/apt.sh,target=/tmp/docker/tools/web/apt.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
-    bash /tmp/install-web.sh
+    bash /tmp/docker/tools/web/apt.sh
 
-RUN --mount=type=bind,source=docker/install-password.sh,target=/tmp/install-password.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+RUN --mount=type=bind,source=docker/tools/web/ruby.sh,target=/tmp/docker/tools/web/ruby.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
-    bash /tmp/install-password.sh
+    bash /tmp/docker/tools/web/ruby.sh
 
-RUN --mount=type=bind,source=docker/install-binary.sh,target=/tmp/install-binary.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+RUN --mount=type=bind,source=docker/tools/authentication/apt.sh,target=/tmp/docker/tools/authentication/apt.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
-    bash /tmp/install-binary.sh
+    bash /tmp/docker/tools/authentication/apt.sh
+
+RUN --mount=type=bind,source=docker/tools/binary/apt.sh,target=/tmp/docker/tools/binary/apt.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
+    bash /tmp/docker/tools/binary/apt.sh
+
+RUN --mount=type=bind,source=docker/tools/forensics/apt.sh,target=/tmp/docker/tools/forensics/apt.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
+    bash /tmp/docker/tools/forensics/apt.sh
+
+RUN --mount=type=bind,source=docker/tools/osint/apt.sh,target=/tmp/docker/tools/osint/apt.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
+    bash /tmp/docker/tools/osint/apt.sh
 
 # =============================================================================
-# 6. 工具组装：复制编译产物和安装记录，准备小型字典
+# 6. 工具组装：复制编译产物、准备小型字典、安装容器客户端
 # =============================================================================
 FROM security-packages AS security-tools
 COPY --from=go-tools /out/bin/ /usr/local/bin/
 COPY --from=go-tools /out/tool-versions.d/ /opt/hexstrike/tool-versions.d/
 COPY --from=rust-tools /out/bin/x8 /usr/local/bin/x8
 COPY --from=rust-tools /out/tool-versions.d/ /opt/hexstrike/tool-versions.d/
-RUN --mount=type=bind,source=docker/prepare-tool-data.sh,target=/tmp/prepare-tool-data.sh \
-    bash /tmp/prepare-tool-data.sh
-
-# 补齐 TLS、Web 指纹、凭据泄漏及网络证据能力，原工具安装层保持不变。
-RUN --mount=type=bind,source=docker/install-security-extras.sh,target=/tmp/install-security-extras.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
-    --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
-    bash /tmp/install-security-extras.sh
+RUN --mount=type=bind,source=docker/assembly/prepare-tool-data.sh,target=/tmp/docker/assembly/prepare-tool-data.sh \
+    bash /tmp/docker/assembly/prepare-tool-data.sh
 
 # 通用容器环境：Docker CLI、kubectl、Helm；不安装 daemon 或专有云工具。
-RUN --mount=type=bind,source=docker/install-container-tools.sh,target=/tmp/install-container-tools.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
+RUN --mount=type=bind,source=docker/tools/container/apt.sh,target=/tmp/docker/tools/container/apt.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
     --mount=type=cache,id=hexstrike-apt-lists-${TARGETARCH},target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,id=hexstrike-apt-cache-${TARGETARCH},target=/var/cache/apt,sharing=locked \
-    bash /tmp/install-container-tools.sh apt
+    --mount=type=cache,id=hexstrike-external-seclists-${TARGETARCH},target=/usr/share/seclists,sharing=locked \
+    bash /tmp/docker/tools/container/apt.sh
 
 # Kube-Bench 使用官方双架构固定发布包，附带 CIS 配置，不通过不明代理获取。
-RUN --mount=type=bind,source=docker/install-container-tools.sh,target=/tmp/install-container-tools.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    bash /tmp/install-container-tools.sh bench
+RUN --mount=type=bind,source=docker/tools/container/release.sh,target=/tmp/docker/tools/container/release.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/tools/container/release.sh
 
 # =============================================================================
-# 7. Python 3 运行时：Volatility3、JWT-Tool、旧 ParamSpider、Kube-Hunter 各自隔离
+# 7. Python 3：先安装运行组件，再按类别准备各工具的隔离环境
 # =============================================================================
 FROM python-source AS python-runtime
 ARG TARGETARCH
 ARG PIP_INDEX_URL
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1
-RUN --mount=type=bind,source=docker/install-python-runtime.sh,target=/tmp/install-python-runtime.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    bash /tmp/install-python-runtime.sh
-RUN --mount=type=bind,source=docker/install-jwt-tool.sh,target=/tmp/install-jwt-tool.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    bash /tmp/install-jwt-tool.sh
+RUN --mount=type=bind,source=docker/runtime/python.sh,target=/tmp/docker/runtime/python.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/runtime/python.sh
 
-RUN --mount=type=bind,source=docker/install-paramspider-legacy.sh,target=/tmp/install-paramspider-legacy.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    bash /tmp/install-paramspider-legacy.sh
-RUN --mount=type=bind,source=docker/install-volatility3-compat.sh,target=/tmp/install-volatility3-compat.sh \
-    bash /tmp/install-volatility3-compat.sh
+RUN --mount=type=bind,source=docker/tools/forensics/python3.sh,target=/tmp/docker/tools/forensics/python3.sh \
+    --mount=type=bind,source=docker/runtime/python.sh,target=/tmp/docker/runtime/python.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/tools/forensics/python3.sh
+RUN --mount=type=bind,source=docker/tools/authentication/python.sh,target=/tmp/docker/tools/authentication/python.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/tools/authentication/python.sh
+
+RUN --mount=type=bind,source=docker/tools/web/python.sh,target=/tmp/docker/tools/web/python.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/tools/web/python.sh
+RUN --mount=type=bind,source=docker/compat/install-volatility3.sh,target=/tmp/docker/compat/install-volatility3.sh \
+    bash /tmp/docker/compat/install-volatility3.sh
 
 # netifaces 编译依赖只留在本构建阶段，最终镜像仅复制隔离环境与运行时。
-RUN --mount=type=bind,source=docker/install-container-tools.sh,target=/tmp/install-container-tools.sh \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    bash /tmp/install-container-tools.sh python
+RUN --mount=type=bind,source=docker/tools/container/python.sh,target=/tmp/docker/tools/container/python.sh \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/tools/container/python.sh
 
 # =============================================================================
 # 8. 旧取证运行时：真实 Volatility 2，避免把 profile 接口映射至 Volatility 3
@@ -194,10 +218,10 @@ FROM ${LEGACY_PYTHON_RUNTIME_IMAGE} AS legacy-python-runtime
 ARG TARGETARCH
 ARG PIP_INDEX_URL
 COPY --from=python-source /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-RUN --mount=type=bind,source=docker/install-volatility2-runtime.sh,target=/tmp/install-volatility2-runtime.sh \
-    --mount=type=bind,source=docker/collect-python2-runtime.py,target=/tmp/collect-python2-runtime.py \
-    --mount=type=bind,source=docker/record-tool-version.sh,target=/tmp/record-tool-version.sh \
-    bash /tmp/install-volatility2-runtime.sh
+RUN --mount=type=bind,source=docker/tools/forensics/python2.sh,target=/tmp/docker/tools/forensics/python2.sh \
+    --mount=type=bind,source=docker/lib/collect-python2-runtime.py,target=/tmp/docker/lib/collect-python2-runtime.py \
+    --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
+    bash /tmp/docker/tools/forensics/python2.sh
 
 # =============================================================================
 # 9. 最终基础镜像：接入 Python、校验全部工具，默认进入 Bash
@@ -215,22 +239,22 @@ COPY --from=python-runtime /opt/volatility3/ /opt/volatility3/
 COPY --from=python-runtime /opt/kube-hunter-venv/ /opt/kube-hunter-venv/
 COPY --from=legacy-python-runtime /out/ /
 COPY --from=python-runtime /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
-RUN --mount=type=bind,source=docker/install-cli-compat.sh,target=/tmp/install-cli-compat.sh \
-    --mount=type=bind,source=docker/cli-compat.py,target=/tmp/cli-compat.py \
-    --mount=type=bind,source=docker/ExportXml.java,target=/tmp/ExportXml.java \
-    --mount=type=bind,source=docker/autorecon-compat.py,target=/tmp/autorecon-compat.py \
-    --mount=type=bind,source=docker/autorecon-plugins,target=/tmp/autorecon-plugins \
-    --mount=type=bind,source=docker/hakrawler-compat.py,target=/tmp/hakrawler-compat.py \
-    --mount=type=bind,source=docker/hakrawler_runtime.py,target=/tmp/hakrawler_runtime.py \
-    --mount=type=bind,source=docker/hakrawler_sources.py,target=/tmp/hakrawler_sources.py \
-    --mount=type=bind,source=docker/hakrawler_process.py,target=/tmp/hakrawler_process.py \
-    --mount=type=bind,source=docker/nuclei-compat.py,target=/tmp/nuclei-compat.py \
-    bash /tmp/install-cli-compat.sh
-RUN --mount=type=bind,source=docker/finalize-base.sh,target=/tmp/finalize-base.sh \
-    bash /tmp/finalize-base.sh
-RUN --mount=type=bind,source=docker/verify-base.sh,target=/tmp/verify-base.sh \
-    --mount=type=bind,source=docker/verify-tool-versions.py,target=/tmp/verify-tool-versions.py \
-    bash /tmp/verify-base.sh
+RUN --mount=type=bind,source=docker/compat/install.sh,target=/tmp/docker/compat/install.sh \
+    --mount=type=bind,source=docker/compat/cli-compat.py,target=/tmp/docker/compat/cli-compat.py \
+    --mount=type=bind,source=docker/compat/ExportXml.java,target=/tmp/docker/compat/ExportXml.java \
+    --mount=type=bind,source=docker/compat/autorecon-compat.py,target=/tmp/docker/compat/autorecon-compat.py \
+    --mount=type=bind,source=docker/compat/autorecon-plugins/hexstrike-tcp-profiles.py,target=/tmp/docker/compat/autorecon-plugins/hexstrike-tcp-profiles.py \
+    --mount=type=bind,source=docker/compat/hakrawler-compat.py,target=/tmp/docker/compat/hakrawler-compat.py \
+    --mount=type=bind,source=docker/compat/hakrawler_runtime.py,target=/tmp/docker/compat/hakrawler_runtime.py \
+    --mount=type=bind,source=docker/compat/hakrawler_sources.py,target=/tmp/docker/compat/hakrawler_sources.py \
+    --mount=type=bind,source=docker/compat/hakrawler_process.py,target=/tmp/docker/compat/hakrawler_process.py \
+    --mount=type=bind,source=docker/compat/nuclei-compat.py,target=/tmp/docker/compat/nuclei-compat.py \
+    bash /tmp/docker/compat/install.sh
+RUN --mount=type=bind,source=docker/assembly/finalize-base.sh,target=/tmp/docker/assembly/finalize-base.sh \
+    bash /tmp/docker/assembly/finalize-base.sh
+RUN --mount=type=bind,source=docker/verify/base.sh,target=/tmp/docker/verify/base.sh \
+    --mount=type=bind,source=docker/verify/verify-tool-versions.py,target=/tmp/docker/verify/verify-tool-versions.py \
+    bash /tmp/docker/verify/base.sh
 
 # 不安装项目依赖、不复制项目代码、不开放服务端口。
 WORKDIR /opt/hexstrike

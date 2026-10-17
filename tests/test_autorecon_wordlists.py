@@ -17,8 +17,8 @@ def section(name, marker):
 
 class AutoReconWordlistTests(unittest.TestCase):
     def test_exact_upstream_files_survive_cache_unmount_at_original_paths(self):
-        copy_script = section("install-network.sh", "# AUTORECON_SMALL_DATA\n")
-        link_script = section("prepare-tool-data.sh", "# AUTORECON_SMALL_DATA\n")
+        copy_script = section("tools/network/apt.sh", "# AUTORECON_SMALL_DATA\n")
+        link_script = section("assembly/prepare-tool-data.sh", "# AUTORECON_SMALL_DATA\n")
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)
             cache, runtime, output = base / "cache", base / "runtime", base / "output"
@@ -39,7 +39,7 @@ class AutoReconWordlistTests(unittest.TestCase):
                 self.assertEqual((runtime / relative).read_text(), f"真实字典替身 {index}\n")
             self.assertFalse((runtime / "large-unused.txt").exists())
             self.assertFalse((output / "large-unused.txt").exists())
-            verification = (ROOT / "docker/verify-base.sh").read_text().split("<<'PY'\n", 1)[1].split("\nPY", 1)[0]
+            verification = (ROOT / "docker/verify/base.sh").read_text().split("<<'PY'\n", 1)[1].split("\nPY", 1)[0]
             verification = verification.replace("/usr/share/seclists", str(runtime)).replace(
                 "/opt/hexstrike-compat/autorecon-data", str(output))
             exec(verification, {})
@@ -48,7 +48,7 @@ class AutoReconWordlistTests(unittest.TestCase):
                 exec(verification, {})
 
     def test_missing_dictionary_fails_instead_of_reducing_coverage(self):
-        script = section("install-network.sh", "# AUTORECON_SMALL_DATA\n")
+        script = section("tools/network/apt.sh", "# AUTORECON_SMALL_DATA\n")
         with tempfile.TemporaryDirectory() as directory:
             script = script.replace("/usr/share/seclists", directory + "/missing").replace(
                 "/opt/hexstrike-compat/autorecon-data", directory + "/output")

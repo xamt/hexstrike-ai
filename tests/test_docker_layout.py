@@ -23,7 +23,7 @@ class DockerLayoutTests(unittest.TestCase):
         self.assertNotIn("ARG TARGETARCH", header)
         self.assertNotRegex(content, r"\b\w+_VERSION\b")
         self.assertNotIn("RUST_TOOLCHAIN", content)
-        rust = (ROOT / "docker/install-rust-toolchain.sh").read_text()
+        rust = (ROOT / "docker/runtime/rust-toolchain.sh").read_text()
         self.assertIn("RUST_TOOLCHAIN=1.79.0", rust)
         self.assertIn('rustup default "${RUST_TOOLCHAIN}"', rust)
 
@@ -39,7 +39,7 @@ class DockerLayoutTests(unittest.TestCase):
         self.assertNotIn("GOSUMDB=off", content)
         self.assertNotIn("GOINSECURE", content)
         self.assertNotIn("GONOSUMDB", content)
-        script = (ROOT / "docker/install-go-tool.sh").read_text()
+        script = (ROOT / "docker/lib/build-go-tool.sh").read_text()
         self.assertNotIn("GOPROXY=", script)
         self.assertIn('go install "${package}@${version}"', script)
 
@@ -49,18 +49,18 @@ class DockerLayoutTests(unittest.TestCase):
         self.assertGreater(len(runs), 10)
         for run in runs:
             with self.subTest(run=run):
-                source = re.search(r"source=(docker/[\w-]+\.sh)", run)
+                source = re.search(r"source=(docker/[\w./-]+\.sh)", run)
                 self.assertIsNotNone(source)
                 self.assertTrue((ROOT / source[1]).is_file())
-                self.assertRegex(run, r"bash /tmp/[\w-]+\.sh(?: |$)")
+                self.assertRegex(run, r"bash /tmp/docker/[\w./-]+\.sh(?: |$)")
                 self.assertNotIn("&&", run)
 
     def test_expected_records_reach_final_stage(self):
         content = (ROOT / "Dockerfile.base").read_text()
         for stage in ("go-tools", "rust-tools", "nikto-source", "python-runtime"):
             self.assertRegex(content, rf"COPY --from={stage} \S+/ /opt/hexstrike/tool-versions.d/")
-        self.assertIn("source=docker/verify-tool-versions.py", content)
-        self.assertIn("verify-tool-versions.py", (ROOT / "docker/verify-base.sh").read_text())
+        self.assertIn("source=docker/verify/verify-tool-versions.py", content)
+        self.assertIn("verify-tool-versions.py", (ROOT / "docker/verify/base.sh").read_text())
 
     def test_documented_commands_are_standalone_and_architecture_matched(self):
         docs = (ROOT / "docs/DOCKER_BUILD.md").read_text()

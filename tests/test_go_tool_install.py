@@ -20,6 +20,8 @@ elif sys.argv[1] == "install":
     assert os.environ.get("GOBIN") == "", "GOBIN 未清除"
     name = os.environ["TEST_TOOL"]
     expected = {"gau": "github.com/lc/gau/v2/cmd/gau@v2.2.4",
+                "waybackurls": "github.com/tomnomnom/waybackurls@v0.1.0",
+                "anew": "github.com/tomnomnom/anew@v0.1.1",
                 "dalfox": "github.com/hahwul/dalfox/v2@v2.12.0"}
     assert sys.argv[2] == expected[name]
     if os.environ.get("TEST_FAIL"):
@@ -52,7 +54,8 @@ class GoToolInstallTests(unittest.TestCase):
             if fail:
                 env["TEST_FAIL"] = "1"
             result = subprocess.run(
-                ["bash", str(ROOT / "docker/install-go-tool.sh"), tool],
+                (["bash", str(ROOT / "docker/tools/web/go.sh")] if tool == "dalfox" else
+                 ["bash", str(ROOT / "docker/tools/osint/go.sh"), tool]),
                 env=env, capture_output=True, text=True,
             )
             artifact = output / tool
@@ -78,6 +81,14 @@ class GoToolInstallTests(unittest.TestCase):
             result, artifact = self.run_install(arch, tool="dalfox")
             self.assertEqual(0, result.returncode, result.stderr)
             self.assertEqual(arch, artifact)
+
+    def test_other_osint_tools_keep_original_modules_and_versions(self):
+        for tool in ("waybackurls", "anew"):
+            for arch in ("amd64", "arm64"):
+                with self.subTest(tool=tool, arch=arch):
+                    result, artifact = self.run_install(arch, tool=tool)
+                    self.assertEqual(0, result.returncode, result.stderr)
+                    self.assertEqual(arch, artifact)
 
 
 if __name__ == "__main__":

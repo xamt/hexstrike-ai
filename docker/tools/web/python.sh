@@ -40,10 +40,10 @@ WRAPPER
 chmod 0755 /usr/local/bin/paramspider
 
 export TOOL_RECORD_DIR=/opt/tool-versions.d
-bash "${script_dir}/record-tool-version.sh" source paramspider "${PARAMSPIDER_VERSION}" all \
+bash "${script_dir}/../../lib/record-tool-version.sh" source paramspider "${PARAMSPIDER_VERSION}" all \
     /opt/paramspider/paramspider.py /opt/paramspider/paramspider.py
 for item in "requests:${PARAM_REQUESTS_VERSION}" "urllib3:${PARAM_URLLIB3_VERSION}" \
     "charset-normalizer:${PARAM_CHARSET_NORMALIZER_VERSION}" "idna:${PARAM_IDNA_VERSION}" \
     "certifi:${PARAM_CERTIFI_VERSION}"; do
-    bash "${script_dir}/record-tool-version.sh" param-python "${item%%:*}" "${item#*:}" all
+    bash "${script_dir}/../../lib/record-tool-version.sh" param-python "${item%%:*}" "${item#*:}" all
 done

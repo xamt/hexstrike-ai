@@ -8,6 +8,27 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = json.loads((ROOT / "tests/fixtures/security-tool-contract.json").read_text())
+CATEGORIES = ("network", "web", "osint")
+
+
+def sandbox_category(root, category):
+    """保留类别安装流程，仅重定向固定写入路径并替换系统命令。"""
+    from test_autorecon_wordlists import WORDS
+    script = (ROOT / f"docker/tools/{category}/apt.sh").read_text()
+    script = script.replace("${script_dir}/../../lib/record-tool-version.sh",
+                            str(ROOT / "docker/lib/record-tool-version.sh"))
+    script = script.replace("/usr/share/seclists", str(root / "seclists"))
+    script = script.replace("/opt/hexstrike-compat/autorecon-data", str(root / "data"))
+    for relative in WORDS:
+        source = root / "seclists" / relative
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("测试字典\n")
+    installer = root / f"{category}.sh"
+    installer.write_text(script)
+    link = root / "ln"
+    link.write_text('#!/bin/sh\nexit 0\n')
+    link.chmod(0o755)
+    return installer
 
 
 class SecurityInstallTests(unittest.TestCase):
@@ -22,13 +43,15 @@ class SecurityInstallTests(unittest.TestCase):
                 apt.chmod(0o755)
                 env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}", TARGETARCH=arch,
                            TEST_LOG=str(root / "calls"), TOOL_RECORD_DIR=str(root / "records"))
-                result = subprocess.run(["bash", str(ROOT / "docker/install-security-extras.sh")],
-                                        env=env, capture_output=True, text=True)
-                self.assertEqual(0, result.returncode, result.stderr)
-                self.assertEqual(4, len(list((root / "records").glob("*.tsv"))))
+                for category in CATEGORIES:
+                    result = subprocess.run(["bash", str(sandbox_category(root, category))],
+                                            env=env, capture_output=True, text=True)
+                    self.assertEqual(0, result.returncode, result.stderr)
                 for package, variable in CONTRACT["aptPackages"].items():
                     self.assertIn(f"{package}={CONTRACT['versions'][variable]}",
                                   (root / "calls").read_text())
+                    fields = (root / "records" / f"apt-{package}.tsv").read_text().split("\t")
+                    self.assertEqual(fields[:4], ["apt", package, CONTRACT["versions"][variable], arch])
 
     def test_apt_failure_and_invalid_arch_never_record_success(self):
         for arch, code in (("arm64", 37), ("s390x", 1)):
@@ -39,13 +62,14 @@ class SecurityInstallTests(unittest.TestCase):
                 apt.chmod(0o755)
                 env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}", TARGETARCH=arch,
                            TOOL_RECORD_DIR=str(root / "records"))
-                result = subprocess.run(["bash", str(ROOT / "docker/install-security-extras.sh")],
-                                        env=env, capture_output=True, text=True)
-                self.assertEqual(code, result.returncode, result.stderr)
+                for category in CATEGORIES:
+                    result = subprocess.run(["bash", str(ROOT / f"docker/tools/{category}/apt.sh")],
+                                            env=env, capture_output=True, text=True)
+                    self.assertEqual(code, result.returncode, result.stderr)
                 self.assertFalse((root / "records").exists())
 
     def test_jwt_is_pinned_isolated_and_checked(self):
-        script = (ROOT / "docker/install-jwt-tool.sh").read_text()
+        script = (ROOT / "docker/tools/authentication/python.sh").read_text()
         base = (ROOT / "Dockerfile.base").read_text()
         self.assertIn("JWT_TOOL_VERSION=2.3.0", script)
         self.assertIn("0f8c32aa9f67cea4312e5df81d48f72dc5daf57f3cc0ce09d67db78e23fbe451", script)
@@ -59,7 +83,7 @@ class SecurityInstallTests(unittest.TestCase):
         self.assertNotIn("security_tools/", base)
 
     def test_smoke_checks_only_use_help_or_version(self):
-        script = (ROOT / "docker/verify-base.sh").read_text()
+        script = (ROOT / "docker/verify/base.sh").read_text()
         for command in ("testssl", "whatweb", "trufflehog", "tcpdump"):
             self.assertIn(f"timeout 30 {command} --version", script)
         self.assertIn("timeout 30 jwt_tool -h", script)
@@ -81,7 +105,7 @@ class SecurityInstallTests(unittest.TestCase):
                 mkdir.chmod(0o755)
                 env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}", FAILURE=failure,
                            TEST_LOG=str(root / "calls"), PIP_INDEX_URL="https://example.invalid/simple")
-                result = subprocess.run(["bash", str(ROOT / "docker/install-jwt-tool.sh")],
+                result = subprocess.run(["bash", str(ROOT / "docker/tools/authentication/python.sh")],
                                         env=env, capture_output=True, text=True)
                 self.assertEqual(expected, result.returncode, result.stderr)
                 self.assertFalse((root / "calls").exists())
@@ -92,7 +116,7 @@ class SecurityInstallTests(unittest.TestCase):
         script = (ROOT / "tests/verify_docker_cache.py").read_text()
         self.assertFalse((ROOT / "database_tools").exists())
         self.assertIn('"jwt-tool": "python3 /opt/jwt_tool/jwt_tool.py"', server)
-        self.assertIn("/opt/jwt_tool/jwt_tool.py", (ROOT / "docker/install-cli-compat.sh").read_text())
+        self.assertIn("/opt/jwt_tool/jwt_tool.py", (ROOT / "docker/compat/install.sh").read_text())
         self.assertIn('@app.route("/api/tools/jwt_analyzer", methods=["POST"])', server)
         self.assertFalse((ROOT / "security_tools").exists())
         for content in (app, server, script):

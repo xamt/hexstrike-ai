@@ -51,7 +51,7 @@ python2.7 -m pip install --index-url "${PIP_INDEX_URL}" \
     "future==${LEGACY_FUTURE_VERSION}" "capstone==${LEGACY_CAPSTONE_VERSION}" \
     "Pillow==${LEGACY_PILLOW_VERSION}"
 python2.7 -m pip check
-python2.7 "${script_dir}/collect-python2-runtime.py" /usr/local /out/opt/python2
+python2.7 "${script_dir}/../../lib/collect-python2-runtime.py" /usr/local /out/opt/python2
 
 cat > /out/usr/local/bin/volatility2-python <<'WRAPPER'
 #!/bin/sh
@@ -67,14 +67,14 @@ WRAPPER
 chmod 0755 /out/usr/local/bin/volatility /out/usr/local/bin/volatility2-python
 
 export TOOL_RECORD_DIR=/out/opt/hexstrike/tool-versions.d
-bash "${script_dir}/record-tool-version.sh" source python2 "${PYTHON2_VERSION}" "${TARGETARCH}" \
+bash "${script_dir}/../../lib/record-tool-version.sh" source python2 "${PYTHON2_VERSION}" "${TARGETARCH}" \
     /out/opt/python2/bin/python2.7 /opt/python2/bin/python2.7
-bash "${script_dir}/record-tool-version.sh" source volatility2 "${VOLATILITY2_VERSION}" all \
+bash "${script_dir}/../../lib/record-tool-version.sh" source volatility2 "${VOLATILITY2_VERSION}" all \
     /out/opt/volatility2/vol.py /opt/volatility2/vol.py
 for item in "pip:${LEGACY_PIP_VERSION}" "setuptools:${LEGACY_SETUPTOOLS_VERSION}" \
     "wheel:${LEGACY_WHEEL_VERSION}" "pycryptodome:${LEGACY_PYCRYPTODOME_VERSION}" \
     "distorm3:${LEGACY_DISTORM3_VERSION}" "yara-python:${LEGACY_YARA_PYTHON_VERSION}" \
     "pefile:${LEGACY_PEFILE_VERSION}" "future:${LEGACY_FUTURE_VERSION}" \
     "capstone:${LEGACY_CAPSTONE_VERSION}" "pillow:${LEGACY_PILLOW_VERSION}"; do
-    bash "${script_dir}/record-tool-version.sh" legacy-python "${item%%:*}" "${item#*:}" all
+    bash "${script_dir}/../../lib/record-tool-version.sh" legacy-python "${item%%:*}" "${item#*:}" all
 done
