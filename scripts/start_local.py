@@ -47,7 +47,7 @@ def local_commands(config):
     """使用原Flask应用，只绑定回环且禁用自动重载；不改变工具执行逻辑。"""
     api = [config.api_python, "-u", "-c",
            "import os; os.environ.update(HEXSTRIKE_HOST='127.0.0.1', "
-           f"HEXSTRIKE_PORT='{config.api_port}'); from hexstrike_server import app; "
+           f"HEXSTRIKE_PORT='{config.api_port}'); from server import app; "
            f"app.run(host='127.0.0.1', port={config.api_port}, "
            "debug=False, use_reloader=False)"]
     mcp = [config.mcp_python, "-u", str(config.root / "hexstrike_mcp.py"),

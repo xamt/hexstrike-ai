@@ -15,7 +15,7 @@ for image in "${base_image}" "${app_image}"; do
 done
 
 docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/bash -ec '
-    test ! -e /opt/pentest-tools/hexstrike_server.py
+    test ! -e /opt/pentest-tools/server.py
     test ! -e /opt/pentest-tools/requirements.txt
     test ! -e /opt/hexstrike-venv
     python3.11 --version

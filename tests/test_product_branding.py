@@ -30,7 +30,7 @@ class ProductBrandingTests(unittest.TestCase):
             json.loads(block)
 
     def test_banner_and_dashboard_use_product_name(self):
-        tree = ast.parse((ROOT / "hexstrike_server.py").read_text())
+        tree = ast.parse((ROOT / "server.py").read_text())
         visual = next(node for node in tree.body
                       if isinstance(node, ast.ClassDef) and node.name == "ModernVisualEngine")
         namespace = {"API_HOST": "127.0.0.1", "API_PORT": 8888, "Dict": Dict, "Any": Any}
@@ -42,13 +42,13 @@ class ProductBrandingTests(unittest.TestCase):
             self.assertNotIn("hexstrike", output.lower())
 
     def test_health_message_uses_product_name(self):
-        tree = ast.parse((ROOT / "hexstrike_server.py").read_text())
+        tree = ast.parse((ROOT / "server.py").read_text())
         messages = [node.value for node in ast.walk(tree) if isinstance(node, ast.Constant)
                     and isinstance(node.value, str) and "API Server is operational" in node.value]
         self.assertEqual(messages, [f"{PRODUCT} API Server is operational"])
 
     def test_legacy_cli_still_works_with_new_help(self):
-        from hexstrike_runtime.cli import parse_args
+        from runtime.cli import parse_args
         output = io.StringIO()
         with contextlib.redirect_stdout(output), self.assertRaises(SystemExit) as raised:
             parse_args(["--help"])
@@ -57,7 +57,7 @@ class ProductBrandingTests(unittest.TestCase):
         self.assertEqual(parse_args([]).transport, "stdio")
 
     def test_mcp_service_name(self):
-        tree = ast.parse((ROOT / "hexstrike_runtime/server.py").read_text())
+        tree = ast.parse((ROOT / "runtime/server.py").read_text())
         names = [node.args[0].value for node in ast.walk(tree)
                  if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
                  and node.func.attr == "__init__" and node.args

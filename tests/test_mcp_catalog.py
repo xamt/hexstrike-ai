@@ -10,7 +10,7 @@ from unittest.mock import Mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from hexstrike_tools import register_tools
+from tools import register_tools
 
 try:
     from mcp.server import MCPServer

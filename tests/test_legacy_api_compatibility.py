@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 ROOT = Path(__file__).resolve().parents[1]
-SERVER = ast.parse((ROOT / "hexstrike_server.py").read_text())
+SERVER = ast.parse((ROOT / "server.py").read_text())
 
 
 def endpoint(name, payload, result=None):
@@ -101,7 +101,7 @@ class LegacyApiTests(unittest.TestCase):
         execute.assert_called_once_with("httpx -l targets.txt -t 50")
 
     def test_no_database_registration(self):
-        self.assertFalse("database_tools" in (ROOT / "hexstrike_server.py").read_text())
+        self.assertFalse("database_tools" in (ROOT / "server.py").read_text())
 
 
 if __name__ == "__main__":

@@ -34,11 +34,11 @@ class DualServiceDockerTests(unittest.TestCase):
 
     def test_shared_tool_modules_are_packaged(self):
         dockerfile = (ROOT / "Dockerfile").read_text()
-        self.assertIn("COPY hexstrike_tools/ ./hexstrike_tools/", dockerfile)
-        self.assertIn("COPY hexstrike_runtime/ ./hexstrike_runtime/", dockerfile)
+        self.assertIn("COPY tools/ ./tools/", dockerfile)
+        self.assertIn("COPY runtime/ ./runtime/", dockerfile)
 
     def test_api_probe_uses_readonly_stats_without_tool_execution(self):
-        tree = ast.parse((ROOT / "hexstrike_server.py").read_text())
+        tree = ast.parse((ROOT / "server.py").read_text())
         endpoint = next(node for node in tree.body
                         if isinstance(node, ast.FunctionDef) and node.name == "cache_stats")
         calls = {ast.unparse(node.func) for node in ast.walk(endpoint)

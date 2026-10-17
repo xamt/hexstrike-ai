@@ -16,7 +16,7 @@ class DockerContractTests(unittest.TestCase):
 
     def test_base_does_not_consume_application(self):
         base = (ROOT / "Dockerfile.base").read_text()
-        for name in ("requirements.txt", "hexstrike_server.py", "hexstrike_mcp.py"):
+        for name in ("requirements.txt", "server.py", "hexstrike_mcp.py"):
             self.assertNotIn(name, base)
         self.assertNotIn("HEALTHCHECK", base)
         self.assertNotIn("EXPOSE", base)
@@ -58,7 +58,7 @@ class DockerContractTests(unittest.TestCase):
         self.assertEqual(1, len(re.findall(r"^FROM ", app, re.M)))
         self.assertNotIn("apt-get", app)
         self.assertNotIn("go install", app)
-        self.assertLess(app.index("COPY requirements.txt"), app.index("COPY hexstrike_server.py"))
+        self.assertLess(app.index("COPY requirements.txt"), app.index("COPY server.py"))
         self.assertIn("pwntools|angr|bcrypt", app)
         self.assertIn("/opt/hexstrike-venv/bin/python", app)
         base = (ROOT / "Dockerfile.base").read_text()

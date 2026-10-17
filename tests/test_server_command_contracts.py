@@ -11,7 +11,7 @@ from unittest.mock import Mock
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
-TREE = ast.parse((ROOT / "hexstrike_server.py").read_text())
+TREE = ast.parse((ROOT / "server.py").read_text())
 
 
 def load_function(name, **overrides):

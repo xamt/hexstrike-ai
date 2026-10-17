@@ -63,7 +63,7 @@ class LocalConfigurationTests(unittest.TestCase):
 
     def test_api_bootstrap_applies_binding_and_environment_without_reloader(self):
         with tempfile.TemporaryDirectory() as directory:
-            module = Path(directory) / "hexstrike_server.py"
+            module = Path(directory) / "server.py"
             module.write_text("import json, os\n"
                 "class App:\n"
                 "    def run(self, **kwargs):\n"

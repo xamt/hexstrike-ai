@@ -14,7 +14,7 @@ RECENT ENHANCEMENTS (v6.0):
 ✅ AI-driven decision engine for tool selection
 ✅ Advanced error handling and recovery systems
 
-Architecture: Two-script system (hexstrike_server.py + hexstrike_mcp.py)
+Architecture: Two-script system (server.py + hexstrike_mcp.py)
 Framework: FastMCP integration for AI agent communication
 """
 
@@ -10346,7 +10346,7 @@ def create_comprehensive_bugbounty_assessment():
 @app.route("/api/tools/nmap", methods=["POST"])
 def nmap():
     """Execute nmap scan with enhanced logging, caching, and intelligent error handling"""
-    from hexstrike_runtime.nmap_options import validate_scan_type
+    from runtime.nmap_options import validate_scan_type
 
     try:
         params = request.json

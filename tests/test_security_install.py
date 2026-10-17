@@ -112,7 +112,7 @@ class SecurityInstallTests(unittest.TestCase):
 
     def test_application_has_no_new_database_or_security_api(self):
         app = (ROOT / "Dockerfile").read_text()
-        server = (ROOT / "hexstrike_server.py").read_text()
+        server = (ROOT / "server.py").read_text()
         script = (ROOT / "tests/verify_docker_cache.py").read_text()
         self.assertFalse((ROOT / "database_tools").exists())
         self.assertIn('"jwt-tool": "python3 /opt/jwt_tool/jwt_tool.py"', server)

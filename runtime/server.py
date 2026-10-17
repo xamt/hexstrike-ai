@@ -9,7 +9,7 @@ import anyio
 from mcp.server.mcpserver import MCPServer
 from mcp.types import CallToolResult, TextContent
 
-from hexstrike_tools import register_tools
+from tools import register_tools
 
 logger = logging.getLogger(__name__)
 

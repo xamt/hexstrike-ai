@@ -11,7 +11,7 @@ HAS_REQUESTS = importlib.util.find_spec("requests") is not None
 
 class ConfigurationTests(unittest.TestCase):
     def test_defaults_preserve_stdio(self):
-        from hexstrike_runtime.cli import parse_args
+        from runtime.cli import parse_args
         with patch.dict(os.environ, {}, clear=True):
             args = parse_args([])
         self.assertEqual(args.transport, "stdio")
@@ -19,7 +19,7 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual(args.max_concurrent, 4)
 
     def test_http_configuration_and_validation(self):
-        from hexstrike_runtime.cli import parse_args
+        from runtime.cli import parse_args
         args = parse_args(["--transport", "streamable-http", "--port", "9000",
                            "--allowed-host", "gateway.example:*"])
         self.assertEqual(args.port, 9000)
@@ -34,7 +34,7 @@ class ConfigurationTests(unittest.TestCase):
 @unittest.skipUnless(HAS_REQUESTS, "需要 requirements-mcp.txt 中的 requests")
 class ClientTests(unittest.TestCase):
     def make_client(self):
-        from hexstrike_runtime.client import HexStrikeClient
+        from runtime.client import HexStrikeClient
         return HexStrikeClient("http://127.0.0.1:8888", timeout=7)
 
     def test_sessions_are_thread_local_and_closed(self):

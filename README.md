@@ -37,7 +37,7 @@ curl --fail "http://127.0.0.1:8889/readyz"
 
 当前接口不提供鉴权，HTTP API 与 MCP 都必须限制网络访问，远程访问通过受控网关接入。`/health` 会检测工具可用性，不适合高频轮询。
 
-为保持已有部署兼容，本次仅调整产品展示名称，保留 `hexstrike_server.py`、`hexstrike_mcp.py`、内部模块、`HEXSTRIKE_*` 环境变量、容器路径及既有插件标识；无需迁移现有启动配置。
+API 入口为 `server.py`，共用运行模块位于 `runtime/`，MCP 工具注册位于 `tools/`。项目启动脚本和 Docker 配置已同步；自定义 API 启动命令需改为 `python server.py`，自定义模块导入也需使用新包名。MCP 入口 `hexstrike_mcp.py`、`HEXSTRIKE_*` 环境变量及既有插件标识保持不变。
 
 ## AI Client Integration Setup
 

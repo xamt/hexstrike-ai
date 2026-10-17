@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """HexStrike MCP 兼容入口：保留 stdio，并支持 Streamable HTTP。"""
 
-from hexstrike_runtime.cli import main, parse_args
-from hexstrike_runtime.client import (
+from runtime.cli import main, parse_args
+from runtime.client import (
     DEFAULT_HEXSTRIKE_SERVER,
     DEFAULT_REQUEST_TIMEOUT,
     HexStrikeClient,
 )
-from hexstrike_runtime.server import setup_mcp_server
+from runtime.server import setup_mcp_server
 
 
 if __name__ == "__main__":

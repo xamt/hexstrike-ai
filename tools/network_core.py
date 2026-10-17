@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from hexstrike_runtime.nmap_options import validate_scan_type
+from runtime.nmap_options import validate_scan_type
 
 from .support import HexStrikeColors, logger
 

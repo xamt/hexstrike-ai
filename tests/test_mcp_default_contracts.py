@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 from test_server_command_contracts import ROOT, endpoint
 
 sys.path.insert(0, str(ROOT))
-from hexstrike_tools import register_tools
+from tools import register_tools
 
 
 def mcp_request(name, **arguments):

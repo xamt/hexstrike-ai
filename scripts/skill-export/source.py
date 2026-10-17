@@ -3,7 +3,7 @@ import ast
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "hexstrike_tools/__init__.py"
+SOURCE = ROOT / "tools/__init__.py"
 
 
 def source_paths():

@@ -36,14 +36,14 @@ RUN sed -E '/^(pwntools|angr|bcrypt)([<=>]|$)/d' requirements.txt \
     vol -h >/dev/null
 
 # 代码变化不触发前面的依赖安装。
-COPY hexstrike_server.py hexstrike_mcp.py ./
-COPY hexstrike_runtime/ ./hexstrike_runtime/
-COPY hexstrike_tools/ ./hexstrike_tools/
+COPY server.py hexstrike_mcp.py ./
+COPY runtime/ ./runtime/
+COPY tools/ ./tools/
 COPY docker/service_manager.py docker/service_health.py ./docker/
 RUN /opt/hexstrike-venv/bin/python -c 'import aiohttp, bs4, flask, mitmproxy, psutil, requests, selenium' && \
-    /opt/hexstrike-venv/bin/python -m py_compile hexstrike_server.py docker/service_manager.py docker/service_health.py && \
-    /opt/hexstrike-mcp-venv/bin/python -c 'import mcp, requests' && \
-    /opt/hexstrike-mcp-venv/bin/python -m compileall -q hexstrike_mcp.py hexstrike_runtime hexstrike_tools
+    /opt/hexstrike-venv/bin/python -m py_compile server.py docker/service_manager.py docker/service_health.py && \
+    /opt/hexstrike-mcp-venv/bin/python -c 'import mcp, requests, tools; from runtime.server import setup_mcp_server' && \
+    /opt/hexstrike-mcp-venv/bin/python -m compileall -q hexstrike_mcp.py runtime tools
 
 EXPOSE 8888 8889
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \

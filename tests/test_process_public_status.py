@@ -13,7 +13,7 @@ from unittest.mock import Mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "hexstrike_server.py"
+SOURCE = ROOT / "server.py"
 FUNCTIONS = {
     "list_processes", "get_process_status", "pause_process",
     "resume_process", "process_dashboard",

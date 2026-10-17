@@ -105,7 +105,7 @@ def verify_image(image):
                 asyncio.run(verify_protocol(name, address))
                 kill_service(name, "hexstrike_mcp.py")
             elif scenario == "api":
-                kill_service(name, "hexstrike_server.py")
+                kill_service(name, "server.py")
             else:
                 docker("stop", "--time", "15", name)
                 state = inspect_container(name)["State"]

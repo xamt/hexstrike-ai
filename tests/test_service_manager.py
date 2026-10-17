@@ -20,7 +20,7 @@ class ServiceConfigurationTests(unittest.TestCase):
         self.assertEqual((8888, 8889), (config.api_port, config.mcp_port))
         commands = service_manager.service_commands(config)
         self.assertEqual(Path("/opt/pentest-tools"), config.root)
-        self.assertEqual("/opt/pentest-tools/hexstrike_server.py", commands[0][1])
+        self.assertEqual("/opt/pentest-tools/server.py", commands[0][1])
         self.assertEqual("/opt/pentest-tools/hexstrike_mcp.py", commands[1][1])
         self.assertEqual("/opt/hexstrike-venv/bin/python", commands[0][0])
         self.assertEqual("/opt/hexstrike-mcp-venv/bin/python", commands[1][0])
@@ -92,7 +92,7 @@ class ServiceManagerTests(unittest.TestCase):
         process.poll.return_value = None
         manager = service_manager.ServiceManager(self.config)
         def start(command):
-            events.append("api" if "hexstrike_server.py" in command[1] else "mcp")
+            events.append("api" if "server.py" in command[1] else "mcp")
             manager.children.append(process)
         def ready(url):
             events.append(url.rsplit("/", 1)[-1])

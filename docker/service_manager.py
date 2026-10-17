@@ -13,7 +13,7 @@ LOGGER = logging.getLogger("hexstrike.services")
 
 def service_commands(config):
     """构造独立解释器的参数列表，禁止通过 shell 拼接执行。"""
-    api = [config.api_python, str(config.root / "hexstrike_server.py"),
+    api = [config.api_python, str(config.root / "server.py"),
            "--port", str(config.api_port)]
     mcp = [config.mcp_python, str(config.root / "hexstrike_mcp.py"),
            "--transport", "streamable-http", "--host", "0.0.0.0",

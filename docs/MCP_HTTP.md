@@ -272,7 +272,7 @@ HTTP 200 和 `isError=false` 都不单独证明目标测试成功。HTTP 命令�
 
 ## 6. HTTP 路由与请求字段索引
 
-以下按当前 [HTTP 服务源码](../hexstrike_server.py) 登记的 **156 条业务路由**整理，不含 Flask 自动提供的静态文件、HEAD/OPTIONS 路由。这里列出处理器读取的顶层字段与默认取值；它不是新增的严格 JSON Schema。
+以下按当前 [HTTP 服务源码](../server.py) 登记的 **156 条业务路由**整理，不含 Flask 自动提供的静态文件、HEAD/OPTIONS 路由。这里列出处理器读取的顶层字段与默认取值；它不是新增的严格 JSON Schema。
 
 - `字段=值` 表示处理器的缺省读取值，**不代表一定允许省略**；例如 `target=""` 随后通常被判为参数错误。
 - `字段（直接读取）` 表示通过下标读取，无缺省值；具体必填验证及条件依赖见对应处理器。
@@ -284,235 +284,235 @@ HTTP 200 和 `isError=false` 都不单独证明目标测试成功。HTTP 命令�
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| GET | [`/health`](../hexstrike_server.py#L9031) | 无 |
-| POST | [`/api/command`](../hexstrike_server.py#L9145) | `command=""`；`use_cache=true` |
+| GET | [`/health`](../server.py#L9031) | 无 |
+| POST | [`/api/command`](../server.py#L9145) | `command=""`；`use_cache=true` |
 
 ### 文件操作
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/files/create`](../hexstrike_server.py#L9170) | `filename=""`；`content=""`；`binary=false` |
-| POST | [`/api/files/modify`](../hexstrike_server.py#L9188) | `filename=""`；`content=""`；`append=false` |
-| DELETE | [`/api/files/delete`](../hexstrike_server.py#L9206) | `filename=""` |
-| GET | [`/api/files/list`](../hexstrike_server.py#L9222) | 查询串；`directory="."` |
+| POST | [`/api/files/create`](../server.py#L9170) | `filename=""`；`content=""`；`binary=false` |
+| POST | [`/api/files/modify`](../server.py#L9188) | `filename=""`；`content=""`；`append=false` |
+| DELETE | [`/api/files/delete`](../server.py#L9206) | `filename=""` |
+| GET | [`/api/files/list`](../server.py#L9222) | 查询串；`directory="."` |
 
 ### 测试数据生成
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/payloads/generate`](../hexstrike_server.py#L9234) | `type="buffer"`；`size=1024`；`pattern="A"`；`filename=动态值` |
+| POST | [`/api/payloads/generate`](../server.py#L9234) | `type="buffer"`；`size=1024`；`pattern="A"`；`filename=动态值` |
 
 ### 缓存
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| GET | [`/api/cache/stats`](../hexstrike_server.py#L9276) | 无 |
-| POST | [`/api/cache/clear`](../hexstrike_server.py#L9281) | 无 |
+| GET | [`/api/cache/stats`](../server.py#L9276) | 无 |
+| POST | [`/api/cache/clear`](../server.py#L9281) | 无 |
 
 ### 遥测
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| GET | [`/api/telemetry`](../hexstrike_server.py#L9290) | 无 |
+| GET | [`/api/telemetry`](../server.py#L9290) | 无 |
 
 ### 进程管理
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| GET | [`/api/processes/list`](../hexstrike_server.py#L9299) | 无 |
-| GET | [`/api/processes/status/<int:pid>`](../hexstrike_server.py#L9325) | 路径参数：`pid` |
-| POST | [`/api/processes/terminate/<int:pid>`](../hexstrike_server.py#L9356) | 路径参数：`pid` |
-| POST | [`/api/processes/pause/<int:pid>`](../hexstrike_server.py#L9378) | 路径参数：`pid` |
-| POST | [`/api/processes/resume/<int:pid>`](../hexstrike_server.py#L9400) | 路径参数：`pid` |
-| GET | [`/api/processes/dashboard`](../hexstrike_server.py#L9422) | 无 |
+| GET | [`/api/processes/list`](../server.py#L9299) | 无 |
+| GET | [`/api/processes/status/<int:pid>`](../server.py#L9325) | 路径参数：`pid` |
+| POST | [`/api/processes/terminate/<int:pid>`](../server.py#L9356) | 路径参数：`pid` |
+| POST | [`/api/processes/pause/<int:pid>`](../server.py#L9378) | 路径参数：`pid` |
+| POST | [`/api/processes/resume/<int:pid>`](../server.py#L9400) | 路径参数：`pid` |
+| GET | [`/api/processes/dashboard`](../server.py#L9422) | 无 |
 
 ### 结果展示
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/visual/vulnerability-card`](../hexstrike_server.py#L9475) | 完整JSON对象透传；见处理器引用的渲染函数 |
-| POST | [`/api/visual/summary-report`](../hexstrike_server.py#L9496) | 完整JSON对象透传；见处理器引用的渲染函数 |
-| POST | [`/api/visual/tool-output`](../hexstrike_server.py#L9518) | `tool（直接读取）`；`output（直接读取）`；`success=true` |
+| POST | [`/api/visual/vulnerability-card`](../server.py#L9475) | 完整JSON对象透传；见处理器引用的渲染函数 |
+| POST | [`/api/visual/summary-report`](../server.py#L9496) | 完整JSON对象透传；见处理器引用的渲染函数 |
+| POST | [`/api/visual/tool-output`](../server.py#L9518) | `tool（直接读取）`；`output（直接读取）`；`success=true` |
 
 ### 目标分析与决策
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/intelligence/analyze-target`](../hexstrike_server.py#L9547) | `target（直接读取）` |
-| POST | [`/api/intelligence/select-tools`](../hexstrike_server.py#L9574) | `target（直接读取）`；`objective="comprehensive"` |
-| POST | [`/api/intelligence/optimize-parameters`](../hexstrike_server.py#L9609) | `target（直接读取）`；`tool（直接读取）`；`context={}` |
-| POST | [`/api/intelligence/create-attack-chain`](../hexstrike_server.py#L9645) | `target（直接读取）`；`objective="comprehensive"` |
-| POST | [`/api/intelligence/smart-scan`](../hexstrike_server.py#L9680) | `target（直接读取）`；`objective="comprehensive"`；`max_tools=5` |
-| POST | [`/api/intelligence/technology-detection`](../hexstrike_server.py#L10049) | `target（直接读取）` |
+| POST | [`/api/intelligence/analyze-target`](../server.py#L9547) | `target（直接读取）` |
+| POST | [`/api/intelligence/select-tools`](../server.py#L9574) | `target（直接读取）`；`objective="comprehensive"` |
+| POST | [`/api/intelligence/optimize-parameters`](../server.py#L9609) | `target（直接读取）`；`tool（直接读取）`；`context={}` |
+| POST | [`/api/intelligence/create-attack-chain`](../server.py#L9645) | `target（直接读取）`；`objective="comprehensive"` |
+| POST | [`/api/intelligence/smart-scan`](../server.py#L9680) | `target（直接读取）`；`objective="comprehensive"`；`max_tools=5` |
+| POST | [`/api/intelligence/technology-detection`](../server.py#L10049) | `target（直接读取）` |
 
 ### 测试工作流
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/bugbounty/reconnaissance-workflow`](../hexstrike_server.py#L10106) | `domain（直接读取）`；`scope=[]`；`out_of_scope=[]`；`program_type="web"` |
-| POST | [`/api/bugbounty/vulnerability-hunting-workflow`](../hexstrike_server.py#L10144) | `domain（直接读取）`；`priority_vulns=["rce", "sqli", "xss", "idor", "ssrf"]`；`bounty_range="unknown"` |
-| POST | [`/api/bugbounty/business-logic-workflow`](../hexstrike_server.py#L10180) | `domain（直接读取）`；`program_type="web"` |
-| POST | [`/api/bugbounty/osint-workflow`](../hexstrike_server.py#L10211) | `domain（直接读取）` |
-| POST | [`/api/bugbounty/file-upload-testing`](../hexstrike_server.py#L10241) | `target_url（直接读取）` |
-| POST | [`/api/bugbounty/comprehensive-assessment`](../hexstrike_server.py#L10272) | `domain（直接读取）`；`scope=[]`；`priority_vulns=["rce", "sqli", "xss", "idor", "ssrf"]`；`include_osint=true`；`include_business_logic=true` |
+| POST | [`/api/bugbounty/reconnaissance-workflow`](../server.py#L10106) | `domain（直接读取）`；`scope=[]`；`out_of_scope=[]`；`program_type="web"` |
+| POST | [`/api/bugbounty/vulnerability-hunting-workflow`](../server.py#L10144) | `domain（直接读取）`；`priority_vulns=["rce", "sqli", "xss", "idor", "ssrf"]`；`bounty_range="unknown"` |
+| POST | [`/api/bugbounty/business-logic-workflow`](../server.py#L10180) | `domain（直接读取）`；`program_type="web"` |
+| POST | [`/api/bugbounty/osint-workflow`](../server.py#L10211) | `domain（直接读取）` |
+| POST | [`/api/bugbounty/file-upload-testing`](../server.py#L10241) | `target_url（直接读取）` |
+| POST | [`/api/bugbounty/comprehensive-assessment`](../server.py#L10272) | `domain（直接读取）`；`scope=[]`；`priority_vulns=["rce", "sqli", "xss", "idor", "ssrf"]`；`include_osint=true`；`include_business_logic=true` |
 
 ### 安全工具
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/tools/nmap`](../hexstrike_server.py#L10335) | `target=""`；`scan_type="-sCV"`；`ports=""`；`additional_args="-T4 -Pn"`；`use_recovery=true` |
-| POST | [`/api/tools/gobuster`](../hexstrike_server.py#L10385) | `url=""`；`mode="dir"`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`additional_args=""`；`use_recovery=true` |
-| POST | [`/api/tools/nuclei`](../hexstrike_server.py#L10437) | `target=""`；`severity=""`；`tags=""`；`template=""`；`additional_args=""`；`use_recovery=true` |
-| POST | [`/api/tools/prowler`](../hexstrike_server.py#L10497) | `provider="aws"`；`profile="default"`；`region=""`；`checks=""`；`output_dir="/tmp/prowler_output"`；`output_format="json"`；`additional_args=""` |
-| POST | [`/api/tools/trivy`](../hexstrike_server.py#L10541) | `scan_type="image"`；`target=""`；`output_format="json"`；`severity=""`；`output_file=""`；`additional_args=""` |
-| POST | [`/api/tools/scout-suite`](../hexstrike_server.py#L10589) | `provider="aws"`；`profile="default"`；`report_dir="/tmp/scout-suite"`；`services=""`；`exceptions=""`；`additional_args=""` |
-| POST | [`/api/tools/cloudmapper`](../hexstrike_server.py#L10629) | `action="collect"`；`account=""`；`config="config.json"`；`additional_args=""` |
-| POST | [`/api/tools/pacu`](../hexstrike_server.py#L10662) | `session_name="hexstrike_session"`；`modules=""`；`data_services=""`；`regions=""`；`additional_args=""` |
-| POST | [`/api/tools/kube-hunter`](../hexstrike_server.py#L10714) | `target=""`；`remote=""`；`cidr=""`；`interface=""`；`active=false`；`report="json"`；`additional_args=""` |
-| POST | [`/api/tools/kube-bench`](../hexstrike_server.py#L10758) | `targets=""`；`version=""`；`config_dir=""`；`output_format="json"`；`additional_args=""` |
-| POST | [`/api/tools/docker-bench-security`](../hexstrike_server.py#L10794) | `checks=""`；`exclude=""`；`output_file="/tmp/docker-bench-results.json"`；`additional_args=""` |
-| POST | [`/api/tools/clair`](../hexstrike_server.py#L10827) | `image=""`；`config="/etc/clair/config.yaml"`；`output_format="json"`；`additional_args=""` |
-| POST | [`/api/tools/falco`](../hexstrike_server.py#L10861) | `config_file="/etc/falco/falco.yaml"`；`rules_file=""`；`output_format="json"`；`duration=60`；`additional_args=""` |
-| POST | [`/api/tools/checkov`](../hexstrike_server.py#L10894) | `directory="."`；`framework=""`；`check=""`；`skip_check=""`；`output_format="json"`；`additional_args=""` |
-| POST | [`/api/tools/terrascan`](../hexstrike_server.py#L10931) | `scan_type="all"`；`iac_dir="."`；`policy_type=""`；`output_format="json"`；`severity=""`；`additional_args=""` |
-| POST | [`/api/tools/dirb`](../hexstrike_server.py#L10965) | `url=""`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`additional_args=""` |
-| POST | [`/api/tools/nikto`](../hexstrike_server.py#L10995) | `target=""`；`additional_args=""` |
-| POST | [`/api/tools/sqlmap`](../hexstrike_server.py#L11024) | `url=""`；`data=""`；`additional_args=""` |
-| POST | [`/api/tools/metasploit`](../hexstrike_server.py#L11057) | `module=""`；`options={}` |
-| POST | [`/api/tools/hydra`](../hexstrike_server.py#L11101) | `target=""`；`service=""`；`username=""`；`username_file=""`；`password=""`；`password_file=""`；`additional_args=""` |
-| POST | [`/api/tools/john`](../hexstrike_server.py#L11153) | `hash_file=""`；`wordlist="/usr/share/wordlists/rockyou.txt"`；`format=""`；`additional_args=""` |
-| POST | [`/api/tools/wpscan`](../hexstrike_server.py#L11192) | `url=""`；`additional_args=""` |
-| POST | [`/api/tools/enum4linux`](../hexstrike_server.py#L11221) | `target=""`；`additional_args="-a"` |
-| POST | [`/api/tools/ffuf`](../hexstrike_server.py#L11247) | `url=""`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`mode="directory"`；`match_codes="200,204,301,302,307,401,403"`；`additional_args=""` |
-| POST | [`/api/tools/netexec`](../hexstrike_server.py#L11298) | `target=""`；`protocol="smb"`；`username=""`；`password=""`；`hash=""`；`module=""`；`additional_args=""` |
-| POST | [`/api/tools/amass`](../hexstrike_server.py#L11344) | `domain=""`；`mode="enum"`；`additional_args=""` |
-| POST | [`/api/tools/hashcat`](../hexstrike_server.py#L11379) | `hash_file=""`；`hash_type=""`；`attack_mode="0"`；`wordlist="/usr/share/wordlists/rockyou.txt"`；`mask=""`；`additional_args=""` |
-| POST | [`/api/tools/subfinder`](../hexstrike_server.py#L11423) | `domain=""`；`silent=true`；`all_sources=false`；`additional_args=""` |
-| POST | [`/api/tools/smbmap`](../hexstrike_server.py#L11460) | `target=""`；`username=""`；`password=""`；`domain=""`；`additional_args=""` |
-| POST | [`/api/tools/rustscan`](../hexstrike_server.py#L11505) | `target=""`；`ports=""`；`ulimit=5000`；`batch_size=4500`；`timeout=1500`；`scripts=""`；`additional_args=""` |
-| POST | [`/api/tools/masscan`](../hexstrike_server.py#L11541) | `target=""`；`ports="1-65535"`；`rate=1000`；`interface=""`；`router_mac=""`；`source_ip=""`；`banners=false`；`additional_args=""` |
-| POST | [`/api/tools/nmap-advanced`](../hexstrike_server.py#L11584) | `target=""`；`scan_type="-sS"`；`ports=""`；`timing="T4"`；`nse_scripts=""`；`os_detection=false`；`version_detection=false`；`aggressive=false`；`stealth=false`；`additional_args=""` |
-| POST | [`/api/tools/autorecon`](../hexstrike_server.py#L11639) | `target=""`；`output_dir="/tmp/autorecon"`；`port_scans="top-100-ports"`；`service_scans="default"`；`heartbeat=60`；`timeout=300`；`additional_args=""` |
-| POST | [`/api/tools/enum4linux-ng`](../hexstrike_server.py#L11681) | `target=""`；`username=""`；`password=""`；`domain=""`；`shares=true`；`users=true`；`groups=true`；`policy=true`；`additional_args=""` |
-| POST | [`/api/tools/rpcclient`](../hexstrike_server.py#L11736) | `target=""`；`username=""`；`password=""`；`domain=""`；`commands="enumdomusers;enumdomgroups;querydominfo"`；`additional_args=""` |
-| POST | [`/api/tools/nbtscan`](../hexstrike_server.py#L11774) | `target=""`；`verbose=false`；`timeout=2`；`additional_args=""` |
-| POST | [`/api/tools/arp-scan`](../hexstrike_server.py#L11806) | `target=""`；`interface=""`；`local_network=false`；`timeout=500`；`retry=3`；`additional_args=""` |
-| POST | [`/api/tools/responder`](../hexstrike_server.py#L11843) | `interface="eth0"`；`analyze=false`；`wpad=true`；`force_wpad_auth=false`；`fingerprint=false`；`duration=300`；`additional_args=""` |
-| POST | [`/api/tools/volatility`](../hexstrike_server.py#L11885) | `memory_file=""`；`plugin=""`；`profile=""`；`additional_args=""` |
-| POST | [`/api/tools/msfvenom`](../hexstrike_server.py#L11927) | `payload=""`；`format=""`；`output_file=""`；`encoder=""`；`iterations=""`；`additional_args=""` |
-| POST | [`/api/tools/gdb`](../hexstrike_server.py#L11976) | `binary=""`；`commands=""`；`script_file=""`；`additional_args=""` |
-| POST | [`/api/tools/radare2`](../hexstrike_server.py#L12025) | `binary=""`；`commands=""`；`additional_args=""` |
-| POST | [`/api/tools/binwalk`](../hexstrike_server.py#L12068) | `file_path=""`；`extract=false`；`additional_args=""` |
-| POST | [`/api/tools/ropgadget`](../hexstrike_server.py#L12103) | `binary=""`；`gadget_type=""`；`additional_args=""` |
-| POST | [`/api/tools/checksec`](../hexstrike_server.py#L12136) | `binary=""` |
-| POST | [`/api/tools/xxd`](../hexstrike_server.py#L12161) | `file_path=""`；`offset="0"`；`length=""`；`additional_args=""` |
-| POST | [`/api/tools/strings`](../hexstrike_server.py#L12197) | `file_path=""`；`min_len=4`；`additional_args=""` |
-| POST | [`/api/tools/objdump`](../hexstrike_server.py#L12229) | `binary=""`；`disassemble=true`；`additional_args=""` |
-| POST | [`/api/tools/ghidra`](../hexstrike_server.py#L12270) | `binary=""`；`project_name="hexstrike_analysis"`；`script_file=""`；`analysis_timeout=300`；`output_format="xml"`；`additional_args=""` |
-| POST | [`/api/tools/pwntools`](../hexstrike_server.py#L12313) | `script_content=""`；`target_binary=""`；`target_host=""`；`target_port=0`；`exploit_type="local"`；`additional_args=""` |
-| POST | [`/api/tools/one-gadget`](../hexstrike_server.py#L12388) | `libc_path=""`；`level=1`；`additional_args=""` |
-| POST | [`/api/tools/libc-database`](../hexstrike_server.py#L12414) | `action="find"`；`symbols=""`；`libc_id=""`；`additional_args=""` |
-| POST | [`/api/tools/gdb-peda`](../hexstrike_server.py#L12455) | `binary=""`；`commands=""`；`attach_pid=0`；`core_file=""`；`additional_args=""` |
-| POST | [`/api/tools/angr`](../hexstrike_server.py#L12517) | `binary=""`；`script_content=""`；`find_address=""`；`avoid_addresses=""`；`analysis_type="symbolic"`；`additional_args=""` |
-| POST | [`/api/tools/ropper`](../hexstrike_server.py#L12608) | `binary=""`；`gadget_type="rop"`；`quality=1`；`arch=""`；`search_string=""`；`additional_args=""` |
-| POST | [`/api/tools/pwninit`](../hexstrike_server.py#L12655) | `binary=""`；`libc=""`；`ld=""`；`template_type="python"`；`additional_args=""` |
-| POST | [`/api/tools/feroxbuster`](../hexstrike_server.py#L12696) | `url=""`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`threads=10`；`additional_args=""` |
-| POST | [`/api/tools/dotdotpwn`](../hexstrike_server.py#L12727) | `target=""`；`module="http"`；`additional_args=""` |
-| POST | [`/api/tools/xsser`](../hexstrike_server.py#L12759) | `url=""`；`params=""`；`additional_args=""` |
-| POST | [`/api/tools/wfuzz`](../hexstrike_server.py#L12792) | `url=""`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`additional_args=""` |
-| POST | [`/api/tools/dirsearch`](../hexstrike_server.py#L12826) | `url=""`；`extensions="php,html,js,txt,xml,json"`；`wordlist="/usr/share/wordlists/dirsearch/common.txt"`；`threads=30`；`recursive=false`；`additional_args=""` |
-| POST | [`/api/tools/katana`](../hexstrike_server.py#L12858) | `url=""`；`depth=3`；`js_crawl=true`；`form_extraction=true`；`output_format="json"`；`additional_args=""` |
-| POST | [`/api/tools/gau`](../hexstrike_server.py#L12896) | `domain=""`；`providers="wayback,commoncrawl,otx,urlscan"`；`include_subs=true`；`blacklist="png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico"`；`additional_args=""` |
-| POST | [`/api/tools/waybackurls`](../hexstrike_server.py#L12933) | `domain=""`；`get_versions=false`；`no_subs=false`；`additional_args=""` |
-| POST | [`/api/tools/arjun`](../hexstrike_server.py#L12966) | `url=""`；`method="GET"`；`wordlist=""`；`delay=0`；`threads=25`；`stable=false`；`additional_args=""` |
-| POST | [`/api/tools/paramspider`](../hexstrike_server.py#L13005) | `domain=""`；`level=2`；`exclude="png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico"`；`output=""`；`output_file=""`；`additional_args=""` |
-| POST | [`/api/tools/x8`](../hexstrike_server.py#L13044) | `url=""`；`wordlist="/usr/share/wordlists/x8/params.txt"`；`method="GET"`；`body=""`；`headers=""`；`additional_args=""` |
-| POST | [`/api/tools/jaeles`](../hexstrike_server.py#L13079) | `url=""`；`signatures=""`；`config=""`；`threads=20`；`timeout=20`；`additional_args=""` |
-| POST | [`/api/tools/dalfox`](../hexstrike_server.py#L13114) | `url=""`；`pipe_mode=false`；`blind=false`；`mining_dom=true`；`mining_dict=true`；`custom_payload=""`；`additional_args=""` |
-| POST | [`/api/tools/httpx`](../hexstrike_server.py#L13164) | `target=""`；`targets=""`；`target_file=""`；`probe=true`；`tech_detect=false`；`status_code=false`；`content_length=false`；`title=false`；`web_server=false`；`ports=""`；`methods=""`；`output_file=""`；`threads=50`；`additional_args=""` |
-| POST | [`/api/tools/anew`](../hexstrike_server.py#L13236) | `input_data=""`；`output_file=""`；`additional_args=""` |
-| POST | [`/api/tools/qsreplace`](../hexstrike_server.py#L13265) | `urls=""`；`replacement="FUZZ"`；`additional_args=""` |
-| POST | [`/api/tools/uro`](../hexstrike_server.py#L13291) | `urls=""`；`whitelist=""`；`blacklist=""`；`additional_args=""` |
-| POST | [`/api/tools/http-framework`](../hexstrike_server.py#L14090) | `action="request"`；`url=""`；`method="GET"`；`data={}`；`headers={}`；`cookies={}`；`max_depth=3`；`max_pages=100`；`rules=[]`；`host=null`；`include_subdomains=true`；`request=null`；`location="query"`；`params=[]`；`payloads=[]`；`base_data={}`；`max_requests=100` |
-| POST | [`/api/tools/browser-agent`](../hexstrike_server.py#L14186) | `action="navigate"`；`url=""`；`headless=true`；`wait_time=5`；`proxy_port=null`；`active_tests=false` |
-| POST | [`/api/tools/burpsuite-alternative`](../hexstrike_server.py#L14275) | `target=""`；`scan_type="comprehensive"`；`headless=true`；`max_depth=3`；`max_pages=50` |
-| POST | [`/api/tools/zap`](../hexstrike_server.py#L14369) | `target=""`；`scan_type="baseline"`；`api_key=""`；`daemon=false`；`port="8090"`；`host="0.0.0.0"`；`format="xml"`；`output_file=""`；`additional_args=""` |
-| POST | [`/api/tools/wafw00f`](../hexstrike_server.py#L14419) | `target=""`；`additional_args=""` |
-| POST | [`/api/tools/fierce`](../hexstrike_server.py#L14448) | `domain=""`；`dns_server=""`；`additional_args=""` |
-| POST | [`/api/tools/dnsenum`](../hexstrike_server.py#L14481) | `domain=""`；`dns_server=""`；`wordlist=""`；`additional_args=""` |
-| POST | [`/api/tools/api_fuzzer`](../hexstrike_server.py#L14892) | `base_url=""`；`endpoints=[]`；`methods=["GET", "POST", "PUT", "DELETE"]`；`wordlist="/usr/share/wordlists/api/api-endpoints.txt"` |
-| POST | [`/api/tools/graphql_scanner`](../hexstrike_server.py#L14949) | `endpoint=""`；`introspection=true`；`query_depth=10`；`test_mutations=true` |
-| POST | [`/api/tools/jwt_analyzer`](../hexstrike_server.py#L15056) | `jwt_token=""`；`target_url=""` |
-| POST | [`/api/tools/api_schema_analyzer`](../hexstrike_server.py#L15174) | `schema_url=""`；`schema_type="openapi"` |
-| POST | [`/api/tools/volatility3`](../hexstrike_server.py#L15286) | `memory_file=""`；`plugin=""`；`output_file=""`；`additional_args=""` |
-| POST | [`/api/tools/foremost`](../hexstrike_server.py#L15326) | `input_file=""`；`output_dir="/tmp/foremost_output"`；`file_types=""`；`additional_args=""` |
-| POST | [`/api/tools/steghide`](../hexstrike_server.py#L15371) | `action="extract"`；`cover_file=""`；`embed_file=""`；`passphrase=""`；`output_file=""`；`additional_args=""` |
-| POST | [`/api/tools/exiftool`](../hexstrike_server.py#L15420) | `file_path=""`；`output_format=""`；`tags=""`；`additional_args=""` |
-| POST | [`/api/tools/hashpump`](../hexstrike_server.py#L15459) | `signature=""`；`data=""`；`key_length=""`；`append_data=""`；`additional_args=""` |
-| POST | [`/api/tools/hakrawler`](../hexstrike_server.py#L15495) | `url=""`；`depth=2`；`forms=true`；`robots=true`；`sitemap=true`；`wayback=false`；`additional_args=""` |
+| POST | [`/api/tools/nmap`](../server.py#L10335) | `target=""`；`scan_type="-sCV"`；`ports=""`；`additional_args="-T4 -Pn"`；`use_recovery=true` |
+| POST | [`/api/tools/gobuster`](../server.py#L10385) | `url=""`；`mode="dir"`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`additional_args=""`；`use_recovery=true` |
+| POST | [`/api/tools/nuclei`](../server.py#L10437) | `target=""`；`severity=""`；`tags=""`；`template=""`；`additional_args=""`；`use_recovery=true` |
+| POST | [`/api/tools/prowler`](../server.py#L10497) | `provider="aws"`；`profile="default"`；`region=""`；`checks=""`；`output_dir="/tmp/prowler_output"`；`output_format="json"`；`additional_args=""` |
+| POST | [`/api/tools/trivy`](../server.py#L10541) | `scan_type="image"`；`target=""`；`output_format="json"`；`severity=""`；`output_file=""`；`additional_args=""` |
+| POST | [`/api/tools/scout-suite`](../server.py#L10589) | `provider="aws"`；`profile="default"`；`report_dir="/tmp/scout-suite"`；`services=""`；`exceptions=""`；`additional_args=""` |
+| POST | [`/api/tools/cloudmapper`](../server.py#L10629) | `action="collect"`；`account=""`；`config="config.json"`；`additional_args=""` |
+| POST | [`/api/tools/pacu`](../server.py#L10662) | `session_name="hexstrike_session"`；`modules=""`；`data_services=""`；`regions=""`；`additional_args=""` |
+| POST | [`/api/tools/kube-hunter`](../server.py#L10714) | `target=""`；`remote=""`；`cidr=""`；`interface=""`；`active=false`；`report="json"`；`additional_args=""` |
+| POST | [`/api/tools/kube-bench`](../server.py#L10758) | `targets=""`；`version=""`；`config_dir=""`；`output_format="json"`；`additional_args=""` |
+| POST | [`/api/tools/docker-bench-security`](../server.py#L10794) | `checks=""`；`exclude=""`；`output_file="/tmp/docker-bench-results.json"`；`additional_args=""` |
+| POST | [`/api/tools/clair`](../server.py#L10827) | `image=""`；`config="/etc/clair/config.yaml"`；`output_format="json"`；`additional_args=""` |
+| POST | [`/api/tools/falco`](../server.py#L10861) | `config_file="/etc/falco/falco.yaml"`；`rules_file=""`；`output_format="json"`；`duration=60`；`additional_args=""` |
+| POST | [`/api/tools/checkov`](../server.py#L10894) | `directory="."`；`framework=""`；`check=""`；`skip_check=""`；`output_format="json"`；`additional_args=""` |
+| POST | [`/api/tools/terrascan`](../server.py#L10931) | `scan_type="all"`；`iac_dir="."`；`policy_type=""`；`output_format="json"`；`severity=""`；`additional_args=""` |
+| POST | [`/api/tools/dirb`](../server.py#L10965) | `url=""`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`additional_args=""` |
+| POST | [`/api/tools/nikto`](../server.py#L10995) | `target=""`；`additional_args=""` |
+| POST | [`/api/tools/sqlmap`](../server.py#L11024) | `url=""`；`data=""`；`additional_args=""` |
+| POST | [`/api/tools/metasploit`](../server.py#L11057) | `module=""`；`options={}` |
+| POST | [`/api/tools/hydra`](../server.py#L11101) | `target=""`；`service=""`；`username=""`；`username_file=""`；`password=""`；`password_file=""`；`additional_args=""` |
+| POST | [`/api/tools/john`](../server.py#L11153) | `hash_file=""`；`wordlist="/usr/share/wordlists/rockyou.txt"`；`format=""`；`additional_args=""` |
+| POST | [`/api/tools/wpscan`](../server.py#L11192) | `url=""`；`additional_args=""` |
+| POST | [`/api/tools/enum4linux`](../server.py#L11221) | `target=""`；`additional_args="-a"` |
+| POST | [`/api/tools/ffuf`](../server.py#L11247) | `url=""`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`mode="directory"`；`match_codes="200,204,301,302,307,401,403"`；`additional_args=""` |
+| POST | [`/api/tools/netexec`](../server.py#L11298) | `target=""`；`protocol="smb"`；`username=""`；`password=""`；`hash=""`；`module=""`；`additional_args=""` |
+| POST | [`/api/tools/amass`](../server.py#L11344) | `domain=""`；`mode="enum"`；`additional_args=""` |
+| POST | [`/api/tools/hashcat`](../server.py#L11379) | `hash_file=""`；`hash_type=""`；`attack_mode="0"`；`wordlist="/usr/share/wordlists/rockyou.txt"`；`mask=""`；`additional_args=""` |
+| POST | [`/api/tools/subfinder`](../server.py#L11423) | `domain=""`；`silent=true`；`all_sources=false`；`additional_args=""` |
+| POST | [`/api/tools/smbmap`](../server.py#L11460) | `target=""`；`username=""`；`password=""`；`domain=""`；`additional_args=""` |
+| POST | [`/api/tools/rustscan`](../server.py#L11505) | `target=""`；`ports=""`；`ulimit=5000`；`batch_size=4500`；`timeout=1500`；`scripts=""`；`additional_args=""` |
+| POST | [`/api/tools/masscan`](../server.py#L11541) | `target=""`；`ports="1-65535"`；`rate=1000`；`interface=""`；`router_mac=""`；`source_ip=""`；`banners=false`；`additional_args=""` |
+| POST | [`/api/tools/nmap-advanced`](../server.py#L11584) | `target=""`；`scan_type="-sS"`；`ports=""`；`timing="T4"`；`nse_scripts=""`；`os_detection=false`；`version_detection=false`；`aggressive=false`；`stealth=false`；`additional_args=""` |
+| POST | [`/api/tools/autorecon`](../server.py#L11639) | `target=""`；`output_dir="/tmp/autorecon"`；`port_scans="top-100-ports"`；`service_scans="default"`；`heartbeat=60`；`timeout=300`；`additional_args=""` |
+| POST | [`/api/tools/enum4linux-ng`](../server.py#L11681) | `target=""`；`username=""`；`password=""`；`domain=""`；`shares=true`；`users=true`；`groups=true`；`policy=true`；`additional_args=""` |
+| POST | [`/api/tools/rpcclient`](../server.py#L11736) | `target=""`；`username=""`；`password=""`；`domain=""`；`commands="enumdomusers;enumdomgroups;querydominfo"`；`additional_args=""` |
+| POST | [`/api/tools/nbtscan`](../server.py#L11774) | `target=""`；`verbose=false`；`timeout=2`；`additional_args=""` |
+| POST | [`/api/tools/arp-scan`](../server.py#L11806) | `target=""`；`interface=""`；`local_network=false`；`timeout=500`；`retry=3`；`additional_args=""` |
+| POST | [`/api/tools/responder`](../server.py#L11843) | `interface="eth0"`；`analyze=false`；`wpad=true`；`force_wpad_auth=false`；`fingerprint=false`；`duration=300`；`additional_args=""` |
+| POST | [`/api/tools/volatility`](../server.py#L11885) | `memory_file=""`；`plugin=""`；`profile=""`；`additional_args=""` |
+| POST | [`/api/tools/msfvenom`](../server.py#L11927) | `payload=""`；`format=""`；`output_file=""`；`encoder=""`；`iterations=""`；`additional_args=""` |
+| POST | [`/api/tools/gdb`](../server.py#L11976) | `binary=""`；`commands=""`；`script_file=""`；`additional_args=""` |
+| POST | [`/api/tools/radare2`](../server.py#L12025) | `binary=""`；`commands=""`；`additional_args=""` |
+| POST | [`/api/tools/binwalk`](../server.py#L12068) | `file_path=""`；`extract=false`；`additional_args=""` |
+| POST | [`/api/tools/ropgadget`](../server.py#L12103) | `binary=""`；`gadget_type=""`；`additional_args=""` |
+| POST | [`/api/tools/checksec`](../server.py#L12136) | `binary=""` |
+| POST | [`/api/tools/xxd`](../server.py#L12161) | `file_path=""`；`offset="0"`；`length=""`；`additional_args=""` |
+| POST | [`/api/tools/strings`](../server.py#L12197) | `file_path=""`；`min_len=4`；`additional_args=""` |
+| POST | [`/api/tools/objdump`](../server.py#L12229) | `binary=""`；`disassemble=true`；`additional_args=""` |
+| POST | [`/api/tools/ghidra`](../server.py#L12270) | `binary=""`；`project_name="hexstrike_analysis"`；`script_file=""`；`analysis_timeout=300`；`output_format="xml"`；`additional_args=""` |
+| POST | [`/api/tools/pwntools`](../server.py#L12313) | `script_content=""`；`target_binary=""`；`target_host=""`；`target_port=0`；`exploit_type="local"`；`additional_args=""` |
+| POST | [`/api/tools/one-gadget`](../server.py#L12388) | `libc_path=""`；`level=1`；`additional_args=""` |
+| POST | [`/api/tools/libc-database`](../server.py#L12414) | `action="find"`；`symbols=""`；`libc_id=""`；`additional_args=""` |
+| POST | [`/api/tools/gdb-peda`](../server.py#L12455) | `binary=""`；`commands=""`；`attach_pid=0`；`core_file=""`；`additional_args=""` |
+| POST | [`/api/tools/angr`](../server.py#L12517) | `binary=""`；`script_content=""`；`find_address=""`；`avoid_addresses=""`；`analysis_type="symbolic"`；`additional_args=""` |
+| POST | [`/api/tools/ropper`](../server.py#L12608) | `binary=""`；`gadget_type="rop"`；`quality=1`；`arch=""`；`search_string=""`；`additional_args=""` |
+| POST | [`/api/tools/pwninit`](../server.py#L12655) | `binary=""`；`libc=""`；`ld=""`；`template_type="python"`；`additional_args=""` |
+| POST | [`/api/tools/feroxbuster`](../server.py#L12696) | `url=""`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`threads=10`；`additional_args=""` |
+| POST | [`/api/tools/dotdotpwn`](../server.py#L12727) | `target=""`；`module="http"`；`additional_args=""` |
+| POST | [`/api/tools/xsser`](../server.py#L12759) | `url=""`；`params=""`；`additional_args=""` |
+| POST | [`/api/tools/wfuzz`](../server.py#L12792) | `url=""`；`wordlist="/usr/share/wordlists/dirb/common.txt"`；`additional_args=""` |
+| POST | [`/api/tools/dirsearch`](../server.py#L12826) | `url=""`；`extensions="php,html,js,txt,xml,json"`；`wordlist="/usr/share/wordlists/dirsearch/common.txt"`；`threads=30`；`recursive=false`；`additional_args=""` |
+| POST | [`/api/tools/katana`](../server.py#L12858) | `url=""`；`depth=3`；`js_crawl=true`；`form_extraction=true`；`output_format="json"`；`additional_args=""` |
+| POST | [`/api/tools/gau`](../server.py#L12896) | `domain=""`；`providers="wayback,commoncrawl,otx,urlscan"`；`include_subs=true`；`blacklist="png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico"`；`additional_args=""` |
+| POST | [`/api/tools/waybackurls`](../server.py#L12933) | `domain=""`；`get_versions=false`；`no_subs=false`；`additional_args=""` |
+| POST | [`/api/tools/arjun`](../server.py#L12966) | `url=""`；`method="GET"`；`wordlist=""`；`delay=0`；`threads=25`；`stable=false`；`additional_args=""` |
+| POST | [`/api/tools/paramspider`](../server.py#L13005) | `domain=""`；`level=2`；`exclude="png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico"`；`output=""`；`output_file=""`；`additional_args=""` |
+| POST | [`/api/tools/x8`](../server.py#L13044) | `url=""`；`wordlist="/usr/share/wordlists/x8/params.txt"`；`method="GET"`；`body=""`；`headers=""`；`additional_args=""` |
+| POST | [`/api/tools/jaeles`](../server.py#L13079) | `url=""`；`signatures=""`；`config=""`；`threads=20`；`timeout=20`；`additional_args=""` |
+| POST | [`/api/tools/dalfox`](../server.py#L13114) | `url=""`；`pipe_mode=false`；`blind=false`；`mining_dom=true`；`mining_dict=true`；`custom_payload=""`；`additional_args=""` |
+| POST | [`/api/tools/httpx`](../server.py#L13164) | `target=""`；`targets=""`；`target_file=""`；`probe=true`；`tech_detect=false`；`status_code=false`；`content_length=false`；`title=false`；`web_server=false`；`ports=""`；`methods=""`；`output_file=""`；`threads=50`；`additional_args=""` |
+| POST | [`/api/tools/anew`](../server.py#L13236) | `input_data=""`；`output_file=""`；`additional_args=""` |
+| POST | [`/api/tools/qsreplace`](../server.py#L13265) | `urls=""`；`replacement="FUZZ"`；`additional_args=""` |
+| POST | [`/api/tools/uro`](../server.py#L13291) | `urls=""`；`whitelist=""`；`blacklist=""`；`additional_args=""` |
+| POST | [`/api/tools/http-framework`](../server.py#L14090) | `action="request"`；`url=""`；`method="GET"`；`data={}`；`headers={}`；`cookies={}`；`max_depth=3`；`max_pages=100`；`rules=[]`；`host=null`；`include_subdomains=true`；`request=null`；`location="query"`；`params=[]`；`payloads=[]`；`base_data={}`；`max_requests=100` |
+| POST | [`/api/tools/browser-agent`](../server.py#L14186) | `action="navigate"`；`url=""`；`headless=true`；`wait_time=5`；`proxy_port=null`；`active_tests=false` |
+| POST | [`/api/tools/burpsuite-alternative`](../server.py#L14275) | `target=""`；`scan_type="comprehensive"`；`headless=true`；`max_depth=3`；`max_pages=50` |
+| POST | [`/api/tools/zap`](../server.py#L14369) | `target=""`；`scan_type="baseline"`；`api_key=""`；`daemon=false`；`port="8090"`；`host="0.0.0.0"`；`format="xml"`；`output_file=""`；`additional_args=""` |
+| POST | [`/api/tools/wafw00f`](../server.py#L14419) | `target=""`；`additional_args=""` |
+| POST | [`/api/tools/fierce`](../server.py#L14448) | `domain=""`；`dns_server=""`；`additional_args=""` |
+| POST | [`/api/tools/dnsenum`](../server.py#L14481) | `domain=""`；`dns_server=""`；`wordlist=""`；`additional_args=""` |
+| POST | [`/api/tools/api_fuzzer`](../server.py#L14892) | `base_url=""`；`endpoints=[]`；`methods=["GET", "POST", "PUT", "DELETE"]`；`wordlist="/usr/share/wordlists/api/api-endpoints.txt"` |
+| POST | [`/api/tools/graphql_scanner`](../server.py#L14949) | `endpoint=""`；`introspection=true`；`query_depth=10`；`test_mutations=true` |
+| POST | [`/api/tools/jwt_analyzer`](../server.py#L15056) | `jwt_token=""`；`target_url=""` |
+| POST | [`/api/tools/api_schema_analyzer`](../server.py#L15174) | `schema_url=""`；`schema_type="openapi"` |
+| POST | [`/api/tools/volatility3`](../server.py#L15286) | `memory_file=""`；`plugin=""`；`output_file=""`；`additional_args=""` |
+| POST | [`/api/tools/foremost`](../server.py#L15326) | `input_file=""`；`output_dir="/tmp/foremost_output"`；`file_types=""`；`additional_args=""` |
+| POST | [`/api/tools/steghide`](../server.py#L15371) | `action="extract"`；`cover_file=""`；`embed_file=""`；`passphrase=""`；`output_file=""`；`additional_args=""` |
+| POST | [`/api/tools/exiftool`](../server.py#L15420) | `file_path=""`；`output_format=""`；`tags=""`；`additional_args=""` |
+| POST | [`/api/tools/hashpump`](../server.py#L15459) | `signature=""`；`data=""`；`key_length=""`；`append_data=""`；`additional_args=""` |
+| POST | [`/api/tools/hakrawler`](../server.py#L15495) | `url=""`；`depth=2`；`forms=true`；`robots=true`；`sitemap=true`；`wayback=false`；`additional_args=""` |
 
 ### Python执行环境
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/python/install`](../hexstrike_server.py#L14519) | `package=""`；`env_name="default"` |
-| POST | [`/api/python/execute`](../hexstrike_server.py#L14549) | `script=""`；`env_name="default"`；`filename=动态值` |
+| POST | [`/api/python/install`](../server.py#L14519) | `package=""`；`env_name="default"` |
+| POST | [`/api/python/execute`](../server.py#L14549) | `script=""`；`env_name="default"`；`filename=动态值` |
 
 ### 载荷辅助
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/ai/generate_payload`](../hexstrike_server.py#L14800) | `attack_type="xss"`；`complexity="basic"`；`technology=""`；`url=""` |
-| POST | [`/api/ai/test_payload`](../hexstrike_server.py#L14830) | `payload=""`；`target_url=""`；`method="GET"` |
-| POST | [`/api/ai/advanced-payload-generation`](../hexstrike_server.py#L16015) | `attack_type="rce"`；`target_context=""`；`evasion_level="standard"`；`custom_constraints=""` |
+| POST | [`/api/ai/generate_payload`](../server.py#L14800) | `attack_type="xss"`；`complexity="basic"`；`technology=""`；`url=""` |
+| POST | [`/api/ai/test_payload`](../server.py#L14830) | `payload=""`；`target_url=""`；`method="GET"` |
+| POST | [`/api/ai/advanced-payload-generation`](../server.py#L16015) | `attack_type="rce"`；`target_context=""`；`evasion_level="standard"`；`custom_constraints=""` |
 
 ### 漏洞情报
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/vuln-intel/cve-monitor`](../hexstrike_server.py#L15537) | `hours=24`；`severity_filter="HIGH,CRITICAL"`；`keywords=""` |
-| POST | [`/api/vuln-intel/exploit-generate`](../hexstrike_server.py#L15591) | `cve_id=""`；`target_os=""`；`target_arch="x64"`；`exploit_type="poc"`；`evasion_level="none"`；`target_ip="192.168.1.100"`；`target_port=80`；`target_description=动态值` |
-| POST | [`/api/vuln-intel/attack-chains`](../hexstrike_server.py#L15664) | `target_software=""`；`attack_depth=3`；`include_zero_days=false` |
-| POST | [`/api/vuln-intel/threat-feeds`](../hexstrike_server.py#L15741) | `indicators=[]`；`timeframe="30d"`；`sources="all"` |
-| POST | [`/api/vuln-intel/zero-day-research`](../hexstrike_server.py#L15876) | `target_software=""`；`analysis_depth="standard"`；`source_code_url=""` |
+| POST | [`/api/vuln-intel/cve-monitor`](../server.py#L15537) | `hours=24`；`severity_filter="HIGH,CRITICAL"`；`keywords=""` |
+| POST | [`/api/vuln-intel/exploit-generate`](../server.py#L15591) | `cve_id=""`；`target_os=""`；`target_arch="x64"`；`exploit_type="poc"`；`evasion_level="none"`；`target_ip="192.168.1.100"`；`target_port=80`；`target_description=动态值` |
+| POST | [`/api/vuln-intel/attack-chains`](../server.py#L15664) | `target_software=""`；`attack_depth=3`；`include_zero_days=false` |
+| POST | [`/api/vuln-intel/threat-feeds`](../server.py#L15741) | `indicators=[]`；`timeframe="30d"`；`sources="all"` |
+| POST | [`/api/vuln-intel/zero-day-research`](../server.py#L15876) | `target_software=""`；`analysis_depth="standard"`；`source_code_url=""` |
 
 ### CTF工作流
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/ctf/create-challenge-workflow`](../hexstrike_server.py#L16157) | `name=""`；`category="misc"`；`difficulty="unknown"`；`points=100`；`description=""`；`target=""` |
-| POST | [`/api/ctf/auto-solve-challenge`](../hexstrike_server.py#L16197) | `name=""`；`category="misc"`；`difficulty="unknown"`；`points=100`；`description=""`；`target=""` |
-| POST | [`/api/ctf/team-strategy`](../hexstrike_server.py#L16237) | `challenges=[]`；`team_skills={}` |
-| POST | [`/api/ctf/suggest-tools`](../hexstrike_server.py#L16277) | `description=""`；`category="misc"` |
-| POST | [`/api/ctf/cryptography-solver`](../hexstrike_server.py#L16314) | `cipher_text=""`；`cipher_type="unknown"`；`key_hint=""`；`known_plaintext=""`；`additional_info=""` |
-| POST | [`/api/ctf/forensics-analyzer`](../hexstrike_server.py#L16412) | `file_path=""`；`analysis_type="comprehensive"`；`extract_hidden=true`；`check_steganography=true` |
-| POST | [`/api/ctf/binary-analyzer`](../hexstrike_server.py#L16555) | `binary_path=""`；`analysis_depth="comprehensive"`；`check_protections=true`；`find_gadgets=true` |
+| POST | [`/api/ctf/create-challenge-workflow`](../server.py#L16157) | `name=""`；`category="misc"`；`difficulty="unknown"`；`points=100`；`description=""`；`target=""` |
+| POST | [`/api/ctf/auto-solve-challenge`](../server.py#L16197) | `name=""`；`category="misc"`；`difficulty="unknown"`；`points=100`；`description=""`；`target=""` |
+| POST | [`/api/ctf/team-strategy`](../server.py#L16237) | `challenges=[]`；`team_skills={}` |
+| POST | [`/api/ctf/suggest-tools`](../server.py#L16277) | `description=""`；`category="misc"` |
+| POST | [`/api/ctf/cryptography-solver`](../server.py#L16314) | `cipher_text=""`；`cipher_type="unknown"`；`key_hint=""`；`known_plaintext=""`；`additional_info=""` |
+| POST | [`/api/ctf/forensics-analyzer`](../server.py#L16412) | `file_path=""`；`analysis_type="comprehensive"`；`extract_hidden=true`；`check_steganography=true` |
+| POST | [`/api/ctf/binary-analyzer`](../server.py#L16555) | `binary_path=""`；`analysis_depth="comprehensive"`；`check_protections=true`；`find_gadgets=true` |
 
 ### 异步执行与执行池
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| POST | [`/api/process/execute-async`](../hexstrike_server.py#L16735) | `command=""`；`context={}` |
-| GET | [`/api/process/get-task-result/<task_id>`](../hexstrike_server.py#L16762) | 路径参数：`task_id` |
-| GET | [`/api/process/pool-stats`](../hexstrike_server.py#L16783) | 无 |
-| GET | [`/api/process/cache-stats`](../hexstrike_server.py#L16800) | 无 |
-| POST | [`/api/process/clear-cache`](../hexstrike_server.py#L16817) | 无 |
-| GET | [`/api/process/resource-usage`](../hexstrike_server.py#L16834) | 无 |
-| GET | [`/api/process/performance-dashboard`](../hexstrike_server.py#L16853) | 无 |
-| POST | [`/api/process/terminate-gracefully/<int:pid>`](../hexstrike_server.py#L16886) | 路径参数：`pid`；`timeout=30` |
-| POST | [`/api/process/auto-scaling`](../hexstrike_server.py#L16915) | `enabled=true`；`thresholds={}` |
-| POST | [`/api/process/scale-pool`](../hexstrike_server.py#L16941) | `action=""`；`count=1` |
-| GET | [`/api/process/health-check`](../hexstrike_server.py#L16985) | 无 |
+| POST | [`/api/process/execute-async`](../server.py#L16735) | `command=""`；`context={}` |
+| GET | [`/api/process/get-task-result/<task_id>`](../server.py#L16762) | 路径参数：`task_id` |
+| GET | [`/api/process/pool-stats`](../server.py#L16783) | 无 |
+| GET | [`/api/process/cache-stats`](../server.py#L16800) | 无 |
+| POST | [`/api/process/clear-cache`](../server.py#L16817) | 无 |
+| GET | [`/api/process/resource-usage`](../server.py#L16834) | 无 |
+| GET | [`/api/process/performance-dashboard`](../server.py#L16853) | 无 |
+| POST | [`/api/process/terminate-gracefully/<int:pid>`](../server.py#L16886) | 路径参数：`pid`；`timeout=30` |
+| POST | [`/api/process/auto-scaling`](../server.py#L16915) | `enabled=true`；`thresholds={}` |
+| POST | [`/api/process/scale-pool`](../server.py#L16941) | `action=""`；`count=1` |
+| GET | [`/api/process/health-check`](../server.py#L16985) | 无 |
 
 ### 错误恢复
 
 | 方法 | 路径与处理器 | 请求字段与缺省读取值 |
 | --- | --- | --- |
-| GET | [`/api/error-handling/statistics`](../hexstrike_server.py#L17085) | 无 |
-| POST | [`/api/error-handling/test-recovery`](../hexstrike_server.py#L17099) | `tool_name="nmap"`；`error_type="timeout"`；`target="example.com"`；`parameters={}` |
-| GET | [`/api/error-handling/fallback-chains`](../hexstrike_server.py#L17145) | 查询串；`operation=""`；`failed_tools=重复查询参数` |
-| POST | [`/api/error-handling/execute-with-recovery`](../hexstrike_server.py#L17173) | `tool_name=""`；`command=""`；`parameters={}`；`max_attempts=3`；`use_cache=true` |
-| POST | [`/api/error-handling/classify-error`](../hexstrike_server.py#L17206) | `error_message=""` |
-| POST | [`/api/error-handling/parameter-adjustments`](../hexstrike_server.py#L17238) | `tool_name=""`；`error_type=""`；`original_params={}` |
-| GET | [`/api/error-handling/alternative-tools`](../hexstrike_server.py#L17271) | 查询串；`tool_name=""` |
+| GET | [`/api/error-handling/statistics`](../server.py#L17085) | 无 |
+| POST | [`/api/error-handling/test-recovery`](../server.py#L17099) | `tool_name="nmap"`；`error_type="timeout"`；`target="example.com"`；`parameters={}` |
+| GET | [`/api/error-handling/fallback-chains`](../server.py#L17145) | 查询串；`operation=""`；`failed_tools=重复查询参数` |
+| POST | [`/api/error-handling/execute-with-recovery`](../server.py#L17173) | `tool_name=""`；`command=""`；`parameters={}`；`max_attempts=3`；`use_cache=true` |
+| POST | [`/api/error-handling/classify-error`](../server.py#L17206) | `error_message=""` |
+| POST | [`/api/error-handling/parameter-adjustments`](../server.py#L17238) | `tool_name=""`；`error_type=""`；`original_params={}` |
+| GET | [`/api/error-handling/alternative-tools`](../server.py#L17271) | 查询串；`tool_name=""` |
 <!-- HTTP_ROUTES_END -->

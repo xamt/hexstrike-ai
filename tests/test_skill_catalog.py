@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT))
 
 from source import definitions, parameters
 import export as skill_export
-from hexstrike_tools import register_tools
+from tools import register_tools
 
 
 class RecordingMCP:
