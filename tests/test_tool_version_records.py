@@ -66,7 +66,7 @@ class ToolVersionRecordTests(unittest.TestCase):
                     source.write_text("字典替身\n")
                 script = (ROOT / "docker/tools/network/apt.sh").read_text().replace(
                     "/usr/share/seclists", str(root / "seclists")).replace(
-                    "/opt/hexstrike-compat/autorecon-data", str(root / "data"))
+                    "/opt/pentest-tools-compat/autorecon-data", str(root / "data"))
                 installer = root / "install-network.sh"
                 installer.write_text(script.replace('${script_dir}/../../lib/record-tool-version.sh', str(RECORDER)))
                 shutil.copyfile(RECORDER, root / RECORDER.name)

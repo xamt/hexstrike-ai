@@ -59,7 +59,7 @@ class Fetcher:
         self.scope = Scope(url, options["subs"])
         self.options = options
         self.deadline = deadline
-        self.headers = {"User-Agent": "Mozilla/5.0 (compatible; HexStrike-Hakrawler)"}
+        self.headers = {"User-Agent": "Mozilla/5.0 (compatible; pentest-tools-Hakrawler)"}
         for item in options["h"].split(";;"):
             if item:
                 key, separator, value = item.partition(":")

@@ -4,10 +4,10 @@ from typing import Any, Dict
 
 from runtime.nmap_options import validate_scan_type
 
-from .support import HexStrikeColors, logger
+from .support import ToolsColors, logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def nmap_scan(target: str, scan_type: str = "-sV", ports: str = "", additional_args: str = "") -> Dict[str, Any]:
@@ -33,26 +33,26 @@ def register(mcp, hexstrike_client):
             "ports": ports,
             "additional_args": additional_args
         }
-        logger.info(f"{HexStrikeColors.FIRE_RED}🔍 Initiating Nmap scan: {target}{HexStrikeColors.RESET}")
+        logger.info(f"{ToolsColors.FIRE_RED}🔍 Initiating Nmap scan: {target}{ToolsColors.RESET}")
 
         # 超时并不代表远端已停止；禁止自动重放或修改扫描范围。
         data["use_recovery"] = False
-        result = hexstrike_client.safe_post("api/tools/nmap", data)
+        result = tool_client.safe_post("api/tools/nmap", data)
 
         if result.get("success"):
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Nmap scan completed successfully for {target}{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ Nmap scan completed successfully for {target}{ToolsColors.RESET}")
 
             # Check for recovery information
             if result.get("recovery_info", {}).get("recovery_applied"):
                 recovery_info = result["recovery_info"]
                 attempts = recovery_info.get("attempts_made", 1)
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_YELLOW} Recovery applied: {attempts} attempts made {HexStrikeColors.RESET}")
+                logger.info(f"{ToolsColors.HIGHLIGHT_YELLOW} Recovery applied: {attempts} attempts made {ToolsColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Nmap scan failed for {target}{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ Nmap scan failed for {target}{ToolsColors.RESET}")
 
             # Check for human escalation
             if result.get("human_escalation"):
-                logger.error(f"{HexStrikeColors.CRITICAL} HUMAN ESCALATION REQUIRED {HexStrikeColors.RESET}")
+                logger.error(f"{ToolsColors.CRITICAL} HUMAN ESCALATION REQUIRED {ToolsColors.RESET}")
 
         return result
 
@@ -76,27 +76,27 @@ def register(mcp, hexstrike_client):
             "wordlist": wordlist,
             "additional_args": additional_args
         }
-        logger.info(f"{HexStrikeColors.CRIMSON}📁 Starting Gobuster {mode} scan: {url}{HexStrikeColors.RESET}")
+        logger.info(f"{ToolsColors.CRIMSON}📁 Starting Gobuster {mode} scan: {url}{ToolsColors.RESET}")
 
         # Use enhanced error handling by default
         data["use_recovery"] = True
-        result = hexstrike_client.safe_post("api/tools/gobuster", data)
+        result = tool_client.safe_post("api/tools/gobuster", data)
 
         if result.get("success"):
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Gobuster scan completed for {url}{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ Gobuster scan completed for {url}{ToolsColors.RESET}")
 
             # Check for recovery information
             if result.get("recovery_info", {}).get("recovery_applied"):
                 recovery_info = result["recovery_info"]
                 attempts = recovery_info.get("attempts_made", 1)
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_YELLOW} Recovery applied: {attempts} attempts made {HexStrikeColors.RESET}")
+                logger.info(f"{ToolsColors.HIGHLIGHT_YELLOW} Recovery applied: {attempts} attempts made {ToolsColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Gobuster scan failed for {url}{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ Gobuster scan failed for {url}{ToolsColors.RESET}")
 
             # Check for alternative tool suggestion
             if result.get("alternative_tool_suggested"):
                 alt_tool = result["alternative_tool_suggested"]
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_BLUE} Alternative tool suggested: {alt_tool} {HexStrikeColors.RESET}")
+                logger.info(f"{ToolsColors.HIGHLIGHT_BLUE} Alternative tool suggested: {alt_tool} {ToolsColors.RESET}")
 
         return result
 
@@ -122,27 +122,27 @@ def register(mcp, hexstrike_client):
             "template": template,
             "additional_args": additional_args
         }
-        logger.info(f"{HexStrikeColors.BLOOD_RED}🔬 Starting Nuclei vulnerability scan: {target}{HexStrikeColors.RESET}")
+        logger.info(f"{ToolsColors.BLOOD_RED}🔬 Starting Nuclei vulnerability scan: {target}{ToolsColors.RESET}")
 
         # Use enhanced error handling by default
         data["use_recovery"] = True
-        result = hexstrike_client.safe_post("api/tools/nuclei", data)
+        result = tool_client.safe_post("api/tools/nuclei", data)
 
         if result.get("success"):
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Nuclei scan completed for {target}{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ Nuclei scan completed for {target}{ToolsColors.RESET}")
 
             # Enhanced vulnerability reporting
             if result.get("stdout") and "CRITICAL" in result["stdout"]:
-                logger.warning(f"{HexStrikeColors.CRITICAL} CRITICAL vulnerabilities detected! {HexStrikeColors.RESET}")
+                logger.warning(f"{ToolsColors.CRITICAL} CRITICAL vulnerabilities detected! {ToolsColors.RESET}")
             elif result.get("stdout") and "HIGH" in result["stdout"]:
-                logger.warning(f"{HexStrikeColors.FIRE_RED} HIGH severity vulnerabilities found! {HexStrikeColors.RESET}")
+                logger.warning(f"{ToolsColors.FIRE_RED} HIGH severity vulnerabilities found! {ToolsColors.RESET}")
 
             # Check for recovery information
             if result.get("recovery_info", {}).get("recovery_applied"):
                 recovery_info = result["recovery_info"]
                 attempts = recovery_info.get("attempts_made", 1)
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_YELLOW} Recovery applied: {attempts} attempts made {HexStrikeColors.RESET}")
+                logger.info(f"{ToolsColors.HIGHLIGHT_YELLOW} Recovery applied: {attempts} attempts made {ToolsColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Nuclei scan failed for {target}{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ Nuclei scan failed for {target}{ToolsColors.RESET}")
 
         return result

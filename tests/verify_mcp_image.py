@@ -72,7 +72,7 @@ def kill_service(name, filename):
         "if target in (p.info['cmdline'] or [])]; "
         "assert len(matches)==1,matches; os.kill(matches[0],signal.SIGKILL)"
     )
-    docker("exec", name, "/opt/hexstrike-venv/bin/python", "-c", script, filename)
+    docker("exec", name, "/opt/pentest-tools-venv/bin/python", "-c", script, filename)
     code = docker("wait", name, timeout=25)
     assert code == "1", code
     state = inspect_container(name)["State"]
@@ -83,7 +83,7 @@ def kill_service(name, filename):
 def verify_image(image):
     """依次验收双接口、两个核心服务故障及正常停止，始终清理临时容器。"""
     for scenario in ("mcp", "api", "stop"):
-        name = "hexstrike-mcp-check-" + uuid.uuid4().hex[:10]
+        name = "pentest-tools-mcp-check-" + uuid.uuid4().hex[:10]
         started = False
         try:
             docker("run", "--detach", "--name", name,
@@ -91,7 +91,7 @@ def verify_image(image):
                    "--stop-timeout", "15", image)
             started = True
             _, address = wait_ready(name)
-            docker("exec", name, "/opt/hexstrike-venv/bin/python",
+            docker("exec", name, "/opt/pentest-tools-venv/bin/python",
                    "/opt/pentest-tools/docker/service_health.py")
             if scenario == "mcp":
                 asyncio.run(verify_protocol(address))

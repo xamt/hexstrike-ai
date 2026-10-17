@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-pentest-agent-tools - 安全测试工具服务
+pentest-tools - 安全测试工具服务
 
 Enhanced with AI-Powered Intelligence & Automation
 🚀 Bug Bounty | CTF | Red Team | Security Research
@@ -19,6 +19,7 @@ Framework: FastMCP integration for AI agent communication
 """
 
 import argparse
+from runtime.environment import setting
 import shlex
 import tempfile
 import json
@@ -78,7 +79,7 @@ try:
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler('hexstrike.log')
+            logging.FileHandler('pentest-tools.log')
         ]
     )
 except PermissionError:
@@ -97,8 +98,8 @@ app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
 # API Configuration
-API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
-API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
+API_PORT = int(setting('PORT', 8888))
+API_HOST = setting('HOST', '0.0.0.0')
 
 # ============================================================================
 # MODERN VISUAL ENGINE (v2.0 ENHANCEMENT)
@@ -174,7 +175,7 @@ class ModernVisualEngine:
 
     @staticmethod
     def create_banner() -> str:
-        """生成 pentest-agent-tools 启动横幅。"""
+        """生成 pentest-tools 启动横幅。"""
         # Build a blood-red themed border using primary/gradient alternation
         border_color = ModernVisualEngine.COLORS['PRIMARY_BORDER']
         accent = ModernVisualEngine.COLORS['ACCENT_LINE']
@@ -186,13 +187,13 @@ class ModernVisualEngine:
 {title_block}
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │
-│                        pentest-agent-tools                          │
+│                           pentest-tools                             │
 │                          安全测试工具服务                           │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 {RESET}
 {border_color}┌─────────────────────────────────────────────────────────────────────┐
-│  {ModernVisualEngine.COLORS['BRIGHT_WHITE']}pentest-agent-tools — 安全测试工具服务{border_color}                     │
+│  {ModernVisualEngine.COLORS['BRIGHT_WHITE']}pentest-tools — 安全测试工具服务{border_color}                           │
 │  {accent}⚡ AI-Automated Recon | Exploitation | Analysis Pipeline{border_color}          │
 │  {gradient}🎯 Bug Bounty | CTF | Red Team | Zero-Day Research{border_color}              │
 └─────────────────────────────────────────────────────────────────────┘{RESET}
@@ -282,7 +283,7 @@ class ModernVisualEngine:
         if not processes:
             return f"""
 {ModernVisualEngine.COLORS['PRIMARY_BORDER']}╭─────────────────────────────────────────────────────────────────────────────╮
-│ {ModernVisualEngine.COLORS['ACCENT_LINE']}pentest-agent-tools 进程概览{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                             │
+│ {ModernVisualEngine.COLORS['ACCENT_LINE']}pentest-tools 进程概览{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ {ModernVisualEngine.COLORS['TERMINAL_GRAY']}No active processes currently running{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                    │
 ╰─────────────────────────────────────────────────────────────────────────────╯{ModernVisualEngine.COLORS['RESET']}
@@ -290,7 +291,7 @@ class ModernVisualEngine:
 
         dashboard_lines = [
             f"{ModernVisualEngine.COLORS['PRIMARY_BORDER']}╭─────────────────────────────────────────────────────────────────────────────╮",
-            f"│ {ModernVisualEngine.COLORS['ACCENT_LINE']}pentest-agent-tools 进程概览{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                             │",
+            f"│ {ModernVisualEngine.COLORS['ACCENT_LINE']}pentest-tools 进程概览{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                                   │",
             f"├─────────────────────────────────────────────────────────────────────────────┤"
         ]
 
@@ -1311,7 +1312,7 @@ class IntelligentDecisionEngine:
 
         # Set project name based on binary
         binary_name = os.path.basename(profile.target).replace('.', '_')
-        params["project_name"] = f"hexstrike_{binary_name}"
+        params["project_name"] = f"pentest-tools_{binary_name}"
 
         return params
 
@@ -5719,7 +5720,7 @@ class ProcessManager:
 class PythonEnvironmentManager:
     """Manage Python virtual environments and dependencies"""
 
-    def __init__(self, base_dir: str = "/tmp/hexstrike_envs"):
+    def __init__(self, base_dir: str = "/tmp/pentest-tools_envs"):
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(exist_ok=True)
 
@@ -6666,7 +6667,7 @@ def setup_logging():
     # Console handler with colors
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(ColoredFormatter(
-        "[pentest-agent-tools] %(asctime)s [%(levelname)s] %(message)s",
+        "[pentest-tools] %(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     ))
     logger.addHandler(console_handler)
@@ -6679,7 +6680,7 @@ COMMAND_TIMEOUT = 300  # 5 minutes default timeout
 CACHE_SIZE = 1000
 CACHE_TTL = 3600  # 1 hour
 
-class HexStrikeCache:
+class ToolsCache:
     """Advanced caching system for command results"""
 
     def __init__(self, max_size: int = CACHE_SIZE, ttl: int = CACHE_TTL):
@@ -6745,7 +6746,7 @@ class HexStrikeCache:
         }
 
 # Global cache instance
-cache = HexStrikeCache()
+cache = ToolsCache()
 
 class TelemetryCollector:
     """Collect and manage system telemetry"""
@@ -8947,7 +8948,7 @@ def _determine_operation_type(tool_name: str) -> str:
 class FileOperationsManager:
     """Handle file operations with security and validation"""
 
-    def __init__(self, base_dir: str = "/tmp/hexstrike_files"):
+    def __init__(self, base_dir: str = "/tmp/pentest-tools_files"):
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(exist_ok=True)
         self.max_file_size = 100 * 1024 * 1024  # 100MB
@@ -9141,7 +9142,7 @@ def health_check():
 
     return jsonify({
         "status": "healthy",
-        "message": "pentest-agent-tools API Server is operational",
+        "message": "pentest-tools API Server is operational",
         "version": "6.0.0",
         "tools_status": tools_status,
         "all_essential_tools_available": all_essential_tools_available,
@@ -10682,7 +10683,7 @@ def pacu():
     """Execute Pacu for AWS exploitation framework"""
     try:
         params = request.json
-        session_name = params.get("session_name", "hexstrike_session")
+        session_name = params.get("session_name", "pentest-tools_session")
         modules = params.get("modules", "")
         data_services = params.get("data_services", "")
         regions = params.get("regions", "")
@@ -12291,7 +12292,7 @@ def ghidra():
     try:
         params = request.json
         binary = params.get("binary", "")
-        project_name = params.get("project_name", "hexstrike_analysis")
+        project_name = params.get("project_name", "pentest-tools_analysis")
         script_file = params.get("script_file", "")
         analysis_timeout = params.get("analysis_timeout", 300)
         output_format = params.get("output_format", "xml")
@@ -13353,7 +13354,7 @@ class HTTPTestingFramework:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'HexStrike-HTTP-Framework/1.0 (Advanced Security Testing)'
+            'User-Agent': 'pentest-tools-HTTP-Framework/1.0 (Advanced Security Testing)'
         })
         self.proxy_history = []
         self.vulnerabilities = []
@@ -13710,7 +13711,7 @@ class BrowserAgent:
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--disable-gpu')
             chrome_options.add_argument('--window-size=1920,1080')
-            chrome_options.add_argument('--user-agent=HexStrike-BrowserAgent/1.0 (Security Testing)')
+            chrome_options.add_argument('--user-agent=pentest-tools-BrowserAgent/1.0 (Security Testing)')
 
             # Enable logging
             chrome_options.add_argument('--enable-logging')
@@ -13753,7 +13754,7 @@ class BrowserAgent:
             time.sleep(wait_time)
 
             # Take screenshot
-            screenshot_path = f"/tmp/hexstrike_screenshot_{int(time.time())}.png"
+            screenshot_path = f"/tmp/pentest-tools_screenshot_{int(time.time())}.png"
             self.driver.save_screenshot(screenshot_path)
             self.screenshots.append(screenshot_path)
 
@@ -13885,7 +13886,7 @@ class BrowserAgent:
             modules.append('console_log_capture')
         return {'issues': issues, 'modules': modules}
 
-    def run_active_tests(self, page_info: dict, payload: str = '<hexstrikeXSSTest123>') -> dict:
+    def run_active_tests(self, page_info: dict, payload: str = '<pentest-toolsXSSTest123>') -> dict:
         """Very lightweight active tests (reflection check) - safe mode.
         Only GET forms with text inputs to avoid state-changing operations."""
         findings = []
@@ -14255,7 +14256,7 @@ def browser_agent_endpoint():
                     400,
                 )
 
-            screenshot_path = f"/tmp/hexstrike_screenshot_{int(time.time())}.png"
+            screenshot_path = f"/tmp/pentest-tools_screenshot_{int(time.time())}.png"
             browser_agent.driver.save_screenshot(screenshot_path)
 
             return jsonify(
@@ -15533,7 +15534,7 @@ def hakrawler():
         for name, enabled in (("forms", forms), ("robots", robots), ("sitemap", sitemap), ("wayback", wayback)):
             if not isinstance(enabled, bool):
                 return jsonify({"error": f"{name} must be a boolean"}), 400
-            command += f" --hexstrike-{name}={str(enabled).lower()}"
+            command += f" --pentest-tools-{name}={str(enabled).lower()}"
 
         if additional_args:
             command += f" {additional_args}"
@@ -17316,8 +17317,9 @@ if __name__ == "__main__":
     # Display the beautiful new banner
     print(BANNER)
 
-    parser = argparse.ArgumentParser(description="启动 pentest-agent-tools API 服务")
+    parser = argparse.ArgumentParser(description="启动 pentest-tools API 服务")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--host", default=API_HOST, help="API 监听地址")
     parser.add_argument("--port", type=int, default=API_PORT, help=f"Port for the API server (default: {API_PORT})")
     args = parser.parse_args()
 
@@ -17331,7 +17333,7 @@ if __name__ == "__main__":
     # Enhanced startup messages with beautiful formatting
     startup_info = f"""
 {ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╭─────────────────────────────────────────────────────────────────────────────╮{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['NEON_BLUE']}正在启动 pentest-agent-tools API 服务{ModernVisualEngine.COLORS['RESET']}
+{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['NEON_BLUE']}正在启动 pentest-tools API 服务{ModernVisualEngine.COLORS['RESET']}
 {ModernVisualEngine.COLORS['BOLD']}├─────────────────────────────────────────────────────────────────────────────┤{ModernVisualEngine.COLORS['RESET']}
 {ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['CYBER_ORANGE']}🌐 Port:{ModernVisualEngine.COLORS['RESET']} {API_PORT}
 {ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['WARNING']}🔧 Debug Mode:{ModernVisualEngine.COLORS['RESET']} {DEBUG_MODE}
@@ -17345,4 +17347,4 @@ if __name__ == "__main__":
         if line.strip():
             logger.info(line)
 
-    app.run(host="0.0.0.0", port=API_PORT, debug=DEBUG_MODE)
+    app.run(host=args.host, port=API_PORT, debug=DEBUG_MODE)

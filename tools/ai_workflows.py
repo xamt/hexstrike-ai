@@ -3,10 +3,10 @@
 from typing import Any, Dict
 from datetime import datetime
 
-from .support import HexStrikeColors, logger
+from .support import ToolsColors, logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def analyze_target_intelligence(target: str) -> Dict[str, Any]:
@@ -22,7 +22,7 @@ def register(mcp, hexstrike_client):
         logger.info(f"🧠 Analyzing target intelligence for: {target}")
 
         data = {"target": target}
-        result = hexstrike_client.safe_post("api/intelligence/analyze-target", data)
+        result = tool_client.safe_post("api/intelligence/analyze-target", data)
 
         if result.get("success"):
             profile = result.get("target_profile", {})
@@ -50,7 +50,7 @@ def register(mcp, hexstrike_client):
             "target": target,
             "objective": objective
         }
-        result = hexstrike_client.safe_post("api/intelligence/select-tools", data)
+        result = tool_client.safe_post("api/intelligence/select-tools", data)
 
         if result.get("success"):
             tools = result.get("selected_tools", [])
@@ -87,7 +87,7 @@ def register(mcp, hexstrike_client):
             "tool": tool,
             "context": context_dict
         }
-        result = hexstrike_client.safe_post("api/intelligence/optimize-parameters", data)
+        result = tool_client.safe_post("api/intelligence/optimize-parameters", data)
 
         if result.get("success"):
             params = result.get("optimized_parameters", {})
@@ -115,7 +115,7 @@ def register(mcp, hexstrike_client):
             "target": target,
             "objective": objective
         }
-        result = hexstrike_client.safe_post("api/intelligence/create-attack-chain", data)
+        result = tool_client.safe_post("api/intelligence/create-attack-chain", data)
 
         if result.get("success"):
             chain = result.get("attack_chain", {})
@@ -142,14 +142,14 @@ def register(mcp, hexstrike_client):
         Returns:
             Results from AI-optimized scanning with tool execution summary
         """
-        logger.info(f"{HexStrikeColors.FIRE_RED}🚀 Starting intelligent smart scan for {target}{HexStrikeColors.RESET}")
+        logger.info(f"{ToolsColors.FIRE_RED}🚀 Starting intelligent smart scan for {target}{ToolsColors.RESET}")
 
         data = {
             "target": target,
             "objective": objective,
             "max_tools": max_tools
         }
-        result = hexstrike_client.safe_post("api/intelligence/smart-scan", data)
+        result = tool_client.safe_post("api/intelligence/smart-scan", data)
 
         if result.get("success"):
             scan_results = result.get("scan_results", {})
@@ -157,8 +157,8 @@ def register(mcp, hexstrike_client):
             execution_summary = scan_results.get("execution_summary", {})
 
             # Enhanced logging with detailed results
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Intelligent scan completed for {target}{HexStrikeColors.RESET}")
-            logger.info(f"{HexStrikeColors.CYBER_ORANGE}📊 Execution Summary:{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ Intelligent scan completed for {target}{ToolsColors.RESET}")
+            logger.info(f"{ToolsColors.CYBER_ORANGE}📊 Execution Summary:{ToolsColors.RESET}")
             logger.info(f"   • Tools executed: {execution_summary.get('successful_tools', 0)}/{execution_summary.get('total_tools', 0)}")
             logger.info(f"   • Success rate: {execution_summary.get('success_rate', 0):.1f}%")
             logger.info(f"   • Total vulnerabilities: {scan_results.get('total_vulnerabilities', 0)}")
@@ -167,18 +167,18 @@ def register(mcp, hexstrike_client):
             # Log successful tools
             successful_tools = [t['tool'] for t in tools_executed if t.get('success')]
             if successful_tools:
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_GREEN} Successful tools: {', '.join(successful_tools)} {HexStrikeColors.RESET}")
+                logger.info(f"{ToolsColors.HIGHLIGHT_GREEN} Successful tools: {', '.join(successful_tools)} {ToolsColors.RESET}")
 
             # Log failed tools
             failed_tools = [t['tool'] for t in tools_executed if not t.get('success')]
             if failed_tools:
-                logger.warning(f"{HexStrikeColors.HIGHLIGHT_RED} Failed tools: {', '.join(failed_tools)} {HexStrikeColors.RESET}")
+                logger.warning(f"{ToolsColors.HIGHLIGHT_RED} Failed tools: {', '.join(failed_tools)} {ToolsColors.RESET}")
 
             # Log vulnerabilities found
             if scan_results.get('total_vulnerabilities', 0) > 0:
-                logger.warning(f"{HexStrikeColors.VULN_HIGH}🚨 {scan_results['total_vulnerabilities']} vulnerabilities detected!{HexStrikeColors.RESET}")
+                logger.warning(f"{ToolsColors.VULN_HIGH}🚨 {scan_results['total_vulnerabilities']} vulnerabilities detected!{ToolsColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Intelligent scan failed for {target}: {result.get('error', 'Unknown error')}{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ Intelligent scan failed for {target}: {result.get('error', 'Unknown error')}{ToolsColors.RESET}")
 
         return result
 
@@ -196,7 +196,7 @@ def register(mcp, hexstrike_client):
         logger.info(f"🔍 Detecting technologies for {target}")
 
         data = {"target": target}
-        result = hexstrike_client.safe_post("api/intelligence/technology-detection", data)
+        result = tool_client.safe_post("api/intelligence/technology-detection", data)
 
         if result.get("success"):
             technologies = result.get("detected_technologies", [])
@@ -229,14 +229,14 @@ def register(mcp, hexstrike_client):
         logger.info(f"🕵️  Starting AI reconnaissance workflow for {target} (depth: {depth})")
 
         # First analyze the target
-        analysis_result = hexstrike_client.safe_post("api/intelligence/analyze-target", {"target": target})
+        analysis_result = tool_client.safe_post("api/intelligence/analyze-target", {"target": target})
 
         if not analysis_result.get("success"):
             return analysis_result
 
         # Create attack chain for reconnaissance
         objective = "comprehensive" if depth == "deep" else "quick" if depth == "surface" else "comprehensive"
-        chain_result = hexstrike_client.safe_post("api/intelligence/create-attack-chain", {
+        chain_result = tool_client.safe_post("api/intelligence/create-attack-chain", {
             "target": target,
             "objective": objective
         })
@@ -245,7 +245,7 @@ def register(mcp, hexstrike_client):
             return chain_result
 
         # Execute the reconnaissance
-        scan_result = hexstrike_client.safe_post("api/intelligence/smart-scan", {
+        scan_result = tool_client.safe_post("api/intelligence/smart-scan", {
             "target": target,
             "objective": objective,
             "max_tools": 8 if depth == "deep" else 3 if depth == "surface" else 5
@@ -278,7 +278,7 @@ def register(mcp, hexstrike_client):
         logger.info(f"🔬 Starting AI vulnerability assessment for {target}")
 
         # Analyze target first
-        analysis_result = hexstrike_client.safe_post("api/intelligence/analyze-target", {"target": target})
+        analysis_result = tool_client.safe_post("api/intelligence/analyze-target", {"target": target})
 
         if not analysis_result.get("success"):
             return analysis_result
@@ -297,7 +297,7 @@ def register(mcp, hexstrike_client):
             objective = "quick"
 
         # Execute vulnerability assessment
-        scan_result = hexstrike_client.safe_post("api/intelligence/smart-scan", {
+        scan_result = tool_client.safe_post("api/intelligence/smart-scan", {
             "target": target,
             "objective": objective,
             "max_tools": 6

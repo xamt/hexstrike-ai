@@ -81,7 +81,7 @@ case "${TARGETARCH}" in \
 # 描述: 批量探测 HTTP 服务、状态码、标题和技术栈。
 # MCP 参数契约: 单目标使用 -u，目标文件使用 -l，并使用 -t/-probe/-td/-sc 等
 #               httpx 1.9.0 支持的参数；服务端会区分目标字符串和目标文件。
-# 安装: Kali 包名为 httpx-toolkit；创建 httpx 兼容命令供 HexStrike 调用。
+# 安装: Kali 包名为 httpx-toolkit；创建 httpx 兼容命令供 pentest-tools 调用。
 (
 apt-get install -y --no-install-recommends \
       "httpx-toolkit=${HTTPX_TOOLKIT_VERSION}" && \

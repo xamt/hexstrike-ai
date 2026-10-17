@@ -54,7 +54,7 @@ class ToolCommandAdaptersTests(unittest.TestCase):
     def test_binwalk_extract_defaults_to_dedicated_user_only_as_root(self):
         with patch.object(compat.os, "geteuid", return_value=0):
             self.assertEqual(compat.binwalk(["-e", "sample"]),
-                             ["--run-as=hexstrike-extract", "-e", "sample"])
+                             ["--run-as=pentest-tools-extract", "-e", "sample"])
             self.assertEqual(compat.binwalk(["--help"]), ["--help"])
             self.assertEqual(compat.binwalk(["-e", "--run-as=user", "sample"]),
                              ["-e", "--run-as=user", "sample"])
@@ -62,16 +62,16 @@ class ToolCommandAdaptersTests(unittest.TestCase):
             self.assertEqual(compat.binwalk(["-e", "sample"]), ["-e", "sample"])
 
     def test_exec_replaces_wrapper_without_shell_or_status_masking(self):
-        with patch.object(compat.sys, "argv", ["/opt/hexstrike-compat/bin/checksec", "--file", "x"]):
+        with patch.object(compat.sys, "argv", ["/opt/pentest-tools-compat/bin/checksec", "--file", "x"]):
             with patch.object(compat.os, "execv") as execute:
                 self.assertEqual(compat.main(), 0)
             execute.assert_called_once_with("/usr/bin/checksec", ["checksec", "--file=x"])
 
     def test_ghidra_default_and_custom_script_paths(self):
         args = ["/tmp/project", "name", "-postScript", "ExportXml.java", "/tmp/report.xml"]
-        self.assertEqual(compat.ghidra(args), args + ["-scriptPath", "/opt/hexstrike-compat/ghidra"])
+        self.assertEqual(compat.ghidra(args), args + ["-scriptPath", "/opt/pentest-tools-compat/ghidra"])
         self.assertEqual(compat.ghidra(["project", "name", "-scriptPath", "/tmp/my scripts"]),
-                         ["project", "name", "-scriptPath", "/tmp/my scripts;/opt/hexstrike-compat/ghidra"])
+                         ["project", "name", "-scriptPath", "/tmp/my scripts;/opt/pentest-tools-compat/ghidra"])
         self.assertEqual(compat.ghidra([]), [])
         with self.assertRaises(ValueError):
             compat.ghidra(["project", "name", "-scriptPath"])
@@ -80,11 +80,11 @@ class ToolCommandAdaptersTests(unittest.TestCase):
         base = (ROOT / "Dockerfile.base").read_text()
         app = (ROOT / "Dockerfile").read_text()
         for content in (base, app):
-            self.assertIn('PATH="/opt/hexstrike-compat/bin:', content)
+            self.assertIn('PATH="/opt/pentest-tools-compat/bin:', content)
         install = (ROOT / "docker/compat/install.sh").read_text()
         self.assertIn("cli-compat.py", install)
-        self.assertIn("hexstrike-extract", install)
-        self.assertIn('test "$(id -u hexstrike-extract)" = "$(id -g hexstrike-extract)"', install)
+        self.assertIn("pentest-tools-extract", install)
+        self.assertIn('test "$(id -u pentest-tools-extract)" = "$(id -g pentest-tools-extract)"', install)
         self.assertIn('--uid "${extract_id}" --gid "${extract_id}"', install)
         self.assertNotIn("mv /usr/local/bin/waybackurls", install)
 

@@ -1,6 +1,6 @@
 # MCP 工具目录
 
-这里集中维护 MCP 工具声明，通过 `register_tools(mcp, hexstrike_client)`
+这里集中维护 MCP 工具声明，通过 `register_tools(mcp, tool_client)`
 注册到 Streamable HTTP 服务，不维护额外的传输分支或工具副本。
 
 - 保留原有 151 次工具声明和注册顺序。原文件重复声明了 `httpx_probe`，所以唯一

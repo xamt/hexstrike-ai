@@ -6,7 +6,7 @@ from datetime import datetime
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def bugbounty_reconnaissance_workflow(domain: str, scope: str = "", out_of_scope: str = "",
@@ -31,7 +31,7 @@ def register(mcp, hexstrike_client):
         }
 
         logger.info(f"🎯 Creating reconnaissance workflow for {domain}")
-        result = hexstrike_client.safe_post("api/bugbounty/reconnaissance-workflow", data)
+        result = tool_client.safe_post("api/bugbounty/reconnaissance-workflow", data)
 
         if result.get("success"):
             workflow = result.get("workflow", {})
@@ -62,7 +62,7 @@ def register(mcp, hexstrike_client):
         }
 
         logger.info(f"🎯 Creating vulnerability hunting workflow for {domain}")
-        result = hexstrike_client.safe_post("api/bugbounty/vulnerability-hunting-workflow", data)
+        result = tool_client.safe_post("api/bugbounty/vulnerability-hunting-workflow", data)
 
         if result.get("success"):
             workflow = result.get("workflow", {})
@@ -90,7 +90,7 @@ def register(mcp, hexstrike_client):
         }
 
         logger.info(f"🎯 Creating business logic testing workflow for {domain}")
-        result = hexstrike_client.safe_post("api/bugbounty/business-logic-workflow", data)
+        result = tool_client.safe_post("api/bugbounty/business-logic-workflow", data)
 
         if result.get("success"):
             workflow = result.get("workflow", {})
@@ -115,7 +115,7 @@ def register(mcp, hexstrike_client):
         data = {"domain": domain}
 
         logger.info(f"🎯 Creating OSINT gathering workflow for {domain}")
-        result = hexstrike_client.safe_post("api/bugbounty/osint-workflow", data)
+        result = tool_client.safe_post("api/bugbounty/osint-workflow", data)
 
         if result.get("success"):
             workflow = result.get("workflow", {})
@@ -140,7 +140,7 @@ def register(mcp, hexstrike_client):
         data = {"target_url": target_url}
 
         logger.info(f"🎯 Creating file upload testing workflow for {target_url}")
-        result = hexstrike_client.safe_post("api/bugbounty/file-upload-testing", data)
+        result = tool_client.safe_post("api/bugbounty/file-upload-testing", data)
 
         if result.get("success"):
             workflow = result.get("workflow", {})
@@ -178,7 +178,7 @@ def register(mcp, hexstrike_client):
         }
 
         logger.info(f"🎯 Creating comprehensive bug bounty assessment for {domain}")
-        result = hexstrike_client.safe_post("api/bugbounty/comprehensive-assessment", data)
+        result = tool_client.safe_post("api/bugbounty/comprehensive-assessment", data)
 
         if result.get("success"):
             assessment = result.get("assessment", {})

@@ -2,10 +2,10 @@
 
 from typing import Any, Dict
 
-from .support import HexStrikeColors, logger
+from .support import ToolsColors, logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def error_handling_statistics() -> Dict[str, Any]:
@@ -15,26 +15,26 @@ def register(mcp, hexstrike_client):
         Returns:
             Error handling statistics and patterns
         """
-        logger.info(f"{HexStrikeColors.ELECTRIC_PURPLE}📊 Retrieving error handling statistics{HexStrikeColors.RESET}")
-        result = hexstrike_client.safe_get("api/error-handling/statistics")
+        logger.info(f"{ToolsColors.ELECTRIC_PURPLE}📊 Retrieving error handling statistics{ToolsColors.RESET}")
+        result = tool_client.safe_get("api/error-handling/statistics")
 
         if result.get("success"):
             stats = result.get("statistics", {})
             total_errors = stats.get("total_errors", 0)
             recent_errors = stats.get("recent_errors_count", 0)
 
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Error statistics retrieved{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ Error statistics retrieved{ToolsColors.RESET}")
             logger.info(f"  📈 Total Errors: {total_errors}")
             logger.info(f"  🕒 Recent Errors: {recent_errors}")
 
             # Log error breakdown by type
             error_counts = stats.get("error_counts_by_type", {})
             if error_counts:
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_BLUE} ERROR BREAKDOWN {HexStrikeColors.RESET}")
+                logger.info(f"{ToolsColors.HIGHLIGHT_BLUE} ERROR BREAKDOWN {ToolsColors.RESET}")
                 for error_type, count in error_counts.items():
-                                          logger.info(f"  {HexStrikeColors.FIRE_RED}{error_type}: {count}{HexStrikeColors.RESET}")
+                                          logger.info(f"  {ToolsColors.FIRE_RED}{error_type}: {count}{ToolsColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Failed to retrieve error statistics{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ Failed to retrieve error statistics{ToolsColors.RESET}")
 
         return result
 
@@ -58,15 +58,15 @@ def register(mcp, hexstrike_client):
             "target": target
         }
 
-        logger.info(f"{HexStrikeColors.RUBY}🧪 Testing error recovery for {tool_name} with {error_type}{HexStrikeColors.RESET}")
-        result = hexstrike_client.safe_post("api/error-handling/test-recovery", data_payload)
+        logger.info(f"{ToolsColors.RUBY}🧪 Testing error recovery for {tool_name} with {error_type}{ToolsColors.RESET}")
+        result = tool_client.safe_post("api/error-handling/test-recovery", data_payload)
 
         if result.get("success"):
             recovery_strategy = result.get("recovery_strategy", {})
             action = recovery_strategy.get("action", "unknown")
             success_prob = recovery_strategy.get("success_probability", 0)
 
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Error recovery test completed{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ Error recovery test completed{ToolsColors.RESET}")
             logger.info(f"  🔧 Recovery Action: {action}")
             logger.info(f"  📊 Success Probability: {success_prob:.2%}")
 
@@ -75,6 +75,6 @@ def register(mcp, hexstrike_client):
             if alternatives:
                 logger.info(f"  🔄 Alternative Tools: {', '.join(alternatives)}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Error recovery test failed{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ Error recovery test failed{ToolsColors.RESET}")
 
         return result

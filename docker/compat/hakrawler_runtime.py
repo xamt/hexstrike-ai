@@ -30,8 +30,8 @@ def parse_options(arguments):
         key, separator, value = token.lstrip("-").partition("=")
         if not token.startswith("-"):
             raise ValueError("兼容模式只从标准输入接收目标 URL")
-        if key.startswith("hexstrike-"):
-            name = key.removeprefix("hexstrike-")
+        if key.startswith("pentest-tools-"):
+            name = key.removeprefix("pentest-tools-")
             if name not in FEATURES or not separator:
                 raise ValueError("未知或缺少布尔值的 Hakrawler 兼容参数")
             features[name] = boolean(value)
@@ -109,7 +109,7 @@ def run_compatible(arguments, stdin, output):
 def main(arguments=None, stdin=None, output=None):
     """无兼容参数时透明转交原生 CLI；兼容错误明确返回非零。"""
     arguments = sys.argv[1:] if arguments is None else arguments
-    if not any(arg.startswith("--hexstrike-") for arg in arguments):
+    if not any(arg.startswith("--pentest-tools-") for arg in arguments):
         os.execv("/usr/bin/hakrawler", ["hakrawler", *arguments])
         return 0
     try:

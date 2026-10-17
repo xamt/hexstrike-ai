@@ -129,7 +129,7 @@ class EndpointContractTests(unittest.TestCase):
                 with self.subTest(feature=feature, enabled=enabled):
                     response, execute = endpoint("hakrawler", {"url": "https://example.com", feature: enabled})
                     self.assertTrue(response["success"])
-                    self.assertIn(f"--hexstrike-{feature}={str(enabled).lower()}", execute.call_args.args[0])
+                    self.assertIn(f"--pentest-tools-{feature}={str(enabled).lower()}", execute.call_args.args[0])
 
     def test_dalfox_blind_requires_callback(self):
         for args in ("", "--blind", "--blind --debug", "--blind=", "-b ''"):

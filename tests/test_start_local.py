@@ -33,14 +33,14 @@ class LocalConfigurationTests(unittest.TestCase):
         self.assertEqual("127.0.0.1", mcp[mcp.index("--host") + 1])
 
     def test_cli_overrides_environment(self):
-        with patch.dict(os.environ, {"HEXSTRIKE_PORT": "9001"}, clear=True):
+        with patch.dict(os.environ, {"PENTEST_TOOLS_PORT": "9001"}, clear=True):
             args = start_local.parse_args(["--api-port", "9002", "--mcp-port", "9003",
                 "--api-python", sys.executable, "--mcp-python", sys.executable,
                 "--startup-timeout", "4", "--shutdown-timeout", "0.5"])
             config = start_local.local_configuration(args)
         self.assertEqual((9002, 9003, 4, 0.5), (config.api_port, config.mcp_port,
                          config.startup_timeout, config.shutdown_timeout))
-        self.assertIn("HEXSTRIKE_PORT='9002'", start_local.local_commands(config)[0][-1])
+        self.assertIn("PENTEST_TOOLS_PORT='9002'", start_local.local_commands(config)[0][-1])
 
     def test_invalid_and_equal_ports_rejected(self):
         for ports in ((0, 8889), (65536, 8889), (8889, 8889)):
@@ -52,7 +52,7 @@ class LocalConfigurationTests(unittest.TestCase):
 
     def test_missing_interpreter_reports_install_instruction(self):
         with self.assertRaisesRegex(ValueError, "requirements.txt"):
-            start_local.check_interpreter("/missing/hexstrike-python", "requirements.txt")
+            start_local.check_interpreter("/missing/pentest-tools-python", "requirements.txt")
 
     def test_venv_interpreter_symlink_is_not_resolved(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -67,12 +67,12 @@ class LocalConfigurationTests(unittest.TestCase):
             module.write_text("import json, os\n"
                 "class App:\n"
                 "    def run(self, **kwargs):\n"
-                "        print(json.dumps([kwargs, os.environ['HEXSTRIKE_PORT'], "
-                "os.environ['HEXSTRIKE_HOST']]))\n"
+                "        print(json.dumps([kwargs, os.environ['PENTEST_TOOLS_PORT'], "
+                "os.environ['PENTEST_TOOLS_HOST']]))\n"
                 "app = App()\n", encoding="utf-8")
             args = start_local.parse_args(["--api-python", sys.executable,
                                            "--api-port", "19088", "--mcp-port", "19089"])
-            with patch.dict(os.environ, {"HEXSTRIKE_PORT": "invalid"}):
+            with patch.dict(os.environ, {"PENTEST_TOOLS_PORT": "invalid"}):
                 command = start_local.local_commands(start_local.local_configuration(args))[0]
                 result = subprocess.run(command, cwd=directory, text=True,
                                         capture_output=True, check=True, timeout=5)

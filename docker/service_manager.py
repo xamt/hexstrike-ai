@@ -6,15 +6,15 @@ import subprocess
 import sys
 import time
 
-from service_health import load_configuration, probe_http
+from service_health import load_configuration, probe_http, setting
 
-LOGGER = logging.getLogger("hexstrike.services")
+LOGGER = logging.getLogger("pentest-tools.services")
 
 
 def service_commands(config):
     """构造独立解释器的参数列表，禁止通过 shell 拼接执行。"""
     api = [config.api_python, str(config.root / "server.py"),
-           "--port", str(config.api_port)]
+           "--port", str(config.api_port), "--host", setting("HOST", "0.0.0.0")]
     mcp = [config.mcp_python, str(config.root / "mcp_server.py"),
            "--host", "0.0.0.0",
            "--port", str(config.mcp_port), "--server", config.api_url]

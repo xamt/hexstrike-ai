@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def volatility3_analyze(memory_file: str, plugin: str, output_file: str = "", additional_args: str = "") -> Dict[str, Any]:
@@ -28,7 +28,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🧠 Starting Volatility3 analysis: {plugin}")
-        result = hexstrike_client.safe_post("api/tools/volatility3", data)
+        result = tool_client.safe_post("api/tools/volatility3", data)
         if result.get("success"):
             logger.info(f"✅ Volatility3 analysis completed")
         else:
@@ -56,7 +56,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"📁 Starting Foremost file carving: {input_file}")
-        result = hexstrike_client.safe_post("api/tools/foremost", data)
+        result = tool_client.safe_post("api/tools/foremost", data)
         if result.get("success"):
             logger.info(f"✅ Foremost carving completed")
         else:
@@ -88,7 +88,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🖼️ Starting Steghide {action}: {cover_file}")
-        result = hexstrike_client.safe_post("api/tools/steghide", data)
+        result = tool_client.safe_post("api/tools/steghide", data)
         if result.get("success"):
             logger.info(f"✅ Steghide {action} completed")
         else:
@@ -116,7 +116,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"📷 Starting ExifTool analysis: {file_path}")
-        result = hexstrike_client.safe_post("api/tools/exiftool", data)
+        result = tool_client.safe_post("api/tools/exiftool", data)
         if result.get("success"):
             logger.info(f"✅ ExifTool analysis completed")
         else:
@@ -146,7 +146,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔐 Starting HashPump attack")
-        result = hexstrike_client.safe_post("api/tools/hashpump", data)
+        result = tool_client.safe_post("api/tools/hashpump", data)
         if result.get("success"):
             logger.info(f"✅ HashPump attack completed")
         else:

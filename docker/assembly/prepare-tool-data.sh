@@ -35,7 +35,7 @@ install -d \
 
 # AUTORECON_SMALL_DATA
 # 使用原生默认路径，不用 CLI 覆盖用户配置中的字典选项。
-autorecon_data=/opt/hexstrike-compat/autorecon-data
+autorecon_data=/opt/pentest-tools-compat/autorecon-data
 while IFS= read -r relative; do
     test -s "${autorecon_data}/${relative}"
     install -d "/usr/share/seclists/$(dirname -- "${relative}")"

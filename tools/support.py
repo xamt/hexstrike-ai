@@ -3,7 +3,7 @@
 import logging
 
 
-class HexStrikeColors:
+class ToolsColors:
     """Enhanced color palette matching the server's ModernVisualEngine.COLORS"""
 
     # Basic colors (for backward compatibility)
@@ -67,18 +67,18 @@ class HexStrikeColors:
     TOOL_RECOVERY = '\033[38;5;129m\033[1m'  # Bold purple
 
 
-Colors = HexStrikeColors
+Colors = ToolsColors
 
 
 class ColoredFormatter(logging.Formatter):
     """Enhanced formatter with colors and emojis for MCP client - matches server styling"""
 
     COLORS = {
-        'DEBUG': HexStrikeColors.DEBUG,
-        'INFO': HexStrikeColors.SUCCESS,
-        'WARNING': HexStrikeColors.WARNING,
-        'ERROR': HexStrikeColors.ERROR,
-        'CRITICAL': HexStrikeColors.CRITICAL
+        'DEBUG': ToolsColors.DEBUG,
+        'INFO': ToolsColors.SUCCESS,
+        'WARNING': ToolsColors.WARNING,
+        'ERROR': ToolsColors.ERROR,
+        'CRITICAL': ToolsColors.CRITICAL
     }
 
     EMOJIS = {
@@ -91,11 +91,11 @@ class ColoredFormatter(logging.Formatter):
 
     def format(self, record):
         emoji = self.EMOJIS.get(record.levelname, '📝')
-        color = self.COLORS.get(record.levelname, HexStrikeColors.BRIGHT_WHITE)
+        color = self.COLORS.get(record.levelname, ToolsColors.BRIGHT_WHITE)
 
         # Add color and emoji to the message
-        record.msg = f"{color}{emoji} {record.msg}{HexStrikeColors.RESET}"
+        record.msg = f"{color}{emoji} {record.msg}{ToolsColors.RESET}"
         return super().format(record)
 
 
-logger = logging.getLogger("hexstrike_mcp")
+logger = logging.getLogger("pentest-tools_mcp")

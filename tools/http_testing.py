@@ -2,10 +2,10 @@
 
 from typing import Any, Dict
 
-from .support import HexStrikeColors, logger
+from .support import ToolsColors, logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def http_framework_test(url: str, method: str = "GET", data: dict = {},
@@ -33,18 +33,18 @@ def register(mcp, hexstrike_client):
             "action": action
         }
 
-        logger.info(f"{HexStrikeColors.FIRE_RED}🔥 Starting HTTP Framework {action}: {url}{HexStrikeColors.RESET}")
-        result = hexstrike_client.safe_post("api/tools/http-framework", data_payload)
+        logger.info(f"{ToolsColors.FIRE_RED}🔥 Starting HTTP Framework {action}: {url}{ToolsColors.RESET}")
+        result = tool_client.safe_post("api/tools/http-framework", data_payload)
 
         if result.get("success"):
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ HTTP Framework {action} completed for {url}{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ HTTP Framework {action} completed for {url}{ToolsColors.RESET}")
 
             # Enhanced logging for vulnerabilities found
             if result.get("result", {}).get("vulnerabilities"):
                 vuln_count = len(result["result"]["vulnerabilities"])
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_RED} Found {vuln_count} potential vulnerabilities {HexStrikeColors.RESET}")
+                logger.info(f"{ToolsColors.HIGHLIGHT_RED} Found {vuln_count} potential vulnerabilities {ToolsColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ HTTP Framework {action} failed for {url}{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ HTTP Framework {action} failed for {url}{ToolsColors.RESET}")
 
         return result
 
@@ -74,11 +74,11 @@ def register(mcp, hexstrike_client):
             "active_tests": active_tests
         }
 
-        logger.info(f"{HexStrikeColors.CRIMSON}🌐 Starting Browser Agent {action}: {url}{HexStrikeColors.RESET}")
-        result = hexstrike_client.safe_post("api/tools/browser-agent", data_payload)
+        logger.info(f"{ToolsColors.CRIMSON}🌐 Starting Browser Agent {action}: {url}{ToolsColors.RESET}")
+        result = tool_client.safe_post("api/tools/browser-agent", data_payload)
 
         if result.get("success"):
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Browser Agent {action} completed for {url}{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ Browser Agent {action} completed for {url}{ToolsColors.RESET}")
 
             # Enhanced logging for security analysis
             if action == "navigate" and result.get("result", {}).get("security_analysis"):
@@ -87,11 +87,11 @@ def register(mcp, hexstrike_client):
                 security_score = security_analysis.get("security_score", 0)
 
                 if issues_count > 0:
-                    logger.warning(f"{HexStrikeColors.HIGHLIGHT_YELLOW} Security Issues: {issues_count} | Score: {security_score}/100 {HexStrikeColors.RESET}")
+                    logger.warning(f"{ToolsColors.HIGHLIGHT_YELLOW} Security Issues: {issues_count} | Score: {security_score}/100 {ToolsColors.RESET}")
                 else:
-                    logger.info(f"{HexStrikeColors.HIGHLIGHT_GREEN} No security issues found | Score: {security_score}/100 {HexStrikeColors.RESET}")
+                    logger.info(f"{ToolsColors.HIGHLIGHT_GREEN} No security issues found | Score: {security_score}/100 {ToolsColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Browser Agent {action} failed for {url}{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ Browser Agent {action} failed for {url}{ToolsColors.RESET}")
 
         return result
 
@@ -100,19 +100,19 @@ def register(mcp, hexstrike_client):
         """Set match/replace rules used to rewrite parts of URL/query/headers/body before sending.
         Rule format: {'where':'url|query|headers|body','pattern':'regex','replacement':'string'}"""
         payload = {"action": "set_rules", "rules": rules}
-        return hexstrike_client.safe_post("api/tools/http-framework", payload)
+        return tool_client.safe_post("api/tools/http-framework", payload)
 
     @mcp.tool()
     def http_set_scope(host: str, include_subdomains: bool = True) -> Dict[str, Any]:
         """Define in-scope host (and optionally subdomains) so out-of-scope requests are skipped."""
         payload = {"action": "set_scope", "host": host, "include_subdomains": include_subdomains}
-        return hexstrike_client.safe_post("api/tools/http-framework", payload)
+        return tool_client.safe_post("api/tools/http-framework", payload)
 
     @mcp.tool()
     def http_repeater(request_spec: dict) -> Dict[str, Any]:
         """Send a crafted request (Burp Repeater equivalent). request_spec keys: url, method, headers, cookies, data."""
         payload = {"action": "repeater", "request": request_spec}
-        return hexstrike_client.safe_post("api/tools/http-framework", payload)
+        return tool_client.safe_post("api/tools/http-framework", payload)
 
     @mcp.tool()
     def http_intruder(url: str, method: str = "GET", location: str = "query", params: list = None,
@@ -129,7 +129,7 @@ def register(mcp, hexstrike_client):
             "base_data": base_data or {},
             "max_requests": max_requests
         }
-        return hexstrike_client.safe_post("api/tools/http-framework", payload)
+        return tool_client.safe_post("api/tools/http-framework", payload)
 
     @mcp.tool()
     def burpsuite_alternative_scan(target: str, scan_type: str = "comprehensive",
@@ -156,11 +156,11 @@ def register(mcp, hexstrike_client):
             "max_pages": max_pages
         }
 
-        logger.info(f"{HexStrikeColors.BLOOD_RED}🔥 Starting Burp Suite Alternative {scan_type} scan: {target}{HexStrikeColors.RESET}")
-        result = hexstrike_client.safe_post("api/tools/burpsuite-alternative", data_payload)
+        logger.info(f"{ToolsColors.BLOOD_RED}🔥 Starting Burp Suite Alternative {scan_type} scan: {target}{ToolsColors.RESET}")
+        result = tool_client.safe_post("api/tools/burpsuite-alternative", data_payload)
 
         if result.get("success"):
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Burp Suite Alternative scan completed for {target}{HexStrikeColors.RESET}")
+            logger.info(f"{ToolsColors.SUCCESS}✅ Burp Suite Alternative scan completed for {target}{ToolsColors.RESET}")
 
             # Enhanced logging for comprehensive results
             if result.get("result", {}).get("summary"):
@@ -169,7 +169,7 @@ def register(mcp, hexstrike_client):
                 pages_analyzed = summary.get("pages_analyzed", 0)
                 security_score = summary.get("security_score", 0)
 
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_BLUE} SCAN SUMMARY {HexStrikeColors.RESET}")
+                logger.info(f"{ToolsColors.HIGHLIGHT_BLUE} SCAN SUMMARY {ToolsColors.RESET}")
                 logger.info(f"  📊 Pages Analyzed: {pages_analyzed}")
                 logger.info(f"  🚨 Vulnerabilities: {total_vulns}")
                 logger.info(f"  🛡️  Security Score: {security_score}/100")
@@ -179,15 +179,15 @@ def register(mcp, hexstrike_client):
                 for severity, count in vuln_breakdown.items():
                     if count > 0:
                         color = {
-                                    'critical': HexStrikeColors.CRITICAL,
-        'high': HexStrikeColors.FIRE_RED,
-        'medium': HexStrikeColors.CYBER_ORANGE,
-        'low': HexStrikeColors.YELLOW,
-        'info': HexStrikeColors.INFO
-    }.get(severity.lower(), HexStrikeColors.WHITE)
+                                    'critical': ToolsColors.CRITICAL,
+        'high': ToolsColors.FIRE_RED,
+        'medium': ToolsColors.CYBER_ORANGE,
+        'low': ToolsColors.YELLOW,
+        'info': ToolsColors.INFO
+    }.get(severity.lower(), ToolsColors.WHITE)
 
-                        logger.info(f"  {color}{severity.upper()}: {count}{HexStrikeColors.RESET}")
+                        logger.info(f"  {color}{severity.upper()}: {count}{ToolsColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Burp Suite Alternative scan failed for {target}{HexStrikeColors.RESET}")
+            logger.error(f"{ToolsColors.ERROR}❌ Burp Suite Alternative scan failed for {target}{ToolsColors.RESET}")
 
         return result

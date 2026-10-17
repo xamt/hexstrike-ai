@@ -72,9 +72,9 @@ asyncio.run(main())
 
 ### 2.3 远程接入条件
 
-- 服务端 `HEXSTRIKE_MCP_ALLOWED_HOSTS` 必须包含请求实际携带的 Host，例如 `pentest-tools:8889`、`mcp.example.com`；多个值用逗号分隔，端口通配写作 `mcp.example.com:*`。
+- 服务端 `PENTEST_TOOLS_MCP_ALLOWED_HOSTS` 必须包含请求实际携带的 Host，例如 `pentest-tools:8889`、`mcp.example.com`；多个值用逗号分隔，端口通配写作 `mcp.example.com:*`。
 - 默认 Host 白名单为 `127.0.0.1:*`、`localhost:*`、`[::1]:*`。无端口域名应单独列出。
-- 默认不允许外部浏览器 Origin；确有浏览器接入需求时配置 `HEXSTRIKE_MCP_ALLOWED_ORIGINS`。这不等于已提供完整浏览器跨域支持，优先通过 Agent 后端或网关接入。
+- 默认不允许外部浏览器 Origin；确有浏览器接入需求时配置 `PENTEST_TOOLS_MCP_ALLOWED_ORIGINS`。这不等于已提供完整浏览器跨域支持，优先通过 Agent 后端或网关接入。
 - 网关需保留 MCP 所需请求头，正确转发 `/mcp`，并为长耗时工具设置足够的响应等待时间；外部 HTTPS 由网关或反向代理提供。
 
 ## 3. HTTP API 文档
@@ -253,8 +253,8 @@ HTTP 200 和 `isError=false` 都不单独证明目标测试成功。HTTP 命令�
 
 | 项目 | 当前约定 |
 | --- | --- |
-| 并发 | 默认最多 4 个 MCP 顶层工具在途调用，可由 `HEXSTRIKE_MCP_MAX_CONCURRENT` 调整；超额立即返回繁忙，不排队、不调用后端 |
-| 超时 | MCP 到后端连接超时 5 秒、单次读取超时默认 300 秒，读取值由 `HEXSTRIKE_MCP_TIMEOUT` 调整；复合工具总耗时可能更长 |
+| 并发 | 默认最多 4 个 MCP 顶层工具在途调用，可由 `PENTEST_TOOLS_MCP_MAX_CONCURRENT` 调整；超额立即返回繁忙，不排队、不调用后端 |
+| 超时 | MCP 到后端连接超时 5 秒、单次读取超时默认 300 秒，读取值由 `PENTEST_TOOLS_MCP_TIMEOUT` 调整；复合工具总耗时可能更长 |
 | 重试 | MCP HTTP 客户端不自动重试或跟随重定向；原后端错误恢复逻辑仍可能重试/调整执行，不能理解为全系统恰好执行一次 |
 | 断连与取消 | 断连或客户端超时不等于后端进程已取消；仍在执行的同步调用会继续占用配额直到完成 |
 | 隔离 | 文件、缓存、进程及部分后端状态共享；无状态 MCP 不代表多租户或按 Agent 隔离 |
@@ -264,7 +264,7 @@ HTTP 200 和 `isError=false` 都不单独证明目标测试成功。HTTP 命令�
 | 现象 | 排查方向 |
 | --- | --- |
 | API 可访问，MCP 连接失败 | 确认连接的是 MCP 端口与完整 `/mcp` 路径，宿主选择了 Streamable HTTP |
-| MCP 返回 421 | 核对请求 Host 与 `HEXSTRIKE_MCP_ALLOWED_HOSTS` |
+| MCP 返回 421 | 核对请求 Host 与 `PENTEST_TOOLS_MCP_ALLOWED_HOSTS` |
 | MCP 返回 403 | 核对浏览器/代理发送的 Origin 与允许列表，不是本系统要求登录 |
 | `healthz` 成功、`readyz` 为 503 | MCP 进程可用，但后端不可连接或探针失败 |
 | 可发现工具，但调用报程序不存在 | 检查服务端工具安装与 API 进程的 `PATH`；目录发现不证明执行环境完整 |
@@ -367,7 +367,7 @@ HTTP 200 和 `isError=false` 都不单独证明目标测试成功。HTTP 命令�
 | POST | [`/api/tools/trivy`](../server.py#L10541) | `scan_type="image"`；`target=""`；`output_format="json"`；`severity=""`；`output_file=""`；`additional_args=""` |
 | POST | [`/api/tools/scout-suite`](../server.py#L10589) | `provider="aws"`；`profile="default"`；`report_dir="/tmp/scout-suite"`；`services=""`；`exceptions=""`；`additional_args=""` |
 | POST | [`/api/tools/cloudmapper`](../server.py#L10629) | `action="collect"`；`account=""`；`config="config.json"`；`additional_args=""` |
-| POST | [`/api/tools/pacu`](../server.py#L10662) | `session_name="hexstrike_session"`；`modules=""`；`data_services=""`；`regions=""`；`additional_args=""` |
+| POST | [`/api/tools/pacu`](../server.py#L10662) | `session_name="pentest-tools_session"`；`modules=""`；`data_services=""`；`regions=""`；`additional_args=""` |
 | POST | [`/api/tools/kube-hunter`](../server.py#L10714) | `target=""`；`remote=""`；`cidr=""`；`interface=""`；`active=false`；`report="json"`；`additional_args=""` |
 | POST | [`/api/tools/kube-bench`](../server.py#L10758) | `targets=""`；`version=""`；`config_dir=""`；`output_format="json"`；`additional_args=""` |
 | POST | [`/api/tools/docker-bench-security`](../server.py#L10794) | `checks=""`；`exclude=""`；`output_file="/tmp/docker-bench-results.json"`；`additional_args=""` |
@@ -408,7 +408,7 @@ HTTP 200 和 `isError=false` 都不单独证明目标测试成功。HTTP 命令�
 | POST | [`/api/tools/xxd`](../server.py#L12161) | `file_path=""`；`offset="0"`；`length=""`；`additional_args=""` |
 | POST | [`/api/tools/strings`](../server.py#L12197) | `file_path=""`；`min_len=4`；`additional_args=""` |
 | POST | [`/api/tools/objdump`](../server.py#L12229) | `binary=""`；`disassemble=true`；`additional_args=""` |
-| POST | [`/api/tools/ghidra`](../server.py#L12270) | `binary=""`；`project_name="hexstrike_analysis"`；`script_file=""`；`analysis_timeout=300`；`output_format="xml"`；`additional_args=""` |
+| POST | [`/api/tools/ghidra`](../server.py#L12270) | `binary=""`；`project_name="pentest-tools_analysis"`；`script_file=""`；`analysis_timeout=300`；`output_format="xml"`；`additional_args=""` |
 | POST | [`/api/tools/pwntools`](../server.py#L12313) | `script_content=""`；`target_binary=""`；`target_host=""`；`target_port=0`；`exploit_type="local"`；`additional_args=""` |
 | POST | [`/api/tools/one-gadget`](../server.py#L12388) | `libc_path=""`；`level=1`；`additional_args=""` |
 | POST | [`/api/tools/libc-database`](../server.py#L12414) | `action="find"`；`symbols=""`；`libc_id=""`；`additional_args=""` |

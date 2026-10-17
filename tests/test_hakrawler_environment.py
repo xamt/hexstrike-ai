@@ -14,9 +14,9 @@ runtime = importlib.import_module("hakrawler_runtime")
 sources = importlib.import_module("hakrawler_sources")
 processes = importlib.import_module("hakrawler_process")
 
-DEFAULTS = ["-d", "2", "-u", "--hexstrike-forms=true",
-            "--hexstrike-robots=true", "--hexstrike-sitemap=true",
-            "--hexstrike-wayback=false"]
+DEFAULTS = ["-d", "2", "-u", "--pentest-tools-forms=true",
+            "--pentest-tools-robots=true", "--pentest-tools-sitemap=true",
+            "--pentest-tools-wayback=false"]
 
 
 class HakrawlerEnvironmentTests(unittest.TestCase):
@@ -48,7 +48,7 @@ class HakrawlerEnvironmentTests(unittest.TestCase):
     def test_false_form_flag_filters_only_form_records(self):
         records = '\n'.join(json.dumps({"Source": source, "URL": "https://example.test/" + source})
                             for source in ("href", "form", "script"))
-        arguments = [item.replace("=true", "=false") if item.startswith("--hexstrike-") else item
+        arguments = [item.replace("=true", "=false") if item.startswith("--pentest-tools-") else item
                      for item in DEFAULTS]
         output = io.StringIO()
         with patch.object(runtime, "run_process", return_value=records):
@@ -137,7 +137,7 @@ class HakrawlerEnvironmentTests(unittest.TestCase):
         run.assert_not_called()
 
     def test_archive_requires_explicit_opt_in_and_stays_in_scope(self):
-        _, options, _ = runtime.parse_options(["--hexstrike-wayback=true"])
+        _, options, _ = runtime.parse_options(["--pentest-tools-wayback=true"])
         fetcher = sources.Fetcher("https://example.test", options, 99999999999)
         with patch.object(sources, "run_process", return_value="https://example.test/old\nhttps://outside.test/no") as run:
             self.assertEqual(list(sources.discover(fetcher, options)), [("wayback", "https://example.test/old")])

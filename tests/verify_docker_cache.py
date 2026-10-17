@@ -42,11 +42,12 @@ def check_isolation(tag):
     """验证重建应用未破坏 Volatility3 与 JWT-Tool 独立环境。"""
     command([
         "docker", "run", "--rm", "--entrypoint", "/bin/bash", tag, "-ec",
-        "/usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python check; "
+        "/usr/local/bin/python3.11 -m pip --python /opt/pentest-tools-venv/bin/python check; "
         "/opt/volatility3-venv/bin/python -m pip check; vol -h >/dev/null; "
         "/opt/jwt-tool-venv/bin/python -m pip check; jwt_tool -h >/dev/null; "
-        "test \"$(command -v python3)\" = /opt/hexstrike-venv/bin/python3; "
-        "python3 -c 'import requests, httpx'",
+        "test \"$(command -v python3)\" = /opt/pentest-tools-venv/bin/python3; "
+        "python3 -c 'import requests'; "
+        "/opt/pentest-tools-mcp-venv/bin/python -c 'import mcp, requests'",
     ])
 
 

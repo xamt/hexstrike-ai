@@ -6,7 +6,7 @@ import time
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def correlate_threat_intelligence(indicators: str, timeframe: str = "30d", sources: str = "all") -> Dict[str, Any]:
@@ -42,7 +42,7 @@ def register(mcp, hexstrike_client):
             "sources": sources
         }
         logger.info(f"🧠 Correlating threat intelligence for {len(indicator_list)} indicators | Timeframe: {timeframe}")
-        result = hexstrike_client.safe_post("api/vuln-intel/threat-feeds", data)
+        result = tool_client.safe_post("api/vuln-intel/threat-feeds", data)
 
         if result.get("success"):
             threat_intel = result.get("threat_intelligence", {})
@@ -90,7 +90,7 @@ def register(mcp, hexstrike_client):
         if target_context:
             logger.info(f"🎯 Target Context: {target_context}")
 
-        result = hexstrike_client.safe_post("api/ai/advanced-payload-generation", data)
+        result = tool_client.safe_post("api/ai/advanced-payload-generation", data)
 
         if result.get("success"):
             payload_gen = result.get("advanced_payload_generation", {})
@@ -116,14 +116,14 @@ def register(mcp, hexstrike_client):
         logger.info("📊 Generating vulnerability intelligence dashboard")
 
         # Get latest critical CVEs
-        latest_cves = hexstrike_client.safe_post("api/vuln-intel/cve-monitor", {
+        latest_cves = tool_client.safe_post("api/vuln-intel/cve-monitor", {
             "hours": 24,
             "severity_filter": "CRITICAL",
             "keywords": ""
         })
 
         # Get trending attack types
-        trending_research = hexstrike_client.safe_post("api/vuln-intel/zero-day-research", {
+        trending_research = tool_client.safe_post("api/vuln-intel/zero-day-research", {
             "target_software": "web applications",
             "analysis_depth": "quick"
         })

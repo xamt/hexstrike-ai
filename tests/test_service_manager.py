@@ -22,15 +22,15 @@ class ServiceConfigurationTests(unittest.TestCase):
         self.assertEqual(Path("/opt/pentest-tools"), config.root)
         self.assertEqual("/opt/pentest-tools/server.py", commands[0][1])
         self.assertEqual("/opt/pentest-tools/mcp_server.py", commands[1][1])
-        self.assertEqual("/opt/hexstrike-venv/bin/python", commands[0][0])
-        self.assertEqual("/opt/hexstrike-mcp-venv/bin/python", commands[1][0])
+        self.assertEqual("/opt/pentest-tools-venv/bin/python", commands[0][0])
+        self.assertEqual("/opt/pentest-tools-mcp-venv/bin/python", commands[1][0])
         self.assertNotIn("--transport", commands[1])
         self.assertEqual("http://127.0.0.1:8888", commands[1][-1])
 
     def test_custom_ports_and_deadlines(self):
-        config = service_health.load_configuration({"HEXSTRIKE_PORT": "9088",
-            "HEXSTRIKE_MCP_PORT": "9089", "HEXSTRIKE_STARTUP_TIMEOUT": "12.5",
-            "HEXSTRIKE_SHUTDOWN_TIMEOUT": "2"})
+        config = service_health.load_configuration({"PENTEST_TOOLS_PORT": "9088",
+            "PENTEST_TOOLS_MCP_PORT": "9089", "PENTEST_TOOLS_STARTUP_TIMEOUT": "12.5",
+            "PENTEST_TOOLS_SHUTDOWN_TIMEOUT": "2"})
         self.assertEqual(12.5, config.startup_timeout)
         self.assertEqual(2, config.shutdown_timeout)
         self.assertIn("9089", service_manager.service_commands(config)[1])
@@ -38,12 +38,12 @@ class ServiceConfigurationTests(unittest.TestCase):
     def test_rejects_invalid_ports_and_deadlines(self):
         for value in ("0", "65536", "abc", "-1"):
             with self.subTest(value=value), self.assertRaises(ValueError):
-                service_health.load_configuration({"HEXSTRIKE_PORT": value})
+                service_health.load_configuration({"PENTEST_TOOLS_PORT": value})
         with self.assertRaises(ValueError):
-            service_health.load_configuration({"HEXSTRIKE_MCP_PORT": "8888"})
+            service_health.load_configuration({"PENTEST_TOOLS_MCP_PORT": "8888"})
         for value in ("0", "-1", "nan", "inf", "bad"):
             with self.subTest(value=value), self.assertRaises(ValueError):
-                service_health.load_configuration({"HEXSTRIKE_STARTUP_TIMEOUT": value})
+                service_health.load_configuration({"PENTEST_TOOLS_STARTUP_TIMEOUT": value})
 
     def test_health_requires_both_services(self):
         config = service_health.load_configuration({})
@@ -83,8 +83,8 @@ class ServiceConfigurationTests(unittest.TestCase):
 
 class ServiceManagerTests(unittest.TestCase):
     def setUp(self):
-        self.config = service_health.load_configuration({"HEXSTRIKE_STARTUP_TIMEOUT": "0.03",
-            "HEXSTRIKE_SHUTDOWN_TIMEOUT": "0.03"})
+        self.config = service_health.load_configuration({"PENTEST_TOOLS_STARTUP_TIMEOUT": "0.03",
+            "PENTEST_TOOLS_SHUTDOWN_TIMEOUT": "0.03"})
 
     def test_api_ready_before_mcp_is_started(self):
         events = []

@@ -6,7 +6,7 @@ import time
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def api_fuzzer(base_url: str, endpoints: str = "", methods: str = "GET,POST,PUT,DELETE", wordlist: str = "/usr/share/wordlists/api/api-endpoints.txt") -> Dict[str, Any]:
@@ -30,7 +30,7 @@ def register(mcp, hexstrike_client):
         }
 
         logger.info(f"🔍 Starting API fuzzing: {base_url}")
-        result = hexstrike_client.safe_post("api/tools/api_fuzzer", data)
+        result = tool_client.safe_post("api/tools/api_fuzzer", data)
 
         if result.get("success"):
             fuzzing_type = result.get("fuzzing_type", "unknown")
@@ -66,7 +66,7 @@ def register(mcp, hexstrike_client):
         }
 
         logger.info(f"🔍 Starting GraphQL security scan: {endpoint}")
-        result = hexstrike_client.safe_post("api/tools/graphql_scanner", data)
+        result = tool_client.safe_post("api/tools/graphql_scanner", data)
 
         if result.get("success"):
             scan_results = result.get("graphql_scan_results", {})
@@ -104,7 +104,7 @@ def register(mcp, hexstrike_client):
         }
 
         logger.info(f"🔍 Starting JWT security analysis")
-        result = hexstrike_client.safe_post("api/tools/jwt_analyzer", data)
+        result = tool_client.safe_post("api/tools/jwt_analyzer", data)
 
         if result.get("success"):
             analysis = result.get("jwt_analysis_results", {})
@@ -143,7 +143,7 @@ def register(mcp, hexstrike_client):
         }
 
         logger.info(f"🔍 Starting API schema analysis: {schema_url}")
-        result = hexstrike_client.safe_post("api/tools/api_schema_analyzer", data)
+        result = tool_client.safe_post("api/tools/api_schema_analyzer", data)
 
         if result.get("success"):
             analysis = result.get("schema_analysis_results", {})

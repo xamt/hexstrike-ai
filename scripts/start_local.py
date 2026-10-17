@@ -21,8 +21,8 @@ def parse_args(argv=None):
                         help="API解释器路径（默认项目内.venv-api/bin/python）")
     parser.add_argument("--mcp-python", default=str(ROOT / ".venv-mcp/bin/python"),
                         help="MCP解释器路径（默认项目内.venv-mcp/bin/python）")
-    parser.add_argument("--api-port", type=int, help="API端口（默认8888，可由HEXSTRIKE_PORT设置）")
-    parser.add_argument("--mcp-port", type=int, help="MCP端口（默认8889，可由HEXSTRIKE_MCP_PORT设置）")
+    parser.add_argument("--api-port", type=int, help="API端口（默认8888，可由PENTEST_TOOLS_PORT设置）")
+    parser.add_argument("--mcp-port", type=int, help="MCP端口（默认8889，可由PENTEST_TOOLS_MCP_PORT设置）")
     parser.add_argument("--startup-timeout", type=float, help="双服务总启动期限，默认60秒")
     parser.add_argument("--shutdown-timeout", type=float, help="进程组优雅退出期限，默认10秒")
     return parser.parse_args(argv)
@@ -31,10 +31,10 @@ def parse_args(argv=None):
 def local_configuration(args):
     """复用已有配置验证；不解析虚拟环境解释器符号链接。"""
     values = dict(os.environ)
-    for argument, name in (("api_port", "HEXSTRIKE_PORT"),
-                           ("mcp_port", "HEXSTRIKE_MCP_PORT"),
-                           ("startup_timeout", "HEXSTRIKE_STARTUP_TIMEOUT"),
-                           ("shutdown_timeout", "HEXSTRIKE_SHUTDOWN_TIMEOUT")):
+    for argument, name in (("api_port", "PENTEST_TOOLS_PORT"),
+                           ("mcp_port", "PENTEST_TOOLS_MCP_PORT"),
+                           ("startup_timeout", "PENTEST_TOOLS_STARTUP_TIMEOUT"),
+                           ("shutdown_timeout", "PENTEST_TOOLS_SHUTDOWN_TIMEOUT")):
         value = getattr(args, argument)
         if value is not None:
             values[name] = str(value)
@@ -46,8 +46,8 @@ def local_configuration(args):
 def local_commands(config):
     """使用原Flask应用，只绑定回环且禁用自动重载；不改变工具执行逻辑。"""
     api = [config.api_python, "-u", "-c",
-           "import os; os.environ.update(HEXSTRIKE_HOST='127.0.0.1', "
-           f"HEXSTRIKE_PORT='{config.api_port}'); from server import app; "
+           "import os; os.environ.update(PENTEST_TOOLS_HOST='127.0.0.1', "
+           f"PENTEST_TOOLS_PORT='{config.api_port}'); from server import app; "
            f"app.run(host='127.0.0.1', port={config.api_port}, "
            "debug=False, use_reloader=False)"]
     mcp = [config.mcp_python, "-u", str(config.root / "mcp_server.py"),

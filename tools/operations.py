@@ -5,18 +5,18 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def server_health() -> Dict[str, Any]:
         """
-        Check the health status of the HexStrike AI server.
+        Check the health status of the pentest-tools server.
 
         Returns:
             Server health information with tool availability and telemetry
         """
-        logger.info(f"🏥 Checking HexStrike AI server health")
-        result = hexstrike_client.check_health()
+        logger.info(f"🏥 Checking pentest-tools server health")
+        result = tool_client.check_health()
         if result.get("status") == "healthy":
             logger.info(f"✅ Server is healthy - {result.get('total_tools_available', 0)} tools available")
         else:
@@ -26,13 +26,13 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def get_cache_stats() -> Dict[str, Any]:
         """
-        Get cache statistics from the HexStrike AI server.
+        Get cache statistics from the pentest-tools server.
 
         Returns:
             Cache performance statistics
         """
         logger.info(f"💾 Getting cache statistics")
-        result = hexstrike_client.safe_get("api/cache/stats")
+        result = tool_client.safe_get("api/cache/stats")
         if "hit_rate" in result:
             logger.info(f"📊 Cache hit rate: {result.get('hit_rate', 'unknown')}")
         return result
@@ -40,13 +40,13 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def clear_cache() -> Dict[str, Any]:
         """
-        Clear the cache on the HexStrike AI server.
+        Clear the cache on the pentest-tools server.
 
         Returns:
             Cache clear operation results
         """
         logger.info(f"🧹 Clearing server cache")
-        result = hexstrike_client.safe_post("api/cache/clear", {})
+        result = tool_client.safe_post("api/cache/clear", {})
         if result.get("success"):
             logger.info(f"✅ Cache cleared successfully")
         else:
@@ -56,13 +56,13 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def get_telemetry() -> Dict[str, Any]:
         """
-        Get system telemetry from the HexStrike AI server.
+        Get system telemetry from the pentest-tools server.
 
         Returns:
             System performance and usage telemetry
         """
         logger.info(f"📈 Getting system telemetry")
-        result = hexstrike_client.safe_get("api/telemetry")
+        result = tool_client.safe_get("api/telemetry")
         if "commands_executed" in result:
             logger.info(f"📊 Commands executed: {result.get('commands_executed', 0)}")
         return result
@@ -70,13 +70,13 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def list_active_processes() -> Dict[str, Any]:
         """
-        List all active processes on the HexStrike AI server.
+        List all active processes on the pentest-tools server.
 
         Returns:
             List of active processes with their status and progress
         """
         logger.info("📊 Listing active processes")
-        result = hexstrike_client.safe_get("api/processes/list")
+        result = tool_client.safe_get("api/processes/list")
         if result.get("success"):
             logger.info(f"✅ Found {result.get('total_count', 0)} active processes")
         else:
@@ -95,7 +95,7 @@ def register(mcp, hexstrike_client):
             Process status information including progress and runtime
         """
         logger.info(f"🔍 Checking status of process {pid}")
-        result = hexstrike_client.safe_get(f"api/processes/status/{pid}")
+        result = tool_client.safe_get(f"api/processes/status/{pid}")
         if result.get("success"):
             logger.info(f"✅ Process {pid} status retrieved")
         else:
@@ -114,7 +114,7 @@ def register(mcp, hexstrike_client):
             Success status of the termination operation
         """
         logger.info(f"🛑 Terminating process {pid}")
-        result = hexstrike_client.safe_post(f"api/processes/terminate/{pid}", {})
+        result = tool_client.safe_post(f"api/processes/terminate/{pid}", {})
         if result.get("success"):
             logger.info(f"✅ Process {pid} terminated successfully")
         else:
@@ -133,7 +133,7 @@ def register(mcp, hexstrike_client):
             Success status of the pause operation
         """
         logger.info(f"⏸️ Pausing process {pid}")
-        result = hexstrike_client.safe_post(f"api/processes/pause/{pid}", {})
+        result = tool_client.safe_post(f"api/processes/pause/{pid}", {})
         if result.get("success"):
             logger.info(f"✅ Process {pid} paused successfully")
         else:
@@ -152,7 +152,7 @@ def register(mcp, hexstrike_client):
             Success status of the resume operation
         """
         logger.info(f"▶️ Resuming process {pid}")
-        result = hexstrike_client.safe_post(f"api/processes/resume/{pid}", {})
+        result = tool_client.safe_post(f"api/processes/resume/{pid}", {})
         if result.get("success"):
             logger.info(f"✅ Process {pid} resumed successfully")
         else:
@@ -168,7 +168,7 @@ def register(mcp, hexstrike_client):
             Real-time dashboard with progress bars, system metrics, and process status
         """
         logger.info("📊 Getting process dashboard")
-        result = hexstrike_client.safe_get("api/processes/dashboard")
+        result = tool_client.safe_get("api/processes/dashboard")
         if result.get("success", True) and "total_processes" in result:
             total = result.get("total_processes", 0)
             logger.info(f"✅ Dashboard retrieved: {total} active processes")
@@ -185,7 +185,7 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def execute_command(command: str, use_cache: bool = True) -> Dict[str, Any]:
         """
-        Execute an arbitrary command on the HexStrike AI server with enhanced logging.
+        Execute an arbitrary command on the pentest-tools server with enhanced logging.
 
         Args:
             command: The command to execute
@@ -196,7 +196,7 @@ def register(mcp, hexstrike_client):
         """
         try:
             logger.info(f"⚡ Executing command: {command}")
-            result = hexstrike_client.execute_command(command, use_cache)
+            result = tool_client.execute_command(command, use_cache)
             if "error" in result:
                 logger.error(f"❌ Command failed: {result['error']}")
                 return {

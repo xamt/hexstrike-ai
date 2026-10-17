@@ -95,7 +95,7 @@ apt-get install -y --no-install-recommends "tcpdump=${TCPDUMP_VERSION}" && \
 # AUTORECON_SMALL_DATA
 # 在 APT 安装的同一层从 SecLists 缓存保留默认枚举必需的小字典。
 # 不在后续层依赖缓存仍然存在，不复制整个 SecLists，也不缩减原字典覆盖。
-autorecon_data=/opt/hexstrike-compat/autorecon-data
+autorecon_data=/opt/pentest-tools-compat/autorecon-data
 autorecon_wordlists=(
     Discovery/DNS/subdomains-top1million-110000.txt
     Usernames/top-usernames-shortlist.txt

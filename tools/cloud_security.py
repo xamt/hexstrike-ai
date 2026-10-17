@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def prowler_scan(provider: str = "aws", profile: str = "default", region: str = "", checks: str = "", output_dir: str = "/tmp/prowler_output", output_format: str = "json", additional_args: str = "") -> Dict[str, Any]:
@@ -34,7 +34,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"☁️  Starting Prowler {provider} security assessment")
-        result = hexstrike_client.safe_post("api/tools/prowler", data)
+        result = tool_client.safe_post("api/tools/prowler", data)
         if result.get("success"):
             logger.info(f"✅ Prowler assessment completed")
         else:
@@ -66,7 +66,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Trivy {scan_type} scan: {target}")
-        result = hexstrike_client.safe_post("api/tools/trivy", data)
+        result = tool_client.safe_post("api/tools/trivy", data)
         if result.get("success"):
             logger.info(f"✅ Trivy scan completed for {target}")
         else:
@@ -100,7 +100,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"☁️  Starting Scout Suite {provider} assessment")
-        result = hexstrike_client.safe_post("api/tools/scout-suite", data)
+        result = tool_client.safe_post("api/tools/scout-suite", data)
         if result.get("success"):
             logger.info(f"✅ Scout Suite assessment completed")
         else:
@@ -129,7 +129,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"☁️  Starting CloudMapper {action}")
-        result = hexstrike_client.safe_post("api/tools/cloudmapper", data)
+        result = tool_client.safe_post("api/tools/cloudmapper", data)
         if result.get("success"):
             logger.info(f"✅ CloudMapper {action} completed")
         else:
@@ -137,7 +137,7 @@ def register(mcp, hexstrike_client):
         return result
 
     @mcp.tool()
-    def pacu_exploitation(session_name: str = "hexstrike_session", modules: str = "",
+    def pacu_exploitation(session_name: str = "pentest-tools_session", modules: str = "",
                          data_services: str = "", regions: str = "",
                          additional_args: str = "") -> Dict[str, Any]:
         """
@@ -161,7 +161,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"☁️  Starting Pacu AWS exploitation")
-        result = hexstrike_client.safe_post("api/tools/pacu", data)
+        result = tool_client.safe_post("api/tools/pacu", data)
         if result.get("success"):
             logger.info(f"✅ Pacu exploitation completed")
         else:

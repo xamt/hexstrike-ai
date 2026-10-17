@@ -8,7 +8,10 @@
 .venv
 venv
 env
-hexstrike_env
+*_env
+.venv-api
+.venv-mcp
+.DS_Store
 __pycache__
 **/__pycache__
 *.pyc

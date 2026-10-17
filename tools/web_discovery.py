@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def feroxbuster_scan(url: str, wordlist: str = "/usr/share/wordlists/dirb/common.txt", threads: int = 10, additional_args: str = "") -> Dict[str, Any]:
@@ -28,7 +28,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Feroxbuster scan: {url}")
-        result = hexstrike_client.safe_post("api/tools/feroxbuster", data)
+        result = tool_client.safe_post("api/tools/feroxbuster", data)
         if result.get("success"):
             logger.info(f"✅ Feroxbuster scan completed for {url}")
         else:
@@ -54,7 +54,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting DotDotPwn scan: {target}")
-        result = hexstrike_client.safe_post("api/tools/dotdotpwn", data)
+        result = tool_client.safe_post("api/tools/dotdotpwn", data)
         if result.get("success"):
             logger.info(f"✅ DotDotPwn scan completed for {target}")
         else:
@@ -80,7 +80,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting XSSer scan: {url}")
-        result = hexstrike_client.safe_post("api/tools/xsser", data)
+        result = tool_client.safe_post("api/tools/xsser", data)
         if result.get("success"):
             logger.info(f"✅ XSSer scan completed for {url}")
         else:
@@ -106,7 +106,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Wfuzz scan: {url}")
-        result = hexstrike_client.safe_post("api/tools/wfuzz", data)
+        result = tool_client.safe_post("api/tools/wfuzz", data)
         if result.get("success"):
             logger.info(f"✅ Wfuzz scan completed for {url}")
         else:
@@ -140,7 +140,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"📁 Starting Dirsearch scan: {url}")
-        result = hexstrike_client.safe_post("api/tools/dirsearch", data)
+        result = tool_client.safe_post("api/tools/dirsearch", data)
         if result.get("success"):
             logger.info(f"✅ Dirsearch scan completed for {url}")
         else:
@@ -174,7 +174,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"⚔️  Starting Katana crawl: {url}")
-        result = hexstrike_client.safe_post("api/tools/katana", data)
+        result = tool_client.safe_post("api/tools/katana", data)
         if result.get("success"):
             logger.info(f"✅ Katana crawl completed for {url}")
         else:
@@ -206,7 +206,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"📡 Starting Gau URL discovery: {domain}")
-        result = hexstrike_client.safe_post("api/tools/gau", data)
+        result = tool_client.safe_post("api/tools/gau", data)
         if result.get("success"):
             logger.info(f"✅ Gau URL discovery completed for {domain}")
         else:
@@ -235,7 +235,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🕰️  Starting Waybackurls discovery: {domain}")
-        result = hexstrike_client.safe_post("api/tools/waybackurls", data)
+        result = tool_client.safe_post("api/tools/waybackurls", data)
         if result.get("success"):
             logger.info(f"✅ Waybackurls discovery completed for {domain}")
         else:
@@ -271,7 +271,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🎯 Starting Arjun parameter discovery: {url}")
-        result = hexstrike_client.safe_post("api/tools/arjun", data)
+        result = tool_client.safe_post("api/tools/arjun", data)
         if result.get("success"):
             logger.info(f"✅ Arjun parameter discovery completed for {url}")
         else:
@@ -303,7 +303,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🕷️  Starting ParamSpider mining: {domain}")
-        result = hexstrike_client.safe_post("api/tools/paramspider", data)
+        result = tool_client.safe_post("api/tools/paramspider", data)
         if result.get("success"):
             logger.info(f"✅ ParamSpider mining completed for {domain}")
         else:
@@ -337,7 +337,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting x8 parameter discovery: {url}")
-        result = hexstrike_client.safe_post("api/tools/x8", data)
+        result = tool_client.safe_post("api/tools/x8", data)
         if result.get("success"):
             logger.info(f"✅ x8 parameter discovery completed for {url}")
         else:

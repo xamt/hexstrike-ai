@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def hakrawler_crawl(url: str, depth: int = 2, forms: bool = True, robots: bool = True, sitemap: bool = True, wayback: bool = False, additional_args: str = "") -> Dict[str, Any]:
@@ -41,7 +41,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🕷️ Starting Hakrawler crawling: {url}")
-        result = hexstrike_client.safe_post("api/tools/hakrawler", data)
+        result = tool_client.safe_post("api/tools/hakrawler", data)
         if result.get("success"):
             logger.info(f"✅ Hakrawler crawling completed")
         else:
@@ -77,7 +77,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🌐 Starting HTTPx probing")
-        result = hexstrike_client.safe_post("api/tools/httpx", data)
+        result = tool_client.safe_post("api/tools/httpx", data)
         if result.get("success"):
             logger.info(f"✅ HTTPx probing completed")
         else:
@@ -107,7 +107,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting ParamSpider discovery: {domain}")
-        result = hexstrike_client.safe_post("api/tools/paramspider", data)
+        result = tool_client.safe_post("api/tools/paramspider", data)
         if result.get("success"):
             logger.info(f"✅ ParamSpider discovery completed")
         else:
@@ -143,7 +143,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Burp Suite scan")
-        result = hexstrike_client.safe_post("api/tools/burpsuite", data)
+        result = tool_client.safe_post("api/tools/burpsuite", data)
         if result.get("success"):
             logger.info(f"✅ Burp Suite scan completed")
         else:
@@ -181,7 +181,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting ZAP scan: {target}")
-        result = hexstrike_client.safe_post("api/tools/zap", data)
+        result = tool_client.safe_post("api/tools/zap", data)
         if result.get("success"):
             logger.info(f"✅ ZAP scan completed for {target}")
         else:
@@ -215,7 +215,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Arjun parameter discovery: {url}")
-        result = hexstrike_client.safe_post("api/tools/arjun", data)
+        result = tool_client.safe_post("api/tools/arjun", data)
         if result.get("success"):
             logger.info(f"✅ Arjun completed for {url}")
         else:
@@ -239,7 +239,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🛡️ Starting Wafw00f WAF detection: {target}")
-        result = hexstrike_client.safe_post("api/tools/wafw00f", data)
+        result = tool_client.safe_post("api/tools/wafw00f", data)
         if result.get("success"):
             logger.info(f"✅ Wafw00f completed for {target}")
         else:
@@ -265,7 +265,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Fierce DNS recon: {domain}")
-        result = hexstrike_client.safe_post("api/tools/fierce", data)
+        result = tool_client.safe_post("api/tools/fierce", data)
         if result.get("success"):
             logger.info(f"✅ Fierce completed for {domain}")
         else:
@@ -293,7 +293,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting DNSenum: {domain}")
-        result = hexstrike_client.safe_post("api/tools/dnsenum", data)
+        result = tool_client.safe_post("api/tools/dnsenum", data)
         if result.get("success"):
             logger.info(f"✅ DNSenum completed for {domain}")
         else:

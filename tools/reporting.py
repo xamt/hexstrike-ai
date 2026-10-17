@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def get_live_dashboard() -> Dict[str, Any]:
@@ -16,7 +16,7 @@ def register(mcp, hexstrike_client):
             Live dashboard with visual process monitoring and system metrics
         """
         logger.info("📊 Fetching live process dashboard")
-        result = hexstrike_client.safe_get("api/processes/dashboard")
+        result = tool_client.safe_get("api/processes/dashboard")
         if result.get("success", True):
             logger.info("✅ Live dashboard retrieved successfully")
         else:
@@ -50,7 +50,7 @@ def register(mcp, hexstrike_client):
             # Create individual vulnerability cards
             vulnerability_cards = []
             for vuln in vuln_data:
-                card_result = hexstrike_client.safe_post("api/visual/vulnerability-card", vuln)
+                card_result = tool_client.safe_post("api/visual/vulnerability-card", vuln)
                 if card_result.get("success"):
                     vulnerability_cards.append(card_result.get("vulnerability_card", ""))
 
@@ -62,7 +62,7 @@ def register(mcp, hexstrike_client):
                 "execution_time": 0
             }
 
-            summary_result = hexstrike_client.safe_post("api/visual/summary-report", summary_data)
+            summary_result = tool_client.safe_post("api/visual/summary-report", summary_data)
 
             logger.info("✅ Vulnerability report created successfully")
             return {
@@ -98,7 +98,7 @@ def register(mcp, hexstrike_client):
             "success": success
         }
 
-        result = hexstrike_client.safe_post("api/visual/tool-output", data)
+        result = tool_client.safe_post("api/visual/tool-output", data)
         if result.get("success"):
             logger.info(f"✅ Tool output formatted successfully for {tool_name}")
         else:
@@ -134,7 +134,7 @@ def register(mcp, hexstrike_client):
             "findings": findings
         }
 
-        result = hexstrike_client.safe_post("api/visual/summary-report", summary_data)
+        result = tool_client.safe_post("api/visual/summary-report", summary_data)
         if result.get("success"):
             logger.info("✅ Scan summary created successfully")
         else:
@@ -153,7 +153,7 @@ def register(mcp, hexstrike_client):
         logger.info("📈 Fetching system metrics")
 
         # Get telemetry data
-        telemetry_result = hexstrike_client.safe_get("api/telemetry")
+        telemetry_result = tool_client.safe_get("api/telemetry")
 
         if telemetry_result.get("success", True):
             logger.info("✅ System metrics retrieved successfully")

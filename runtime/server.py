@@ -14,7 +14,7 @@ from tools import register_tools
 logger = logging.getLogger(__name__)
 
 
-class HexStrikeMCPServer(MCPServer):
+class ToolsMCPServer(MCPServer):
     """限制在途工具数量，协议发现与健康路由不占用工具配额。"""
 
     def __init__(self, max_concurrent: int = 4):
@@ -22,7 +22,7 @@ class HexStrikeMCPServer(MCPServer):
             raise ValueError("并发工具数量必须为正整数")
         self._max_concurrent = max_concurrent
         self._inflight = 0
-        super().__init__("pentest-agent-tools", subscriptions=False)
+        super().__init__("pentest-tools", subscriptions=False)
 
     async def call_tool(self, name, arguments, context=None):
         """在事件循环内快速分配配额，SDK 在线程中运行原同步工具。"""
@@ -59,8 +59,8 @@ class HexStrikeMCPServer(MCPServer):
             self._inflight -= 1
 
 
-def setup_mcp_server(hexstrike_client, *, max_concurrent: int = 4) -> HexStrikeMCPServer:
+def setup_mcp_server(tool_client, *, max_concurrent: int = 4) -> ToolsMCPServer:
     """为 HTTP MCP 服务注册工具目录。"""
-    server = HexStrikeMCPServer(max_concurrent=max_concurrent)
-    register_tools(server, hexstrike_client)
+    server = ToolsMCPServer(max_concurrent=max_concurrent)
+    register_tools(server, tool_client)
     return server

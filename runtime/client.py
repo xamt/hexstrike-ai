@@ -8,11 +8,11 @@ from urllib.parse import urlsplit
 import requests
 
 logger = logging.getLogger(__name__)
-DEFAULT_HEXSTRIKE_SERVER = "http://127.0.0.1:8888"
+DEFAULT_TOOLS_SERVER = "http://127.0.0.1:8888"
 DEFAULT_REQUEST_TIMEOUT = 300
 
 
-class HexStrikeClient:
+class ToolsClient:
     """连接固定后端；不自动重试执行请求，不在构造阶段访问网络。"""
 
     def __init__(self, server_url: str, timeout: int = DEFAULT_REQUEST_TIMEOUT):

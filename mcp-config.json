@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "pentest-agent-tools": {
+    "pentest-tools": {
       "type": "http",
       "url": "http://127.0.0.1:8889/mcp"
     }

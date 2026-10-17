@@ -18,7 +18,7 @@ def sandbox_category(root, category):
     script = script.replace("${script_dir}/../../lib/record-tool-version.sh",
                             str(ROOT / "docker/lib/record-tool-version.sh"))
     script = script.replace("/usr/share/seclists", str(root / "seclists"))
-    script = script.replace("/opt/hexstrike-compat/autorecon-data", str(root / "data"))
+    script = script.replace("/opt/pentest-tools-compat/autorecon-data", str(root / "data"))
     for relative in WORDS:
         source = root / "seclists" / relative
         source.parent.mkdir(parents=True, exist_ok=True)
@@ -75,7 +75,7 @@ class SecurityInstallTests(unittest.TestCase):
         self.assertIn("0f8c32aa9f67cea4312e5df81d48f72dc5daf57f3cc0ce09d67db78e23fbe451", script)
         self.assertLess(script.index("sha256sum -c"), script.index("tar -xzf"))
         self.assertIn("/opt/jwt-tool-venv", script)
-        self.assertNotIn("/opt/hexstrike-venv", script)
+        self.assertNotIn("/opt/pentest-tools-venv", script)
         self.assertIn("source jwt_tool", script)
         self.assertIn("cd /opt/jwt-tool", script)
         self.assertIn("COPY --from=python-runtime /opt/jwt-tool-venv/", base)

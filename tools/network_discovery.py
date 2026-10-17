@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def rustscan_fast_scan(target: str, ports: str = "", ulimit: int = 5000,
@@ -36,7 +36,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"⚡ Starting Rustscan: {target}")
-        result = hexstrike_client.safe_post("api/tools/rustscan", data)
+        result = tool_client.safe_post("api/tools/rustscan", data)
         if result.get("success"):
             logger.info(f"✅ Rustscan completed for {target}")
         else:
@@ -74,7 +74,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🚀 Starting Masscan: {target} at rate {rate}")
-        result = hexstrike_client.safe_post("api/tools/masscan", data)
+        result = tool_client.safe_post("api/tools/masscan", data)
         if result.get("success"):
             logger.info(f"✅ Masscan completed for {target}")
         else:
@@ -117,7 +117,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Advanced Nmap: {target}")
-        result = hexstrike_client.safe_post("api/tools/nmap-advanced", data)
+        result = tool_client.safe_post("api/tools/nmap-advanced", data)
         if result.get("success"):
             logger.info(f"✅ Advanced Nmap completed for {target}")
         else:
@@ -154,7 +154,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔄 Starting AutoRecon: {target}")
-        result = hexstrike_client.safe_post("api/tools/autorecon", data)
+        result = tool_client.safe_post("api/tools/autorecon", data)
         if result.get("success"):
             logger.info(f"✅ AutoRecon completed for {target}")
         else:
@@ -195,7 +195,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Enum4linux-ng: {target}")
-        result = hexstrike_client.safe_post("api/tools/enum4linux-ng", data)
+        result = tool_client.safe_post("api/tools/enum4linux-ng", data)
         if result.get("success"):
             logger.info(f"✅ Enum4linux-ng completed for {target}")
         else:
@@ -229,7 +229,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting rpcclient: {target}")
-        result = hexstrike_client.safe_post("api/tools/rpcclient", data)
+        result = tool_client.safe_post("api/tools/rpcclient", data)
         if result.get("success"):
             logger.info(f"✅ rpcclient completed for {target}")
         else:
@@ -258,7 +258,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting nbtscan: {target}")
-        result = hexstrike_client.safe_post("api/tools/nbtscan", data)
+        result = tool_client.safe_post("api/tools/nbtscan", data)
         if result.get("success"):
             logger.info(f"✅ nbtscan completed for {target}")
         else:
@@ -291,7 +291,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting arp-scan: {target if target else 'local network'}")
-        result = hexstrike_client.safe_post("api/tools/arp-scan", data)
+        result = tool_client.safe_post("api/tools/arp-scan", data)
         if result.get("success"):
             logger.info(f"✅ arp-scan completed")
         else:
@@ -328,7 +328,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Responder on interface: {interface}")
-        result = hexstrike_client.safe_post("api/tools/responder", data)
+        result = tool_client.safe_post("api/tools/responder", data)
         if result.get("success"):
             logger.info(f"✅ Responder completed")
         else:
@@ -356,7 +356,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🧠 Starting Volatility analysis: {plugin}")
-        result = hexstrike_client.safe_post("api/tools/volatility", data)
+        result = tool_client.safe_post("api/tools/volatility", data)
         if result.get("success"):
             logger.info(f"✅ Volatility analysis completed")
         else:
@@ -388,7 +388,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🚀 Starting MSFVenom payload generation: {payload}")
-        result = hexstrike_client.safe_post("api/tools/msfvenom", data)
+        result = tool_client.safe_post("api/tools/msfvenom", data)
         if result.get("success"):
             logger.info(f"✅ MSFVenom payload generated")
         else:

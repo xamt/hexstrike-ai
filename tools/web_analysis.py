@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def jaeles_vulnerability_scan(url: str, signatures: str = "", config: str = "",
@@ -34,7 +34,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔬 Starting Jaeles vulnerability scan: {url}")
-        result = hexstrike_client.safe_post("api/tools/jaeles", data)
+        result = tool_client.safe_post("api/tools/jaeles", data)
         if result.get("success"):
             logger.info(f"✅ Jaeles vulnerability scan completed for {url}")
         else:
@@ -70,7 +70,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🎯 Starting Dalfox XSS scan: {url if url else 'pipe mode'}")
-        result = hexstrike_client.safe_post("api/tools/dalfox", data)
+        result = tool_client.safe_post("api/tools/dalfox", data)
         if result.get("success"):
             logger.info(f"✅ Dalfox XSS scan completed")
         else:
@@ -111,7 +111,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🌍 Starting httpx probe: {target}")
-        result = hexstrike_client.safe_post("api/tools/httpx", data)
+        result = tool_client.safe_post("api/tools/httpx", data)
         if result.get("success"):
             logger.info(f"✅ httpx probe completed for {target}")
         else:
@@ -138,7 +138,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info("📝 Starting anew data processing")
-        result = hexstrike_client.safe_post("api/tools/anew", data)
+        result = tool_client.safe_post("api/tools/anew", data)
         if result.get("success"):
             logger.info("✅ anew data processing completed")
         else:
@@ -165,7 +165,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info("🔄 Starting qsreplace parameter replacement")
-        result = hexstrike_client.safe_post("api/tools/qsreplace", data)
+        result = tool_client.safe_post("api/tools/qsreplace", data)
         if result.get("success"):
             logger.info("✅ qsreplace parameter replacement completed")
         else:
@@ -194,7 +194,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info("🔍 Starting uro URL filtering")
-        result = hexstrike_client.safe_post("api/tools/uro", data)
+        result = tool_client.safe_post("api/tools/uro", data)
         if result.get("success"):
             logger.info("✅ uro URL filtering completed")
         else:

@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def dirb_scan(url: str, wordlist: str = "/usr/share/wordlists/dirb/common.txt", additional_args: str = "") -> Dict[str, Any]:
@@ -26,7 +26,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"📁 Starting Dirb scan: {url}")
-        result = hexstrike_client.safe_post("api/tools/dirb", data)
+        result = tool_client.safe_post("api/tools/dirb", data)
         if result.get("success"):
             logger.info(f"✅ Dirb scan completed for {url}")
         else:
@@ -50,7 +50,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔬 Starting Nikto scan: {target}")
-        result = hexstrike_client.safe_post("api/tools/nikto", data)
+        result = tool_client.safe_post("api/tools/nikto", data)
         if result.get("success"):
             logger.info(f"✅ Nikto scan completed for {target}")
         else:
@@ -76,7 +76,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"💉 Starting SQLMap scan: {url}")
-        result = hexstrike_client.safe_post("api/tools/sqlmap", data_payload)
+        result = tool_client.safe_post("api/tools/sqlmap", data_payload)
         if result.get("success"):
             logger.info(f"✅ SQLMap scan completed for {url}")
         else:
@@ -100,7 +100,7 @@ def register(mcp, hexstrike_client):
             "options": options
         }
         logger.info(f"🚀 Starting Metasploit module: {module}")
-        result = hexstrike_client.safe_post("api/tools/metasploit", data)
+        result = tool_client.safe_post("api/tools/metasploit", data)
         if result.get("success"):
             logger.info(f"✅ Metasploit module completed: {module}")
         else:
@@ -142,7 +142,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔑 Starting Hydra attack: {target}:{service}")
-        result = hexstrike_client.safe_post("api/tools/hydra", data)
+        result = tool_client.safe_post("api/tools/hydra", data)
         if result.get("success"):
             logger.info(f"✅ Hydra attack completed for {target}")
         else:
@@ -175,7 +175,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔐 Starting John the Ripper: {hash_file}")
-        result = hexstrike_client.safe_post("api/tools/john", data)
+        result = tool_client.safe_post("api/tools/john", data)
         if result.get("success"):
             logger.info(f"✅ John the Ripper completed")
         else:
@@ -199,7 +199,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting WPScan: {url}")
-        result = hexstrike_client.safe_post("api/tools/wpscan", data)
+        result = tool_client.safe_post("api/tools/wpscan", data)
         if result.get("success"):
             logger.info(f"✅ WPScan completed for {url}")
         else:
@@ -223,7 +223,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Enum4linux: {target}")
-        result = hexstrike_client.safe_post("api/tools/enum4linux", data)
+        result = tool_client.safe_post("api/tools/enum4linux", data)
         if result.get("success"):
             logger.info(f"✅ Enum4linux completed for {target}")
         else:
@@ -253,7 +253,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting FFuf {mode} fuzzing: {url}")
-        result = hexstrike_client.safe_post("api/tools/ffuf", data)
+        result = tool_client.safe_post("api/tools/ffuf", data)
         if result.get("success"):
             logger.info(f"✅ FFuf fuzzing completed for {url}")
         else:

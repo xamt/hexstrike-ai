@@ -4,7 +4,7 @@ import os
 import sys
 
 
-PLUGINS_DIR = "/opt/hexstrike-compat/autorecon-plugins"
+PLUGINS_DIR = "/opt/pentest-tools-compat/autorecon-plugins"
 PROFILES = {"top-100-ports", "top-1000-ports"}
 
 

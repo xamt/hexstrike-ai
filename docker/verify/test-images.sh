@@ -17,7 +17,7 @@ done
 docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/bash -ec '
     test ! -e /opt/pentest-tools/server.py
     test ! -e /opt/pentest-tools/requirements.txt
-    test ! -e /opt/hexstrike-venv
+    test ! -e /opt/pentest-tools-venv
     python3.11 --version
     nmap --version
     x8 --version
@@ -47,12 +47,13 @@ docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/b
     test -s /opt/pentest-tools/tool-versions.lock
 '
 docker run --rm --platform "linux/${arch}" --network none "${app_image}" /bin/bash -ec '
-    /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python check
+    /usr/local/bin/python3.11 -m pip --python /opt/pentest-tools-venv/bin/python check
     /opt/volatility3-venv/bin/python -m pip check
     /opt/jwt-tool-venv/bin/python -m pip check
     timeout 30 jwt_tool -h >/dev/null
-    test "$(command -v python3)" = /opt/hexstrike-venv/bin/python3
-    python3 -c "import requests, httpx"
+    test "$(command -v python3)" = /opt/pentest-tools-venv/bin/python3
+    python3 -c "import requests"
+    /opt/pentest-tools-mcp-venv/bin/python -c "import mcp, requests"
     test "$(readlink -f "$(command -v httpx)")" = /usr/bin/httpx-toolkit
     vol -h >/dev/null
     timeout 30 volatility -h >/dev/null
@@ -79,7 +80,7 @@ for attempt in $(seq 1 90); do
     test "${state}" = running
     health="$(docker inspect --format '{{.State.Health.Status}}' "${container_id}")"
     if [ "${health}" = healthy ]; then
-        docker exec "${container_id}" /opt/hexstrike-venv/bin/python -c '
+        docker exec "${container_id}" /opt/pentest-tools-venv/bin/python -c '
 import requests
 response = requests.get("http://127.0.0.1:8888/health", timeout=10)
 response.raise_for_status()

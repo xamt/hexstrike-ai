@@ -58,7 +58,7 @@ class MCPDefaultContractTests(unittest.TestCase):
         self.assertEqual(argv[:5], ["printf", "%s\\n", "https://example.com/?a=1&b=2", "|", "hakrawler"])
         self.assertEqual(argv[argv.index("-d") + 1], "2")
         for name, value in (("forms", "true"), ("robots", "true"), ("sitemap", "true"), ("wayback", "false")):
-            self.assertIn(f"--hexstrike-{name}={value}", argv)
+            self.assertIn(f"--pentest-tools-{name}={value}", argv)
         self.assertNotIn("-subs", argv)
 
     def test_autorecon_defaults_reach_real_environment_adapter(self):
@@ -92,7 +92,7 @@ class MCPDefaultContractTests(unittest.TestCase):
         self.assertEqual(native[0], "/usr/bin/hakrawler")
         self.assertEqual(native[native.index("-d") + 1], "2")
         self.assertNotIn("-subs", native)
-        self.assertFalse(any(value.startswith("--hexstrike-") for value in native))
+        self.assertFalse(any(value.startswith("--pentest-tools-") for value in native))
         self.assertFalse(discover.call_args.args[1]["wayback"])
         self.assertEqual(output.getvalue().strip(), "https://example.com/login")
 
@@ -103,10 +103,10 @@ class MCPDefaultContractTests(unittest.TestCase):
                      "hakrawler_sources.py", "hakrawler_process.py"):
             self.assertTrue((ROOT / "docker/compat" / name).is_file())
             self.assertIn(f"source=docker/compat/{name},target=/tmp/docker/compat/{name}", base)
-        self.assertIn("source=docker/compat/autorecon-plugins/hexstrike-tcp-profiles.py,target=/tmp/docker/compat/autorecon-plugins/hexstrike-tcp-profiles.py", base)
+        self.assertIn("source=docker/compat/autorecon-plugins/pentest-tools-tcp-profiles.py,target=/tmp/docker/compat/autorecon-plugins/pentest-tools-tcp-profiles.py", base)
         self.assertIn("for name in autorecon hakrawler; do", install)
         self.assertIn('ln -s "../${name}-compat.py"', install)
-        self.assertIn("/opt/hexstrike-compat/autorecon-plugins/hexstrike-tcp-profiles.py", install)
+        self.assertIn("/opt/pentest-tools-compat/autorecon-plugins/pentest-tools-tcp-profiles.py", install)
 
     def test_installed_hakrawler_symlink_resolves_sibling_modules(self):
         # 空输入在启动网络或安全工具前失败，仅验证安装布局及导入路径。
@@ -119,7 +119,7 @@ class MCPDefaultContractTests(unittest.TestCase):
                 shutil.copyfile(ROOT / "docker/compat" / name, root / name)
             (root / "bin/hakrawler").symlink_to("../hakrawler-compat.py")
             result = subprocess.run([sys.executable, str(root / "bin/hakrawler"),
-                                     "--hexstrike-forms=true"], input="", text=True,
+                                     "--pentest-tools-forms=true"], input="", text=True,
                                     capture_output=True, timeout=5, check=False)
         self.assertEqual(result.returncode, 2)
         self.assertIn("标准输入必须包含", result.stderr)

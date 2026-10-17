@@ -98,7 +98,7 @@ def binwalk(arguments):
     explicit_user = any(value in ("-0", "--run-as") or value.startswith(("--run-as=", "-0"))
                         for value in options)
     if extraction and os.geteuid() == 0 and not explicit_user:
-        result.insert(0, "--run-as=hexstrike-extract")
+        result.insert(0, "--run-as=pentest-tools-extract")
     return result
 
 
@@ -106,7 +106,7 @@ def ghidra(arguments):
     """补齐旧接口的 XML 导出脚本目录，保留调用方自定义脚本目录。"""
     if not arguments or any(value in ("-h", "--help", "-help") for value in arguments):
         return list(arguments)
-    directory = "/opt/hexstrike-compat/ghidra"
+    directory = "/opt/pentest-tools-compat/ghidra"
     result, found = [], False
     for group in option_pairs(arguments, {"-scriptPath"}):
         if group[0] == "-scriptPath":

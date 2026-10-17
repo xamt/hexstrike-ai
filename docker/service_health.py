@@ -7,6 +7,9 @@ import sys
 from urllib.error import URLError
 from urllib.request import ProxyHandler, build_opener
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from runtime.environment import setting
+
 
 @dataclass(frozen=True)
 class ServiceConfiguration:
@@ -17,8 +20,8 @@ class ServiceConfiguration:
     startup_timeout: float = 60
     shutdown_timeout: float = 10
     root: Path = Path("/opt/pentest-tools")
-    api_python: str = "/opt/hexstrike-venv/bin/python"
-    mcp_python: str = "/opt/hexstrike-mcp-venv/bin/python"
+    api_python: str = "/opt/pentest-tools-venv/bin/python"
+    mcp_python: str = "/opt/pentest-tools-mcp-venv/bin/python"
 
     @property
     def api_url(self):
@@ -39,14 +42,14 @@ class ServiceConfiguration:
 def load_configuration(environ=None):
     """读取并校验端口和有限的正数超时，不接受相同监听端口。"""
     values = os.environ if environ is None else environ
-    api_port = int(values.get("HEXSTRIKE_PORT", "8888"))
-    mcp_port = int(values.get("HEXSTRIKE_MCP_PORT", "8889"))
+    api_port = int(setting("PORT", "8888", values))
+    mcp_port = int(setting("MCP_PORT", "8889", values))
     if not all(1 <= port <= 65535 for port in (api_port, mcp_port)):
         raise ValueError("服务端口必须介于 1 和 65535")
     if api_port == mcp_port:
         raise ValueError("API 与 MCP 不能使用相同端口")
-    startup = float(values.get("HEXSTRIKE_STARTUP_TIMEOUT", "60"))
-    shutdown = float(values.get("HEXSTRIKE_SHUTDOWN_TIMEOUT", "10"))
+    startup = float(setting("STARTUP_TIMEOUT", "60", values))
+    shutdown = float(setting("SHUTDOWN_TIMEOUT", "10", values))
     if not all(math.isfinite(value) and value > 0 for value in (startup, shutdown)):
         raise ValueError("启动和停止超时必须为有限正数")
     return ServiceConfiguration(api_port, mcp_port, startup, shutdown)

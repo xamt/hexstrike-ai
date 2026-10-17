@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def autorecon_scan(
@@ -138,7 +138,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting AutoRecon comprehensive enumeration: {target}")
-        result = hexstrike_client.safe_post("api/tools/autorecon", data)
+        result = tool_client.safe_post("api/tools/autorecon", data)
         if result.get("success"):
             logger.info(f"✅ AutoRecon comprehensive enumeration completed for {target}")
         else:

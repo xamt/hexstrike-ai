@@ -1,5 +1,5 @@
 // 为原接口提供无交互 XML 导出入口，使用 Ghidra 12.1.4 的正式导出 API。
-// @category HexStrike
+// @category pentest-tools
 
 import java.io.File;
 import java.io.IOException;

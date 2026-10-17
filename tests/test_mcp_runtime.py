@@ -47,7 +47,7 @@ class EntryPointTests(unittest.TestCase):
         from runtime.cli import main
         for failure in (None, RuntimeError("模拟监听失败")):
             with self.subTest(failure=failure), \
-                 patch("runtime.client.HexStrikeClient") as factory, \
+                 patch("runtime.client.ToolsClient") as factory, \
                  patch("runtime.server.setup_mcp_server") as setup, \
                  patch("runtime.http.serve_http", side_effect=failure) as serve:
                 if failure:
@@ -63,8 +63,8 @@ class EntryPointTests(unittest.TestCase):
 @unittest.skipUnless(HAS_REQUESTS, "需要 requirements-mcp.txt 中的 requests")
 class ClientTests(unittest.TestCase):
     def make_client(self):
-        from runtime.client import HexStrikeClient
-        return HexStrikeClient("http://127.0.0.1:8888", timeout=7)
+        from runtime.client import ToolsClient
+        return ToolsClient("http://127.0.0.1:8888", timeout=7)
 
     def test_sessions_are_thread_local_and_closed(self):
         client = self.make_client()

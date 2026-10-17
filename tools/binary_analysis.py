@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def gdb_analyze(binary: str, commands: str = "", script_file: str = "", additional_args: str = "") -> Dict[str, Any]:
@@ -28,7 +28,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔧 Starting GDB analysis: {binary}")
-        result = hexstrike_client.safe_post("api/tools/gdb", data)
+        result = tool_client.safe_post("api/tools/gdb", data)
         if result.get("success"):
             logger.info(f"✅ GDB analysis completed for {binary}")
         else:
@@ -54,7 +54,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔧 Starting Radare2 analysis: {binary}")
-        result = hexstrike_client.safe_post("api/tools/radare2", data)
+        result = tool_client.safe_post("api/tools/radare2", data)
         if result.get("success"):
             logger.info(f"✅ Radare2 analysis completed for {binary}")
         else:
@@ -80,7 +80,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔧 Starting Binwalk analysis: {file_path}")
-        result = hexstrike_client.safe_post("api/tools/binwalk", data)
+        result = tool_client.safe_post("api/tools/binwalk", data)
         if result.get("success"):
             logger.info(f"✅ Binwalk analysis completed for {file_path}")
         else:
@@ -106,7 +106,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔧 Starting ROPgadget search: {binary}")
-        result = hexstrike_client.safe_post("api/tools/ropgadget", data)
+        result = tool_client.safe_post("api/tools/ropgadget", data)
         if result.get("success"):
             logger.info(f"✅ ROPgadget search completed for {binary}")
         else:
@@ -128,7 +128,7 @@ def register(mcp, hexstrike_client):
             "binary": binary
         }
         logger.info(f"🔧 Starting Checksec analysis: {binary}")
-        result = hexstrike_client.safe_post("api/tools/checksec", data)
+        result = tool_client.safe_post("api/tools/checksec", data)
         if result.get("success"):
             logger.info(f"✅ Checksec analysis completed for {binary}")
         else:
@@ -156,7 +156,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔧 Starting XXD hex dump: {file_path}")
-        result = hexstrike_client.safe_post("api/tools/xxd", data)
+        result = tool_client.safe_post("api/tools/xxd", data)
         if result.get("success"):
             logger.info(f"✅ XXD hex dump completed for {file_path}")
         else:
@@ -182,7 +182,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔧 Starting Strings extraction: {file_path}")
-        result = hexstrike_client.safe_post("api/tools/strings", data)
+        result = tool_client.safe_post("api/tools/strings", data)
         if result.get("success"):
             logger.info(f"✅ Strings extraction completed for {file_path}")
         else:
@@ -208,7 +208,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔧 Starting Objdump analysis: {binary}")
-        result = hexstrike_client.safe_post("api/tools/objdump", data)
+        result = tool_client.safe_post("api/tools/objdump", data)
         if result.get("success"):
             logger.info(f"✅ Objdump analysis completed for {binary}")
         else:

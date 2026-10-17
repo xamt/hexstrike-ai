@@ -1,8 +1,8 @@
-# HexStrike AI MCP Agents v6.0
+# pentest-tools MCP Agents v6.0
 #
 # INSTALLATION COMMANDS:
-# python3 -m venv hexstrike_env
-# source hexstrike_env/bin/activate
+# python3 -m venv pentest-tools_env
+# source pentest-tools_env/bin/activate
 # python3 -m pip install -r requirements.txt
 # python3 server.py
 
@@ -41,7 +41,7 @@ bcrypt==4.0.1                   # Pin bcrypt version for passlib compatibility (
 # EXTERNAL SECURITY TOOLS (150+ Tools - Install separately)
 # ============================================================================
 #
-# HexStrike v6.0 integrates with 150+ external security tools that must be
+# pentest-tools v6.0 integrates with 150+ external security tools that must be
 # installed separately from their official sources:
 #
 # 🔍 Network & Reconnaissance (25+ tools):

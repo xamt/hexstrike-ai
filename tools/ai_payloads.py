@@ -6,7 +6,7 @@ import time
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def ai_generate_payload(attack_type: str, complexity: str = "basic", technology: str = "", url: str = "") -> Dict[str, Any]:
@@ -29,7 +29,7 @@ def register(mcp, hexstrike_client):
             "url": url
         }
         logger.info(f"🤖 Generating AI payloads for {attack_type} attack")
-        result = hexstrike_client.safe_post("api/ai/generate_payload", data)
+        result = tool_client.safe_post("api/ai/generate_payload", data)
 
         if result.get("success"):
             payload_data = result.get("ai_payload_generation", {})
@@ -68,7 +68,7 @@ def register(mcp, hexstrike_client):
             "method": method
         }
         logger.info(f"🧪 Testing AI payload against {target_url}")
-        result = hexstrike_client.safe_post("api/ai/test_payload", data)
+        result = tool_client.safe_post("api/ai/test_payload", data)
 
         if result.get("success"):
             analysis = result.get("ai_analysis", {})

@@ -5,12 +5,12 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def create_file(filename: str, content: str, binary: bool = False) -> Dict[str, Any]:
         """
-        Create a file with specified content on the HexStrike server.
+        Create a file with specified content on the pentest-tools server.
 
         Args:
             filename: Name of the file to create
@@ -26,7 +26,7 @@ def register(mcp, hexstrike_client):
             "binary": binary
         }
         logger.info(f"📄 Creating file: {filename}")
-        result = hexstrike_client.safe_post("api/files/create", data)
+        result = tool_client.safe_post("api/files/create", data)
         if result.get("success"):
             logger.info(f"✅ File created successfully: {filename}")
         else:
@@ -36,7 +36,7 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def modify_file(filename: str, content: str, append: bool = False) -> Dict[str, Any]:
         """
-        Modify an existing file on the HexStrike server.
+        Modify an existing file on the pentest-tools server.
 
         Args:
             filename: Name of the file to modify
@@ -52,7 +52,7 @@ def register(mcp, hexstrike_client):
             "append": append
         }
         logger.info(f"✏️  Modifying file: {filename}")
-        result = hexstrike_client.safe_post("api/files/modify", data)
+        result = tool_client.safe_post("api/files/modify", data)
         if result.get("success"):
             logger.info(f"✅ File modified successfully: {filename}")
         else:
@@ -62,7 +62,7 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def delete_file(filename: str) -> Dict[str, Any]:
         """
-        Delete a file or directory on the HexStrike server.
+        Delete a file or directory on the pentest-tools server.
 
         Args:
             filename: Name of the file or directory to delete
@@ -74,7 +74,7 @@ def register(mcp, hexstrike_client):
             "filename": filename
         }
         logger.info(f"🗑️  Deleting file: {filename}")
-        result = hexstrike_client.safe_post("api/files/delete", data)
+        result = tool_client.safe_post("api/files/delete", data)
         if result.get("success"):
             logger.info(f"✅ File deleted successfully: {filename}")
         else:
@@ -84,7 +84,7 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def list_files(directory: str = ".") -> Dict[str, Any]:
         """
-        List files in a directory on the HexStrike server.
+        List files in a directory on the pentest-tools server.
 
         Args:
             directory: Directory to list (relative to server's base directory)
@@ -93,7 +93,7 @@ def register(mcp, hexstrike_client):
             Directory listing results
         """
         logger.info(f"📂 Listing files in directory: {directory}")
-        result = hexstrike_client.safe_get("api/files/list", {"directory": directory})
+        result = tool_client.safe_get("api/files/list", {"directory": directory})
         if result.get("success"):
             file_count = len(result.get("files", []))
             logger.info(f"✅ Listed {file_count} files in {directory}")
@@ -124,7 +124,7 @@ def register(mcp, hexstrike_client):
             data["filename"] = filename
 
         logger.info(f"🎯 Generating {payload_type} payload: {size} bytes")
-        result = hexstrike_client.safe_post("api/payloads/generate", data)
+        result = tool_client.safe_post("api/payloads/generate", data)
         if result.get("success"):
             logger.info(f"✅ Payload generated successfully")
         else:
@@ -134,7 +134,7 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def install_python_package(package: str, env_name: str = "default") -> Dict[str, Any]:
         """
-        Install a Python package in a virtual environment on the HexStrike server.
+        Install a Python package in a virtual environment on the pentest-tools server.
 
         Args:
             package: Name of the Python package to install
@@ -148,7 +148,7 @@ def register(mcp, hexstrike_client):
             "env_name": env_name
         }
         logger.info(f"📦 Installing Python package: {package} in env {env_name}")
-        result = hexstrike_client.safe_post("api/python/install", data)
+        result = tool_client.safe_post("api/python/install", data)
         if result.get("success"):
             logger.info(f"✅ Package {package} installed successfully")
         else:
@@ -158,7 +158,7 @@ def register(mcp, hexstrike_client):
     @mcp.tool()
     def execute_python_script(script: str, env_name: str = "default", filename: str = "") -> Dict[str, Any]:
         """
-        Execute a Python script in a virtual environment on the HexStrike server.
+        Execute a Python script in a virtual environment on the pentest-tools server.
 
         Args:
             script: Python script content to execute
@@ -176,7 +176,7 @@ def register(mcp, hexstrike_client):
             data["filename"] = filename
 
         logger.info(f"🐍 Executing Python script in env {env_name}")
-        result = hexstrike_client.safe_post("api/python/execute", data)
+        result = tool_client.safe_post("api/python/execute", data)
         if result.get("success"):
             logger.info(f"✅ Python script executed successfully")
         else:

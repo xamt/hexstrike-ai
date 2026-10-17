@@ -18,9 +18,9 @@ class DualServiceDockerTests(unittest.TestCase):
 
     def test_independent_dependency_environments(self):
         dockerfile = (ROOT / "Dockerfile").read_text()
-        self.assertIn("/opt/hexstrike-mcp-venv", dockerfile)
+        self.assertIn("/opt/pentest-tools-mcp-venv", dockerfile)
         self.assertIn("install -r requirements-mcp.txt", dockerfile)
-        self.assertIn("/opt/hexstrike-mcp-venv/bin/python check", dockerfile)
+        self.assertIn("/opt/pentest-tools-mcp-venv/bin/python check", dockerfile)
         self.assertIn("mcp==2.3.0", (ROOT / "requirements-mcp.txt").read_text())
         self.assertNotIn("fastmcp", (ROOT / "requirements.txt").read_text())
 
@@ -28,9 +28,9 @@ class DualServiceDockerTests(unittest.TestCase):
         dockerfile = (ROOT / "Dockerfile").read_text()
         self.assertIn("EXPOSE 8888 8889", dockerfile)
         self.assertIn('ENTRYPOINT ["/usr/bin/tini", "--"]', dockerfile)
-        self.assertIn('CMD ["/opt/hexstrike-venv/bin/python", "/opt/pentest-tools/docker/service_manager.py"]', dockerfile)
+        self.assertIn('CMD ["/opt/pentest-tools-venv/bin/python", "/opt/pentest-tools/docker/service_manager.py"]', dockerfile)
         self.assertIn("service_health.py", dockerfile)
-        self.assertIn("HEXSTRIKE_MCP_PORT=8889", dockerfile)
+        self.assertNotIn("PENTEST_TOOLS_MCP_PORT=", dockerfile)
 
     def test_shared_tool_modules_are_packaged(self):
         dockerfile = (ROOT / "Dockerfile").read_text()

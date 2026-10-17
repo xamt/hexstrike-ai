@@ -12,7 +12,7 @@ from typing import Any, Dict
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-PRODUCT = "pentest-agent-tools"
+PRODUCT = "pentest-tools"
 
 
 class ProductBrandingTests(unittest.TestCase):

@@ -4,31 +4,31 @@ set -euo pipefail
 
 # 独立 PATH 入口不覆盖原工具，Go 产物摘要与架构校验仍指向原二进制。
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-install -d /opt/hexstrike-compat/bin
-install -d /opt/hexstrike-compat/ghidra
-install -m 0755 "${script_dir}/cli-compat.py" /opt/hexstrike-compat/cli-compat.py
-install -m 0644 "${script_dir}/ExportXml.java" /opt/hexstrike-compat/ghidra/ExportXml.java
+install -d /opt/pentest-tools-compat/bin
+install -d /opt/pentest-tools-compat/ghidra
+install -m 0755 "${script_dir}/cli-compat.py" /opt/pentest-tools-compat/cli-compat.py
+install -m 0644 "${script_dir}/ExportXml.java" /opt/pentest-tools-compat/ghidra/ExportXml.java
 for name in enum4linux-ng gobuster checksec binwalk waybackurls anew analyzeHeadless; do
-    ln -s ../cli-compat.py "/opt/hexstrike-compat/bin/${name}"
+    ln -s ../cli-compat.py "/opt/pentest-tools-compat/bin/${name}"
 done
 # 原 MCP 默认值由环境承接；原始 AutoRecon/Hakrawler 仍保留在 /usr/bin。
-install -d /opt/hexstrike-compat/autorecon-plugins
-install -m 0644 "${script_dir}/autorecon-plugins/hexstrike-tcp-profiles.py" \
-    /opt/hexstrike-compat/autorecon-plugins/hexstrike-tcp-profiles.py
+install -d /opt/pentest-tools-compat/autorecon-plugins
+install -m 0644 "${script_dir}/autorecon-plugins/pentest-tools-tcp-profiles.py" \
+    /opt/pentest-tools-compat/autorecon-plugins/pentest-tools-tcp-profiles.py
 for name in autorecon hakrawler; do
-    install -m 0755 "${script_dir}/${name}-compat.py" "/opt/hexstrike-compat/${name}-compat.py"
-    ln -s "../${name}-compat.py" "/opt/hexstrike-compat/bin/${name}"
+    install -m 0755 "${script_dir}/${name}-compat.py" "/opt/pentest-tools-compat/${name}-compat.py"
+    ln -s "../${name}-compat.py" "/opt/pentest-tools-compat/bin/${name}"
 done
 for name in hakrawler_runtime.py hakrawler_sources.py hakrawler_process.py; do
-    install -m 0644 "${script_dir}/${name}" "/opt/hexstrike-compat/${name}"
+    install -m 0644 "${script_dir}/${name}" "/opt/pentest-tools-compat/${name}"
 done
 # 模板由运行时只读挂载，不在构建或第一次扫描时下载。
 install -d /opt/nuclei-templates
-install -m 0755 "${script_dir}/nuclei-compat.py" /opt/hexstrike-compat/nuclei-compat.py
-ln -s ../nuclei-compat.py /opt/hexstrike-compat/bin/nuclei
+install -m 0755 "${script_dir}/nuclei-compat.py" /opt/pentest-tools-compat/nuclei-compat.py
+ln -s ../nuclei-compat.py /opt/pentest-tools-compat/bin/nuclei
 # Binwalk 主进程仍能读取输入，但外部解包程序不默认以 root 执行。
 # Binwalk 2.x 的 UID/GID 处理存在历史缺陷，专用用户使用相同且均未占用的编号。
-if ! id hexstrike-extract >/dev/null 2>&1; then
+if ! id pentest-tools-extract >/dev/null 2>&1; then
     extract_id=100
     while getent passwd "${extract_id}" >/dev/null || getent group "${extract_id}" >/dev/null; do
         extract_id=$((extract_id + 1))
@@ -37,12 +37,12 @@ if ! id hexstrike-extract >/dev/null 2>&1; then
             exit 1
         fi
     done
-    groupadd --system --gid "${extract_id}" hexstrike-extract
+    groupadd --system --gid "${extract_id}" pentest-tools-extract
     useradd --system --uid "${extract_id}" --gid "${extract_id}" \
-        --no-create-home --shell /usr/sbin/nologin hexstrike-extract
+        --no-create-home --shell /usr/sbin/nologin pentest-tools-extract
 fi
-test "$(id -u hexstrike-extract)" = "$(id -g hexstrike-extract)"
-test "$(id -u hexstrike-extract)" -ne 0
+test "$(id -u pentest-tools-extract)" = "$(id -g pentest-tools-extract)"
+test "$(id -u pentest-tools-extract)" -ne 0
 
 cat > /usr/local/bin/arjun <<'PY'
 #!/usr/local/bin/python3.11

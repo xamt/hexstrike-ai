@@ -60,10 +60,10 @@ class DockerContractTests(unittest.TestCase):
         self.assertNotIn("go install", app)
         self.assertLess(app.index("COPY requirements.txt"), app.index("COPY server.py"))
         self.assertIn("pwntools|angr|bcrypt", app)
-        self.assertIn("/opt/hexstrike-venv/bin/python", app)
+        self.assertIn("/opt/pentest-tools-venv/bin/python", app)
         base = (ROOT / "Dockerfile.base").read_text()
         self.assertIn("/opt/volatility3-venv", base)
-        self.assertNotIn("/opt/hexstrike-venv", base)
+        self.assertNotIn("/opt/pentest-tools-venv", base)
         self.assertIn("ldconfig", (ROOT / "docker/assembly/finalize-base.sh").read_text())
 
     def test_image_repository_names_are_consistent(self):
@@ -82,8 +82,8 @@ class DockerContractTests(unittest.TestCase):
 
     def test_application_python_and_security_httpx_are_preserved(self):
         app = (ROOT / "Dockerfile").read_text()
-        self.assertIn('PATH="/opt/hexstrike-compat/bin:/opt/hexstrike-venv/bin:/usr/local/bin:', app)
-        self.assertIn('ln -sf /usr/local/bin/httpx /opt/hexstrike-venv/bin/httpx', app)
+        self.assertIn('PATH="/opt/pentest-tools-compat/bin:/opt/pentest-tools-venv/bin:/usr/local/bin:', app)
+        self.assertIn('ln -sf /usr/local/bin/httpx /opt/pentest-tools-venv/bin/httpx', app)
         self.assertLess(app.index('install -r requirements-runtime.txt'),
                         app.index('ln -sf /usr/local/bin/httpx'))
 

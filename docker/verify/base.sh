@@ -6,7 +6,7 @@ set -euo pipefail
 /usr/local/bin/python3.11 - <<'PY'
 from pathlib import Path
 
-data = Path("/opt/hexstrike-compat/autorecon-data")
+data = Path("/opt/pentest-tools-compat/autorecon-data")
 root = Path("/usr/share/seclists")
 expected = set((data / "manifest.txt").read_text().splitlines())
 assert len(expected) == 3, "AutoRecon 小字典清单不完整"
@@ -99,15 +99,15 @@ timeout 30 kube-hunter --help >/dev/null
 
 # 兼容入口使用显式 PATH，不覆盖上面验证摘要和 ELF 架构的原始二进制。
 for name in enum4linux-ng gobuster checksec binwalk waybackurls anew analyzeHeadless autorecon hakrawler nuclei; do
-    test "$(command -v "${name}")" = "/opt/hexstrike-compat/bin/${name}"
+    test "$(command -v "${name}")" = "/opt/pentest-tools-compat/bin/${name}"
 done
-test "$(id -u hexstrike-extract)" -ne 0
-test "$(id -u hexstrike-extract)" = "$(id -g hexstrike-extract)"
-test -r /opt/hexstrike-compat/ghidra/ExportXml.java
-/usr/local/bin/python3.11 -m py_compile /opt/hexstrike-compat/cli-compat.py
-/usr/local/bin/python3.11 -m py_compile /opt/hexstrike-compat/nuclei-compat.py
+test "$(id -u pentest-tools-extract)" -ne 0
+test "$(id -u pentest-tools-extract)" = "$(id -g pentest-tools-extract)"
+test -r /opt/pentest-tools-compat/ghidra/ExportXml.java
+/usr/local/bin/python3.11 -m py_compile /opt/pentest-tools-compat/cli-compat.py
+/usr/local/bin/python3.11 -m py_compile /opt/pentest-tools-compat/nuclei-compat.py
 timeout 30 nuclei -version
-/usr/local/bin/python3.11 -m py_compile /opt/hexstrike-compat/autorecon-compat.py \
-    /opt/hexstrike-compat/autorecon-plugins/hexstrike-tcp-profiles.py \
-    /opt/hexstrike-compat/hakrawler-compat.py /opt/hexstrike-compat/hakrawler_runtime.py \
-    /opt/hexstrike-compat/hakrawler_sources.py /opt/hexstrike-compat/hakrawler_process.py
+/usr/local/bin/python3.11 -m py_compile /opt/pentest-tools-compat/autorecon-compat.py \
+    /opt/pentest-tools-compat/autorecon-plugins/pentest-tools-tcp-profiles.py \
+    /opt/pentest-tools-compat/hakrawler-compat.py /opt/pentest-tools-compat/hakrawler_runtime.py \
+    /opt/pentest-tools-compat/hakrawler_sources.py /opt/pentest-tools-compat/hakrawler_process.py

@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def kube_hunter_scan(target: str = "", remote: str = "", cidr: str = "",
@@ -36,7 +36,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"☁️  Starting kube-hunter Kubernetes scan")
-        result = hexstrike_client.safe_post("api/tools/kube-hunter", data)
+        result = tool_client.safe_post("api/tools/kube-hunter", data)
         if result.get("success"):
             logger.info(f"✅ kube-hunter scan completed")
         else:
@@ -67,7 +67,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"☁️  Starting kube-bench CIS benchmark")
-        result = hexstrike_client.safe_post("api/tools/kube-bench", data)
+        result = tool_client.safe_post("api/tools/kube-bench", data)
         if result.get("success"):
             logger.info(f"✅ kube-bench benchmark completed")
         else:
@@ -97,7 +97,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🐳 Starting Docker Bench Security assessment")
-        result = hexstrike_client.safe_post("api/tools/docker-bench-security", data)
+        result = tool_client.safe_post("api/tools/docker-bench-security", data)
         if result.get("success"):
             logger.info(f"✅ Docker Bench Security completed")
         else:
@@ -126,7 +126,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🐳 Starting Clair vulnerability scan: {image}")
-        result = hexstrike_client.safe_post("api/tools/clair", data)
+        result = tool_client.safe_post("api/tools/clair", data)
         if result.get("success"):
             logger.info(f"✅ Clair scan completed for {image}")
         else:
@@ -158,7 +158,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🛡️  Starting Falco runtime monitoring for {duration}s")
-        result = hexstrike_client.safe_post("api/tools/falco", data)
+        result = tool_client.safe_post("api/tools/falco", data)
         if result.get("success"):
             logger.info(f"✅ Falco monitoring completed")
         else:
@@ -192,7 +192,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Checkov IaC scan: {directory}")
-        result = hexstrike_client.safe_post("api/tools/checkov", data)
+        result = tool_client.safe_post("api/tools/checkov", data)
         if result.get("success"):
             logger.info(f"✅ Checkov scan completed")
         else:
@@ -226,7 +226,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Terrascan IaC scan: {iac_dir}")
-        result = hexstrike_client.safe_post("api/tools/terrascan", data)
+        result = tool_client.safe_post("api/tools/terrascan", data)
         if result.get("success"):
             logger.info(f"✅ Terrascan scan completed")
         else:

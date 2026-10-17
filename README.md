@@ -1,4 +1,4 @@
-# pentest-agent-tools
+# pentest-tools
 
 面向 AI Agent 的安全测试工具服务，提供 HTTP API 和 Streamable HTTP MCP 接入。
 
@@ -37,7 +37,7 @@ curl --fail "http://127.0.0.1:8889/readyz"
 
 当前接口不提供鉴权，HTTP API 与 MCP 都必须限制网络访问，远程访问通过受控网关接入。`/health` 会检测工具可用性，不适合高频轮询。
 
-API 入口为 `server.py`，MCP 入口为 `mcp_server.py`，共用运行模块位于 `runtime/`，工具注册位于 `tools/`。项目启动脚本和 Docker 配置已同步；自定义启动配置需使用新入口，移除 `--transport` 参数。`HEXSTRIKE_*` 环境变量及既有插件标识保持不变。
+API 入口为 `server.py`，MCP 入口为 `mcp_server.py`，共用运行模块位于 `runtime/`，工具注册位于 `tools/`。项目启动脚本和 Docker 配置已同步；自定义启动配置需使用新入口，移除 `--transport` 参数。新配置使用 `PENTEST_TOOLS_*` 环境变量；旧环境变量仍可兼容读取，同名新变量优先。既有插件标识保持不变。
 
 ## AI Client Integration Setup
 
@@ -47,11 +47,11 @@ API 入口为 `server.py`，MCP 入口为 `mcp_server.py`，共用运行模块�
 
 | 配置项 | 值 |
 | --- | --- |
-| 服务名称 | `pentest-agent-tools` |
+| 服务名称 | `pentest-tools` |
 | 传输方式 | `Streamable HTTP` |
 | 服务 URL | `http://127.0.0.1:8889/mcp` |
 
-远程客户端须将回环地址替换为可达的服务或网关地址，并在服务端设置 `HEXSTRIKE_MCP_ALLOWED_HOSTS`。这不是旧版 HTTP+SSE，也不需要配置本地启动命令。详细连接、网关与协议说明见 [接口文档](docs/MCP_HTTP.md)。
+远程客户端须将回环地址替换为可达的服务或网关地址，并在服务端设置 `PENTEST_TOOLS_MCP_ALLOWED_HOSTS`。这不是旧版 HTTP+SSE，也不需要配置本地启动命令。详细连接、网关与协议说明见 [接口文档](docs/MCP_HTTP.md)。
 
 ### 客户端配置
 
@@ -60,7 +60,7 @@ API 入口为 `server.py`，MCP 入口为 `mcp_server.py`，共用运行模块�
 ```json
 {
   "mcpServers": {
-    "pentest-agent-tools": {
+    "pentest-tools": {
       "type": "http",
       "url": "http://127.0.0.1:8889/mcp"
     }
@@ -117,7 +117,7 @@ MCP 端口默认是 `8889`，消息统一发送到 `/mcp`；`/healthz` 检查 MC
 ### Agent 调用
 
 ```text
-使用 pentest-agent-tools 对已授权测试目标 192.0.2.10 的 80、443 端口进行服务识别。
+使用 pentest-tools 对已授权测试目标 192.0.2.10 的 80、443 端口进行服务识别。
 先确认 MCP 连接和工具参数，只执行本次端口识别，整理结果及未验证项。
 ```
 

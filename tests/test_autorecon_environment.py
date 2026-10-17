@@ -88,8 +88,8 @@ class AutoReconPluginTests(unittest.IsolatedAsyncioTestCase):
         self.plugins_stub = types.ModuleType("autorecon.plugins")
         self.plugins_stub.PortScan = type("PortScan", (), {"__module__": "autorecon.plugins"})
         with patch.dict(sys.modules, {"autorecon.plugins": self.plugins_stub}):
-            self.plugins = load_module("autorecon.hexstrike_tcp_profiles", ROOT /
-                "docker/compat/autorecon-plugins/hexstrike-tcp-profiles.py")
+            self.plugins = load_module("autorecon.pentest-tools_tcp_profiles", ROOT /
+                "docker/compat/autorecon-plugins/pentest-tools-tcp-profiles.py")
 
     def test_upstream_class_discovery_finds_exactly_both_port_plugins(self):
         # e7e98f6 main.py:987-999 使用 inspect.isclass；不会注册辅助协程。

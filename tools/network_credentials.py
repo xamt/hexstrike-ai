@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def netexec_scan(target: str, protocol: str = "smb", username: str = "", password: str = "", hash_value: str = "", module: str = "", additional_args: str = "") -> Dict[str, Any]:
@@ -34,7 +34,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting NetExec {protocol} scan: {target}")
-        result = hexstrike_client.safe_post("api/tools/netexec", data)
+        result = tool_client.safe_post("api/tools/netexec", data)
         if result.get("success"):
             logger.info(f"✅ NetExec scan completed for {target}")
         else:
@@ -60,7 +60,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Amass {mode}: {domain}")
-        result = hexstrike_client.safe_post("api/tools/amass", data)
+        result = tool_client.safe_post("api/tools/amass", data)
         if result.get("success"):
             logger.info(f"✅ Amass completed for {domain}")
         else:
@@ -92,7 +92,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔐 Starting Hashcat attack: mode {attack_mode}")
-        result = hexstrike_client.safe_post("api/tools/hashcat", data)
+        result = tool_client.safe_post("api/tools/hashcat", data)
         if result.get("success"):
             logger.info(f"✅ Hashcat attack completed")
         else:
@@ -120,7 +120,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Subfinder: {domain}")
-        result = hexstrike_client.safe_post("api/tools/subfinder", data)
+        result = tool_client.safe_post("api/tools/subfinder", data)
         if result.get("success"):
             logger.info(f"✅ Subfinder completed for {domain}")
         else:
@@ -150,7 +150,7 @@ def register(mcp, hexstrike_client):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting SMBMap: {target}")
-        result = hexstrike_client.safe_post("api/tools/smbmap", data)
+        result = tool_client.safe_post("api/tools/smbmap", data)
         if result.get("success"):
             logger.info(f"✅ SMBMap completed for {target}")
         else:

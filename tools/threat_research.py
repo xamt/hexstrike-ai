@@ -5,7 +5,7 @@ from typing import Any, Dict
 from .support import logger
 
 
-def register(mcp, hexstrike_client):
+def register(mcp, tool_client):
     """将本领域工具绑定到当前服务实例，保留实例独立的后端客户端。"""
     @mcp.tool()
     def monitor_cve_feeds(hours: int = 24, severity_filter: str = "HIGH,CRITICAL", keywords: str = "") -> Dict[str, Any]:
@@ -29,7 +29,7 @@ def register(mcp, hexstrike_client):
             "keywords": keywords
         }
         logger.info(f"🔍 Monitoring CVE feeds for last {hours} hours | Severity: {severity_filter}")
-        result = hexstrike_client.safe_post("api/vuln-intel/cve-monitor", data)
+        result = tool_client.safe_post("api/vuln-intel/cve-monitor", data)
 
         if result.get("success"):
             cve_count = len(result.get("cve_monitoring", {}).get("cves", []))
@@ -64,7 +64,7 @@ def register(mcp, hexstrike_client):
             "evasion_level": evasion_level
         }
         logger.info(f"🤖 Generating {exploit_type} exploit for {cve_id} | Target: {target_os} {target_arch}")
-        result = hexstrike_client.safe_post("api/vuln-intel/exploit-generate", data)
+        result = tool_client.safe_post("api/vuln-intel/exploit-generate", data)
 
         if result.get("success"):
             cve_analysis = result.get("cve_analysis", {})
@@ -99,7 +99,7 @@ def register(mcp, hexstrike_client):
             "include_zero_days": include_zero_days
         }
         logger.info(f"🔗 Discovering attack chains for {target_software} | Depth: {attack_depth} | Zero-days: {include_zero_days}")
-        result = hexstrike_client.safe_post("api/vuln-intel/attack-chains", data)
+        result = tool_client.safe_post("api/vuln-intel/attack-chains", data)
 
         if result.get("success"):
             chains = result.get("attack_chain_discovery", {}).get("attack_chains", [])
@@ -136,7 +136,7 @@ def register(mcp, hexstrike_client):
             "source_code_url": source_code_url
         }
         logger.info(f"🔬 Researching zero-day opportunities in {target_software} | Depth: {analysis_depth}")
-        result = hexstrike_client.safe_post("api/vuln-intel/zero-day-research", data)
+        result = tool_client.safe_post("api/vuln-intel/zero-day-research", data)
 
         if result.get("success"):
             research = result.get("zero_day_research", {})
