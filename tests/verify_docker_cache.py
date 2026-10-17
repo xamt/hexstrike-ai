@@ -52,7 +52,7 @@ def check_isolation(tag):
 
 def prepare_context(context):
     """复制应用 Dockerfile 所需的完整上下文，不带本地缓存。"""
-    for name in ("Dockerfile", "requirements.txt", "requirements-mcp.txt", "server.py", "hexstrike_mcp.py"):
+    for name in ("Dockerfile", "requirements.txt", "requirements-mcp.txt", "server.py", "mcp_server.py"):
         shutil.copy2(ROOT / name, context / name)
     for name in ("runtime", "tools"):
         shutil.copytree(ROOT / name, context / name,

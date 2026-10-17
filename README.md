@@ -1,6 +1,6 @@
 # pentest-agent-tools
 
-面向 AI Agent 的安全测试工具服务，提供 HTTP API、Streamable HTTP MCP 和 stdio 接入。
+面向 AI Agent 的安全测试工具服务，提供 HTTP API 和 Streamable HTTP MCP 接入。
 
 ## Installation
 
@@ -37,7 +37,7 @@ curl --fail "http://127.0.0.1:8889/readyz"
 
 当前接口不提供鉴权，HTTP API 与 MCP 都必须限制网络访问，远程访问通过受控网关接入。`/health` 会检测工具可用性，不适合高频轮询。
 
-API 入口为 `server.py`，共用运行模块位于 `runtime/`，MCP 工具注册位于 `tools/`。项目启动脚本和 Docker 配置已同步；自定义 API 启动命令需改为 `python server.py`，自定义模块导入也需使用新包名。MCP 入口 `hexstrike_mcp.py`、`HEXSTRIKE_*` 环境变量及既有插件标识保持不变。
+API 入口为 `server.py`，MCP 入口为 `mcp_server.py`，共用运行模块位于 `runtime/`，工具注册位于 `tools/`。项目启动脚本和 Docker 配置已同步；自定义启动配置需使用新入口，移除 `--transport` 参数。`HEXSTRIKE_*` 环境变量及既有插件标识保持不变。
 
 ## AI Client Integration Setup
 
@@ -53,26 +53,22 @@ API 入口为 `server.py`，共用运行模块位于 `runtime/`，MCP 工具注�
 
 远程客户端须将回环地址替换为可达的服务或网关地址，并在服务端设置 `HEXSTRIKE_MCP_ALLOWED_HOSTS`。这不是旧版 HTTP+SSE，也不需要配置本地启动命令。详细连接、网关与协议说明见 [接口文档](docs/MCP_HTTP.md)。
 
-### stdio
+### 客户端配置
 
-只支持 stdio 的客户端可使用下列配置。先启动 HTTP API，再将示例路径替换为实际项目绝对路径；MCP 使用独立环境的 Python。
+本服务仅提供 Streamable HTTP，不再提供 stdio 入口。先启动上述双服务，再配置客户端连接 URL；以下为支持 `mcpServers`、`type: http` 和 `url` 字段的客户端示例：
 
 ```json
 {
   "mcpServers": {
     "pentest-agent-tools": {
-      "command": "/path/to/pentest-agent-tools/.venv-mcp/bin/python",
-      "args": [
-        "/path/to/pentest-agent-tools/hexstrike_mcp.py",
-        "--server",
-        "http://127.0.0.1:8888"
-      ]
+      "type": "http",
+      "url": "http://127.0.0.1:8889/mcp"
     }
   }
 }
 ```
 
-默认传输仍为 stdio。兼容入口的配置示例见 [MCP 配置](hexstrike-ai-mcp.json)。DataAgent 可安装 [渗透测试工作台插件](plugins/pentest-tools/README.md)，复用远端 MCP、技能及进度/报告面板，避免重复建立同一服务连接。
+配置文件见 [MCP 配置](mcp-config.json)。客户端不再配置 Python 启动命令或脚本路径，远程连接时将示例 URL 替换为可达地址。DataAgent 可安装 [渗透测试工作台插件](plugins/pentest-tools/README.md)，复用远端 MCP、技能及进度/报告面板，避免重复建立同一服务连接。
 
 ## Features
 

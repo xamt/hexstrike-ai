@@ -8,7 +8,7 @@ import time
 import uuid
 from urllib.request import ProxyHandler, build_opener
 
-from mcp import Client, StdioServerParameters
+from mcp import Client
 
 
 def docker(*args, timeout=40):
@@ -50,8 +50,8 @@ def wait_ready(name):
     raise AssertionError("双接口启动超时：" + last_error)
 
 
-async def verify_protocol(name, address):
-    """真实 SDK 连接镜像中的 HTTP/stdio；仅执行健康工具。"""
+async def verify_protocol(address):
+    """真实 SDK 连接镜像中的 HTTP MCP；仅执行健康工具。"""
     async with Client(address + "/mcp", read_timeout_seconds=180) as client:
         tools = await client.list_tools()
         assert len(tools.tools) == 150
@@ -59,16 +59,8 @@ async def verify_protocol(name, address):
         assert not health.is_error, health
         payload = json.loads(health.content[0].text)
         assert payload["status"] == "healthy", payload
-        http_catalog = [tool.model_dump(by_alias=True) for tool in tools.tools]
-    destination = StdioServerParameters(
-        command="docker", args=["exec", "-i", name,
-                                "/opt/hexstrike-mcp-venv/bin/python",
-                                "/opt/pentest-tools/hexstrike_mcp.py"],
-    )
-    async with Client(destination, read_timeout_seconds=20) as client:
-        tools = await client.list_tools()
-        assert [tool.model_dump(by_alias=True) for tool in tools.tools] == http_catalog
-    print("通过：镜像 HTTP/stdio 目录一致（150唯一名称），server_health 返回成功", flush=True)
+        assert len({tool.name for tool in tools.tools}) == 150
+    print("通过：镜像 HTTP MCP 发现 150 个唯一工具，server_health 返回成功", flush=True)
 
 
 def kill_service(name, filename):
@@ -102,8 +94,8 @@ def verify_image(image):
             docker("exec", name, "/opt/hexstrike-venv/bin/python",
                    "/opt/pentest-tools/docker/service_health.py")
             if scenario == "mcp":
-                asyncio.run(verify_protocol(name, address))
-                kill_service(name, "hexstrike_mcp.py")
+                asyncio.run(verify_protocol(address))
+                kill_service(name, "mcp_server.py")
             elif scenario == "api":
                 kill_service(name, "server.py")
             else:

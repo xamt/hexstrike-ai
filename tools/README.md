@@ -1,7 +1,7 @@
 # MCP 工具目录
 
-这里是原 `hexstrike_mcp.py` 工具声明的机械拆分，stdio 和 Streamable HTTP 共用
-`register_tools(mcp, hexstrike_client)`，不各自维护工具副本。
+这里集中维护 MCP 工具声明，通过 `register_tools(mcp, hexstrike_client)`
+注册到 Streamable HTTP 服务，不维护额外的传输分支或工具副本。
 
 - 保留原有 151 次工具声明和注册顺序。原文件重复声明了 `httpx_probe`，所以唯一
   MCP 工具名称为 150 个；同名处理由运行层保持原 SDK 的首次注册语义。

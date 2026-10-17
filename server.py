@@ -14,7 +14,7 @@ RECENT ENHANCEMENTS (v6.0):
 ✅ AI-driven decision engine for tool selection
 ✅ Advanced error handling and recovery systems
 
-Architecture: Two-script system (server.py + hexstrike_mcp.py)
+Architecture: Two-script system (server.py + mcp_server.py)
 Framework: FastMCP integration for AI agent communication
 """
 

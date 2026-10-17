@@ -166,17 +166,5 @@ class MCPTransportTests(unittest.TestCase):
         self.assertFalse(result.get("isError", False))
         self.assertEqual(len(self.backend.requests), 5)
 
-    def test_stdio_default_entrypoint_still_discovers_and_calls(self):
-        result = call_client("stdio", self.backend.url, "list")
-        self.assertEqual(len(result["tools"]), 150)
-        self.assertEqual(result["tools"], self.call("list")["tools"])
-        result = call_client("stdio", self.backend.url, "server_health")
-        self.assertFalse(result.get("isError", False))
-        self.assertEqual(business_payload(result), HEALTH)
-        result = call_client("stdio", self.backend.url, "nmap_scan", {"target": "stdio.test"})
-        self.assertFalse(result.get("isError", False))
-        self.assertEqual(business_payload(result)["echo"]["target"], "stdio.test")
-
-
 if __name__ == "__main__":
     unittest.main()

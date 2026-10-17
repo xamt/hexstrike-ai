@@ -1,4 +1,4 @@
-"""兼容 stdio 的双传输启动入口。"""
+"""Streamable HTTP MCP 服务启动入口。"""
 
 import argparse
 import logging
@@ -45,12 +45,11 @@ def _allowed_values(values, environment, defaults):
 
 
 def parse_args(argv=None):
-    """读取命令行；未指定传输时保持原 stdio 行为。"""
-    parser = argparse.ArgumentParser(description="pentest-agent-tools MCP 服务：stdio / Streamable HTTP")
+    """读取 HTTP 监听、后端连接与并发配置。"""
+    parser = argparse.ArgumentParser(description="pentest-agent-tools MCP 服务：Streamable HTTP")
     parser.add_argument("--server", type=backend_url, default=DEFAULT_SERVER)
     parser.add_argument("--timeout", type=positive_int,
                         default=os.environ.get("HEXSTRIKE_MCP_TIMEOUT", "300"))
-    parser.add_argument("--transport", choices=["stdio", "streamable-http"], default="stdio")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=port_number, default="8889")
     parser.add_argument("--max-concurrent", type=positive_int,
@@ -66,19 +65,16 @@ def parse_args(argv=None):
 
 
 def main(argv=None):
-    """启动同一工具目录的指定传输，日志只写 stderr。"""
+    """启动 HTTP 服务，退出时关闭后端连接；日志只写 stderr。"""
     args = parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format="[pentest-agent-tools MCP] %(asctime)s %(levelname)s %(message)s")
     from .client import HexStrikeClient
     from .server import setup_mcp_server
+    from .http import serve_http
     client = HexStrikeClient(args.server, args.timeout)
     try:
         server = setup_mcp_server(client, max_concurrent=args.max_concurrent)
-        if args.transport == "stdio":
-            server.run(transport="stdio")
-        else:
-            from .http import serve_http
-            serve_http(server, client, args)
+        serve_http(server, client, args)
     finally:
         client.close()

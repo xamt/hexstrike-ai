@@ -20,10 +20,16 @@ class ModuleLayoutTests(unittest.TestCase):
 
     def test_docker_packages_all_product_modules(self):
         dockerfile = (ROOT / "Dockerfile").read_text()
-        self.assertIn("COPY server.py hexstrike_mcp.py ./", dockerfile)
+        self.assertIn("COPY server.py mcp_server.py ./", dockerfile)
         for name in ("tools", "runtime"):
             self.assertIn(f"COPY {name}/ ./{name}/", dockerfile)
         self.assertIn("-m py_compile server.py", dockerfile)
+
+    def test_mcp_entrypoint_does_not_shadow_sdk_or_keep_old_launcher(self):
+        self.assertTrue((ROOT / "mcp_server.py").is_file())
+        self.assertFalse((ROOT / "mcp.py").exists())
+        self.assertFalse((ROOT / ("hexstrike_" + "mcp.py")).exists())
+        self.assertFalse((ROOT / ("hexstrike-" + "ai-mcp.json")).exists())
 
     def test_packaged_modules_import_without_original_checkout(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -38,7 +44,8 @@ class ModuleLayoutTests(unittest.TestCase):
                 "assert Path(tools.__file__).parent == Path.cwd() / 'tools'; "
                 "assert Path(runtime.__file__).parent == Path.cwd() / 'runtime'; "
                 "assert callable(tools.register_tools); "
-                "assert parse_args([]).transport == 'stdio'"
+                "assert parse_args([]).port == 8889; "
+                "assert not hasattr(parse_args([]), 'transport')"
             )
             result = subprocess.run([sys.executable, "-B", "-c", code],
                                     cwd=destination, capture_output=True, text=True)
@@ -51,7 +58,7 @@ class ModuleLayoutTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             context = Path(directory)
             verifier.prepare_context(context)
-            for name in ("server.py", "hexstrike_mcp.py", "requirements.txt", "requirements-mcp.txt",
+            for name in ("server.py", "mcp_server.py", "requirements.txt", "requirements-mcp.txt",
                          "tools/__init__.py", "runtime/server.py", "docker/service_manager.py",
                          "docker/service_health.py"):
                 self.assertTrue((context / name).is_file(), name)

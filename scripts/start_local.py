@@ -50,8 +50,8 @@ def local_commands(config):
            f"HEXSTRIKE_PORT='{config.api_port}'); from server import app; "
            f"app.run(host='127.0.0.1', port={config.api_port}, "
            "debug=False, use_reloader=False)"]
-    mcp = [config.mcp_python, "-u", str(config.root / "hexstrike_mcp.py"),
-           "--transport", "streamable-http", "--host", "127.0.0.1",
+    mcp = [config.mcp_python, "-u", str(config.root / "mcp_server.py"),
+           "--host", "127.0.0.1",
            "--port", str(config.mcp_port), "--server", config.api_url]
     return api, mcp
 

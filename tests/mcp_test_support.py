@@ -103,8 +103,8 @@ class MCPProcess:
         self.port = unused_port()
         self.url = f"http://127.0.0.1:{self.port}"
         self.log = tempfile.TemporaryFile(mode="w+")
-        command = [sys.executable, str(ROOT / "hexstrike_mcp.py"),
-                   "--transport", "streamable-http", "--host", "127.0.0.1",
+        command = [sys.executable, str(ROOT / "mcp_server.py"),
+                   "--host", "127.0.0.1",
                    "--port", str(self.port), "--server", backend_url,
                    "--timeout", str(timeout), "--max-concurrent", str(concurrency)]
         self.process = subprocess.Popen(command, cwd=ROOT, stdout=self.log, stderr=self.log)
@@ -163,18 +163,12 @@ def call_client(transport, address, action, arguments=None):
 
 async def run_client(transport, address, action, arguments):
     """使用官方 SDK 协商协议并调用工具，不用手写 JSON-RPC 替代验收。"""
-    from mcp import Client, StdioServerParameters
+    from mcp import Client
 
-    destination = address
-    if transport == "stdio":
-        # 故意省略 --transport，验证原有默认启动方式。
-        destination = StdioServerParameters(
-            command=sys.executable,
-            args=[str(ROOT / "hexstrike_mcp.py"), "--server", address],
-            cwd=str(ROOT),
-        )
+    if transport not in ("http", "http-legacy"):
+        raise ValueError("测试客户端仅支持 HTTP")
     mode = "legacy" if transport == "http-legacy" else "auto"
-    async with Client(destination, read_timeout_seconds=20, mode=mode) as client:
+    async with Client(address, read_timeout_seconds=20, mode=mode) as client:
         if action == "list":
             result = await client.list_tools()
         else:

@@ -60,7 +60,7 @@ class HexStrikeMCPServer(MCPServer):
 
 
 def setup_mcp_server(hexstrike_client, *, max_concurrent: int = 4) -> HexStrikeMCPServer:
-    """为 stdio 和 HTTP 注册同一份原工具目录。"""
+    """为 HTTP MCP 服务注册工具目录。"""
     server = HexStrikeMCPServer(max_concurrent=max_concurrent)
     register_tools(server, hexstrike_client)
     return server

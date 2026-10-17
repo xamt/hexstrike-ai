@@ -21,10 +21,10 @@ class ServiceConfigurationTests(unittest.TestCase):
         commands = service_manager.service_commands(config)
         self.assertEqual(Path("/opt/pentest-tools"), config.root)
         self.assertEqual("/opt/pentest-tools/server.py", commands[0][1])
-        self.assertEqual("/opt/pentest-tools/hexstrike_mcp.py", commands[1][1])
+        self.assertEqual("/opt/pentest-tools/mcp_server.py", commands[1][1])
         self.assertEqual("/opt/hexstrike-venv/bin/python", commands[0][0])
         self.assertEqual("/opt/hexstrike-mcp-venv/bin/python", commands[1][0])
-        self.assertIn("streamable-http", commands[1])
+        self.assertNotIn("--transport", commands[1])
         self.assertEqual("http://127.0.0.1:8888", commands[1][-1])
 
     def test_custom_ports_and_deadlines(self):
@@ -92,7 +92,7 @@ class ServiceManagerTests(unittest.TestCase):
         process.poll.return_value = None
         manager = service_manager.ServiceManager(self.config)
         def start(command):
-            events.append("api" if "server.py" in command[1] else "mcp")
+            events.append("api" if Path(command[1]).name == "server.py" else "mcp")
             manager.children.append(process)
         def ready(url):
             events.append(url.rsplit("/", 1)[-1])

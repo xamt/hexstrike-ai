@@ -47,14 +47,15 @@ class ProductBrandingTests(unittest.TestCase):
                     and isinstance(node.value, str) and "API Server is operational" in node.value]
         self.assertEqual(messages, [f"{PRODUCT} API Server is operational"])
 
-    def test_legacy_cli_still_works_with_new_help(self):
+    def test_http_cli_help_uses_product_name(self):
         from runtime.cli import parse_args
         output = io.StringIO()
         with contextlib.redirect_stdout(output), self.assertRaises(SystemExit) as raised:
             parse_args(["--help"])
         self.assertEqual(raised.exception.code, 0)
         self.assertIn(PRODUCT, output.getvalue())
-        self.assertEqual(parse_args([]).transport, "stdio")
+        self.assertNotIn("stdio", output.getvalue())
+        self.assertFalse(hasattr(parse_args([]), "transport"))
 
     def test_mcp_service_name(self):
         tree = ast.parse((ROOT / "runtime/server.py").read_text())
@@ -64,12 +65,16 @@ class ProductBrandingTests(unittest.TestCase):
                  and isinstance(node.args[0], ast.Constant)]
         self.assertEqual(names, [PRODUCT])
 
-    def test_sample_preserves_legacy_entrypoint(self):
-        config = json.loads((ROOT / "hexstrike-ai-mcp.json").read_text())
+    def test_sample_connects_to_http_without_spawning_process(self):
+        config = json.loads((ROOT / "mcp-config.json").read_text())
         self.assertEqual(list(config["mcpServers"]), [PRODUCT])
         server = config["mcpServers"][PRODUCT]
-        self.assertTrue(server["args"][0].endswith("/hexstrike_mcp.py"))
-        self.assertIn(PRODUCT, server["description"])
+        self.assertEqual(server, {"type": "http", "url": "http://127.0.0.1:8889/mcp"})
+        self.assertNotIn("command", server)
+        self.assertNotIn("args", server)
+        readme = (ROOT / "README.md").read_text()
+        examples = [json.loads(block) for block in re.findall(r"```json\n(.*?)\n```", readme, re.S)]
+        self.assertIn(config, examples)
 
     def test_plugin_display_changes_without_identity_migration(self):
         plugin = json.loads((ROOT / "plugins/pentest-tools/.dataagent-plugin/plugin.json").read_text())

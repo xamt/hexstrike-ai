@@ -1,4 +1,4 @@
-"""stdio 与 Streamable HTTP 共用的原始工具目录。"""
+"""Streamable HTTP MCP 服务的工具目录。"""
 
 from .network_core import register as register_network_core
 from .cloud_security import register as register_cloud_security

@@ -10,17 +10,19 @@ HAS_REQUESTS = importlib.util.find_spec("requests") is not None
 
 
 class ConfigurationTests(unittest.TestCase):
-    def test_defaults_preserve_stdio(self):
+    def test_defaults_select_http_without_transport_switch(self):
         from runtime.cli import parse_args
         with patch.dict(os.environ, {}, clear=True):
             args = parse_args([])
-        self.assertEqual(args.transport, "stdio")
+        self.assertFalse(hasattr(args, "transport"))
+        self.assertEqual(args.host, "127.0.0.1")
+        self.assertEqual(args.port, 8889)
         self.assertEqual(args.timeout, 300)
         self.assertEqual(args.max_concurrent, 4)
 
     def test_http_configuration_and_validation(self):
         from runtime.cli import parse_args
-        args = parse_args(["--transport", "streamable-http", "--port", "9000",
+        args = parse_args(["--port", "9000",
                            "--allowed-host", "gateway.example:*"])
         self.assertEqual(args.port, 9000)
         self.assertIn("gateway.example:*", args.allowed_hosts)
@@ -29,6 +31,33 @@ class ConfigurationTests(unittest.TestCase):
                        ["--server", "http://user:secret@example.com"]):
             with self.subTest(values=values), self.assertRaises(SystemExit):
                 parse_args(values)
+
+    def test_transport_switch_is_no_longer_supported(self):
+        from runtime.cli import parse_args
+        for mode in ("stdio", "streamable-http"):
+            with self.subTest(mode=mode):
+                with self.assertRaises(SystemExit) as error:
+                    parse_args(["--transport", mode])
+                self.assertEqual(error.exception.code, 2)
+
+
+@unittest.skipUnless(importlib.util.find_spec("mcp"), "需要 MCP SDK")
+class EntryPointTests(unittest.TestCase):
+    def test_default_start_uses_http_and_closes_backend_client(self):
+        from runtime.cli import main
+        for failure in (None, RuntimeError("模拟监听失败")):
+            with self.subTest(failure=failure), \
+                 patch("runtime.client.HexStrikeClient") as factory, \
+                 patch("runtime.server.setup_mcp_server") as setup, \
+                 patch("runtime.http.serve_http", side_effect=failure) as serve:
+                if failure:
+                    with self.assertRaisesRegex(RuntimeError, "模拟监听失败"):
+                        main([])
+                else:
+                    main([])
+                serve.assert_called_once()
+                setup.return_value.run.assert_not_called()
+                factory.return_value.close.assert_called_once()
 
 
 @unittest.skipUnless(HAS_REQUESTS, "需要 requirements-mcp.txt 中的 requests")

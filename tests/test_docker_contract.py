@@ -16,7 +16,7 @@ class DockerContractTests(unittest.TestCase):
 
     def test_base_does_not_consume_application(self):
         base = (ROOT / "Dockerfile.base").read_text()
-        for name in ("requirements.txt", "server.py", "hexstrike_mcp.py"):
+        for name in ("requirements.txt", "server.py", "mcp_server.py"):
             self.assertNotIn(name, base)
         self.assertNotIn("HEALTHCHECK", base)
         self.assertNotIn("EXPOSE", base)
