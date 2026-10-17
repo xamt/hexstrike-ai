@@ -126,7 +126,7 @@ CLI 的 `--timeout`、`--max-concurrent`、`--allowed-host`、`--allowed-origin`
 - 上限约束的是 MCP 顶层调用，不是扫描器内部线程或所有 API 请求。直接 API 调用不经过该限流。超额请求明确返回繁忙，不进行后端调用。
 - 断连不能释放仍在执行的同步调用配额，调用完成后才回收；不承诺任务持久化、取消、流式扫描日志或重启恢复。
 - 后端文件、Cookie、作用域和进程仍共享；MCP 无状态不构成任务隔离。
-- Skills 保留测试方法、证据与报告规范；支持 MCP 的 Agent 优先调用原生工具。HTTP 调用器仅用于明确选择的兼容方式，不静默切换执行通道。
+- `skills/pentest-tools` 保留测试方法、证据与报告规范，只通过宿主已连接的 MCP 调用原生工具；不再附带本地 HTTP 调用器或数据库操作工具。实际工具名与参数以宿主发现结果为准，失败时不改走 API 重试。
 
 ## 5. 生命周期与验证
 
@@ -139,7 +139,8 @@ Docker 健康探针同时检查 API 和 MCP 的后端就绪状态；健康不表
 ```bash
 # 使用安装了 requirements-mcp.txt 的解释器执行，确保协议测试没有被跳过。
 python -m unittest discover -s "tests" -p "test_*.py"
-node --test "tests/http-skill.test.mjs" "tests/skill-workflows.test.mjs"
+node --test "tests/skill-workflows.test.mjs"
+python "scripts/skill-export/export.py" --check
 git diff --check
 
 # 已构建镜像的真实双接口和退出清理验收；需要本机 Docker。

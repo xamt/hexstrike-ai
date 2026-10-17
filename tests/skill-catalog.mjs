@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 
-export const catalog = JSON.parse(readFileSync(new URL('./tools.json', import.meta.url), 'utf8'));
+export const catalog = JSON.parse(readFileSync(new URL('../skills/pentest-tools/references/tool-catalog.json', import.meta.url), 'utf8'));
 
-/** 校验工具名、参数名和类型；默认值由生成函数处理。 */
+/** 仅离线检查文档示例；实际 MCP 参数验证由宿主和服务负责。 */
 export function validateArguments(name, args) {
   if (!Object.hasOwn(catalog, name)) throw new Error(`未知工具: ${name}`);
   if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('参数必须为 JSON 对象');

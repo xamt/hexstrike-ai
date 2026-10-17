@@ -3,9 +3,17 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { catalog, validateArguments } from '../skills/pentest-tools/scripts/catalog.mjs';
+import { catalog, validateArguments } from './skill-catalog.mjs';
 
 const root = fileURLToPath(new URL('../skills/pentest-tools/', import.meta.url));
+
+test('离线示例校验拒绝旧别名、错误参数名和错误类型', () => {
+  assert.throws(() => validateArguments('httpx_probe_extended', {}), /未知工具/);
+  assert.throws(() => validateArguments('httpx_probe', { targets: 'example.test' }), /未知参数/);
+  assert.throws(() => validateArguments('httpx_probe', {}), /缺少参数/);
+  assert.throws(() => validateArguments('httpx_probe', { target: 'example.test', probe: 'true' }), /必须为/);
+  assert.doesNotThrow(() => validateArguments('httpx_probe', { target: 'example.test', probe: true }));
+});
 
 function markdownFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
