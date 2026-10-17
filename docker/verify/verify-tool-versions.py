@@ -141,8 +141,8 @@ def main():
     """最终镜像校验入口；不访问包源或外部目标。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--arch", required=True, choices=("amd64", "arm64"))
-    parser.add_argument("--records", type=Path, default=Path("/opt/hexstrike/tool-versions.d"))
-    parser.add_argument("--output", type=Path, default=Path("/opt/hexstrike/tool-versions.lock"))
+    parser.add_argument("--records", type=Path, default=Path("/opt/pentest-tools/tool-versions.d"))
+    parser.add_argument("--output", type=Path, default=Path("/opt/pentest-tools/tool-versions.lock"))
     args = parser.parse_args()
     try:
         write_lock(load_records(args.records, args.arch), args.output)

@@ -66,7 +66,7 @@ exec /usr/local/bin/volatility2-python /opt/volatility2/vol.py "$@"
 WRAPPER
 chmod 0755 /out/usr/local/bin/volatility /out/usr/local/bin/volatility2-python
 
-export TOOL_RECORD_DIR=/out/opt/hexstrike/tool-versions.d
+export TOOL_RECORD_DIR=/out/opt/pentest-tools/tool-versions.d
 bash "${script_dir}/../../lib/record-tool-version.sh" source python2 "${PYTHON2_VERSION}" "${TARGETARCH}" \
     /out/opt/python2/bin/python2.7 /opt/python2/bin/python2.7
 bash "${script_dir}/../../lib/record-tool-version.sh" source volatility2 "${VOLATILITY2_VERSION}" all \

@@ -63,7 +63,7 @@ async def verify_protocol(name, address):
     destination = StdioServerParameters(
         command="docker", args=["exec", "-i", name,
                                 "/opt/hexstrike-mcp-venv/bin/python",
-                                "/opt/hexstrike/hexstrike_mcp.py"],
+                                "/opt/pentest-tools/hexstrike_mcp.py"],
     )
     async with Client(destination, read_timeout_seconds=20) as client:
         tools = await client.list_tools()
@@ -75,7 +75,7 @@ def kill_service(name, filename):
     """只终止本脚本专用容器内的指定核心服务，验证故障联动。"""
     script = (
         "import os,signal,psutil,sys; "
-        "target='/opt/hexstrike/'+sys.argv[1]; "
+        "target='/opt/pentest-tools/'+sys.argv[1]; "
         "matches=[p.pid for p in psutil.process_iter(['cmdline']) "
         "if target in (p.info['cmdline'] or [])]; "
         "assert len(matches)==1,matches; os.kill(matches[0],signal.SIGKILL)"
@@ -100,7 +100,7 @@ def verify_image(image):
             started = True
             _, address = wait_ready(name)
             docker("exec", name, "/opt/hexstrike-venv/bin/python",
-                   "/opt/hexstrike/docker/service_health.py")
+                   "/opt/pentest-tools/docker/service_health.py")
             if scenario == "mcp":
                 asyncio.run(verify_protocol(name, address))
                 kill_service(name, "hexstrike_mcp.py")

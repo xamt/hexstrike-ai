@@ -16,7 +16,7 @@ class ServiceConfiguration:
     mcp_port: int = 8889
     startup_timeout: float = 60
     shutdown_timeout: float = 10
-    root: Path = Path("/opt/hexstrike")
+    root: Path = Path("/opt/pentest-tools")
     api_python: str = "/opt/hexstrike-venv/bin/python"
     mcp_python: str = "/opt/hexstrike-mcp-venv/bin/python"
 

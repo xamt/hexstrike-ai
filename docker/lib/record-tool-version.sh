@@ -9,7 +9,7 @@ version="${3:?缺少预期版本}"
 arch="${4:?缺少架构}"
 source_path="${5:--}"
 target_path="${6:--}"
-record_dir="${TOOL_RECORD_DIR:-/opt/hexstrike/tool-versions.d}"
+record_dir="${TOOL_RECORD_DIR:-/opt/pentest-tools/tool-versions.d}"
 
 case "${kind}" in apt|gem|go|rust|source|python|vol-python|jwt-python|legacy-python|param-python|hunter-python) ;; *) exit 2 ;; esac
 case "${arch}" in amd64|arm64|all) ;; *) exit 2 ;; esac

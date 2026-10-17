@@ -18,7 +18,7 @@ ENV PATH="/opt/hexstrike-compat/bin:/opt/hexstrike-venv/bin:/usr/local/bin:/usr/
     HEXSTRIKE_STARTUP_TIMEOUT=60 \
     HEXSTRIKE_SHUTDOWN_TIMEOUT=10
 
-WORKDIR /opt/hexstrike
+WORKDIR /opt/pentest-tools
 # 使用基础镜像固定的 pip 管理新环境，不修改系统或工具虚拟环境。
 RUN /usr/local/bin/python3.11 -m venv --without-pip /opt/hexstrike-venv && \
     /usr/local/bin/python3.11 -m venv --without-pip /opt/hexstrike-mcp-venv
@@ -47,7 +47,7 @@ RUN /opt/hexstrike-venv/bin/python -c 'import aiohttp, bs4, flask, mitmproxy, ps
 
 EXPOSE 8888 8889
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD ["/opt/hexstrike-venv/bin/python", "/opt/hexstrike/docker/service_health.py"]
+  CMD ["/opt/hexstrike-venv/bin/python", "/opt/pentest-tools/docker/service_health.py"]
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/opt/hexstrike-venv/bin/python", "/opt/hexstrike/docker/service_manager.py"]
+CMD ["/opt/hexstrike-venv/bin/python", "/opt/pentest-tools/docker/service_manager.py"]

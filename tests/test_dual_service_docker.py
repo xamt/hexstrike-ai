@@ -7,6 +7,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DualServiceDockerTests(unittest.TestCase):
+    def test_product_workdir_and_entrypoints(self):
+        for name in ("Dockerfile", "Dockerfile.base"):
+            content = (ROOT / name).read_text()
+            self.assertIn("WORKDIR /opt/pentest-tools\n", content)
+            self.assertNotIn("/opt/hexstrike/", content)
+        dockerfile = (ROOT / "Dockerfile").read_text()
+        for name in ("service_manager.py", "service_health.py"):
+            self.assertIn(f'"/opt/pentest-tools/docker/{name}"', dockerfile)
+
     def test_independent_dependency_environments(self):
         dockerfile = (ROOT / "Dockerfile").read_text()
         self.assertIn("/opt/hexstrike-mcp-venv", dockerfile)
@@ -19,7 +28,7 @@ class DualServiceDockerTests(unittest.TestCase):
         dockerfile = (ROOT / "Dockerfile").read_text()
         self.assertIn("EXPOSE 8888 8889", dockerfile)
         self.assertIn('ENTRYPOINT ["/usr/bin/tini", "--"]', dockerfile)
-        self.assertIn('CMD ["/opt/hexstrike-venv/bin/python", "/opt/hexstrike/docker/service_manager.py"]', dockerfile)
+        self.assertIn('CMD ["/opt/hexstrike-venv/bin/python", "/opt/pentest-tools/docker/service_manager.py"]', dockerfile)
         self.assertIn("service_health.py", dockerfile)
         self.assertIn("HEXSTRIKE_MCP_PORT=8889", dockerfile)
 

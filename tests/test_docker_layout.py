@@ -58,7 +58,7 @@ class DockerLayoutTests(unittest.TestCase):
     def test_expected_records_reach_final_stage(self):
         content = (ROOT / "Dockerfile.base").read_text()
         for stage in ("go-tools", "rust-tools", "nikto-source", "python-runtime"):
-            self.assertRegex(content, rf"COPY --from={stage} \S+/ /opt/hexstrike/tool-versions.d/")
+            self.assertRegex(content, rf"COPY --from={stage} \S+/ /opt/pentest-tools/tool-versions.d/")
         self.assertIn("source=docker/verify/verify-tool-versions.py", content)
         self.assertIn("verify-tool-versions.py", (ROOT / "docker/verify/base.sh").read_text())
 

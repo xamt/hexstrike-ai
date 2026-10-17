@@ -15,8 +15,8 @@ for image in "${base_image}" "${app_image}"; do
 done
 
 docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/bash -ec '
-    test ! -e /opt/hexstrike/hexstrike_server.py
-    test ! -e /opt/hexstrike/requirements.txt
+    test ! -e /opt/pentest-tools/hexstrike_server.py
+    test ! -e /opt/pentest-tools/requirements.txt
     test ! -e /opt/hexstrike-venv
     python3.11 --version
     nmap --version
@@ -44,7 +44,7 @@ docker run --rm --platform "linux/${arch}" --network none "${base_image}" /bin/b
     timeout 30 kube-hunter --help >/dev/null
     /opt/kube-hunter-venv/bin/python -m pip check
     /opt/jwt-tool-venv/bin/python -m pip check
-    test -s /opt/hexstrike/tool-versions.lock
+    test -s /opt/pentest-tools/tool-versions.lock
 '
 docker run --rm --platform "linux/${arch}" --network none "${app_image}" /bin/bash -ec '
     /usr/local/bin/python3.11 -m pip --python /opt/hexstrike-venv/bin/python check

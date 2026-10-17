@@ -112,7 +112,7 @@ RUN --mount=type=bind,source=docker/tools/network/apt.sh,target=/tmp/docker/tool
     bash /tmp/docker/tools/network/apt.sh
 
 COPY --from=nikto-source /opt/nikto/ /opt/nikto/
-COPY --from=nikto-source /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
+COPY --from=nikto-source /opt/tool-versions.d/ /opt/pentest-tools/tool-versions.d/
 
 RUN --mount=type=bind,source=docker/tools/web/apt.sh,target=/tmp/docker/tools/web/apt.sh \
     --mount=type=bind,source=docker/lib/record-tool-version.sh,target=/tmp/docker/lib/record-tool-version.sh \
@@ -161,9 +161,9 @@ RUN --mount=type=bind,source=docker/tools/osint/apt.sh,target=/tmp/docker/tools/
 # =============================================================================
 FROM security-packages AS security-tools
 COPY --from=go-tools /out/bin/ /usr/local/bin/
-COPY --from=go-tools /out/tool-versions.d/ /opt/hexstrike/tool-versions.d/
+COPY --from=go-tools /out/tool-versions.d/ /opt/pentest-tools/tool-versions.d/
 COPY --from=rust-tools /out/bin/x8 /usr/local/bin/x8
-COPY --from=rust-tools /out/tool-versions.d/ /opt/hexstrike/tool-versions.d/
+COPY --from=rust-tools /out/tool-versions.d/ /opt/pentest-tools/tool-versions.d/
 RUN --mount=type=bind,source=docker/assembly/prepare-tool-data.sh,target=/tmp/docker/assembly/prepare-tool-data.sh \
     bash /tmp/docker/assembly/prepare-tool-data.sh
 
@@ -238,7 +238,7 @@ COPY --from=python-runtime /opt/paramspider-venv/ /opt/paramspider-venv/
 COPY --from=python-runtime /opt/volatility3/ /opt/volatility3/
 COPY --from=python-runtime /opt/kube-hunter-venv/ /opt/kube-hunter-venv/
 COPY --from=legacy-python-runtime /out/ /
-COPY --from=python-runtime /opt/tool-versions.d/ /opt/hexstrike/tool-versions.d/
+COPY --from=python-runtime /opt/tool-versions.d/ /opt/pentest-tools/tool-versions.d/
 RUN --mount=type=bind,source=docker/compat/install.sh,target=/tmp/docker/compat/install.sh \
     --mount=type=bind,source=docker/compat/cli-compat.py,target=/tmp/docker/compat/cli-compat.py \
     --mount=type=bind,source=docker/compat/ExportXml.java,target=/tmp/docker/compat/ExportXml.java \
@@ -257,6 +257,6 @@ RUN --mount=type=bind,source=docker/verify/base.sh,target=/tmp/docker/verify/bas
     bash /tmp/docker/verify/base.sh
 
 # 不安装项目依赖、不复制项目代码、不开放服务端口。
-WORKDIR /opt/hexstrike
+WORKDIR /opt/pentest-tools
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/bin/bash"]

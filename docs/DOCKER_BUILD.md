@@ -352,7 +352,9 @@ Volatility 2 使用隔离的 Python 2，已停止维护；Volatility 3 使用独
 | Anew | `anew` | 对文本行去重，仅追加尚未出现的结果。 |
 | TruffleHog | `trufflehog` | 在文件、源码和 Git 历史中检测凭据泄漏，可按需验证凭据。 |
 
-**基础运行环境：**Kali、Bash、curl、Git、Perl、Ruby、Python 3.11、pip、venv、tini、CA 证书及运行库；安全工具的专用 Python 环境与应用依赖隔离。内置小型目录、参数字典及 AutoRecon 必需的小字典，不携带完整 SecLists、大型字典、彩虹表或完整符号表。实际工具版本记录位于 `/opt/hexstrike/tool-versions.lock`。
+基础镜像与应用镜像的默认工作目录均为 `/opt/pentest-tools`，应用代码也位于该目录；内部虚拟环境和兼容目录名称保持不变。
+
+**基础运行环境：**Kali、Bash、curl、Git、Perl、Ruby、Python 3.11、pip、venv、tini、CA 证书及运行库；安全工具的专用 Python 环境与应用依赖隔离。内置小型目录、参数字典及 AutoRecon 必需的小字典，不携带完整 SecLists、大型字典、彩虹表或完整符号表。实际工具版本记录位于 `/opt/pentest-tools/tool-versions.lock`。
 
 **使用条件：**
 - 工具已安装不等于扫描条件已齐备；字典和模板按第 4 章选用，部分情报源和 WPScan 漏洞查询需要 API Key。
