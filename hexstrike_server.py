@@ -5646,16 +5646,27 @@ class ProcessManager:
             return None
 
     @staticmethod
+    def _public_snapshot(process_info):
+        """Return detached JSON fields, excluding private process handles."""
+        public_fields = (
+            "pid", "command", "start_time", "status", "progress",
+            "last_output", "bytes_processed", "runtime", "eta",
+        )
+        return {key: process_info[key] for key in public_fields if key in process_info}
+
+    @staticmethod
     def get_process_status(pid):
-        """Get status of a specific process"""
+        """Get a public status snapshot without exposing or mutating the registry."""
         with process_lock:
-            return active_processes.get(pid, None)
+            process_info = active_processes.get(pid)
+            return ProcessManager._public_snapshot(process_info) if process_info else None
 
     @staticmethod
     def list_active_processes():
-        """List all active processes"""
+        """List public process snapshots while retaining handles for internal control."""
         with process_lock:
-            return dict(active_processes)
+            return {pid: ProcessManager._public_snapshot(info)
+                    for pid, info in active_processes.items()}
 
     @staticmethod
     def pause_process(pid):
@@ -10335,13 +10346,20 @@ def create_comprehensive_bugbounty_assessment():
 @app.route("/api/tools/nmap", methods=["POST"])
 def nmap():
     """Execute nmap scan with enhanced logging, caching, and intelligent error handling"""
+    from hexstrike_runtime.nmap_options import validate_scan_type
+
     try:
         params = request.json
         target = params.get("target", "")
         scan_type = params.get("scan_type", "-sCV")
         ports = params.get("ports", "")
         additional_args = params.get("additional_args", "-T4 -Pn")
-        use_recovery = params.get("use_recovery", True)
+        use_recovery = params.get("use_recovery", False)
+
+        try:
+            validate_scan_type(scan_type)
+        except ValueError as exc:
+            return jsonify({"success": False, "error_code": "INVALID_ARGUMENT", "error": str(exc)}), 400
 
         if not target:
             logger.warning("🎯 Nmap called without target parameter")

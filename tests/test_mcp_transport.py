@@ -65,15 +65,21 @@ class MCPTransportTests(unittest.TestCase):
         self.assertFalse(result.get("isError", False))
         self.assertEqual(business_payload(result), HEALTH)
 
-    def test_nmap_default_request_and_result_are_unchanged(self):
+    def test_nmap_default_request_disables_recovery_and_preserves_result(self):
         result = self.call("nmap_scan", {"target": "example.test"})
         expected = {"target": "example.test", "scan_type": "-sV", "ports": "",
-                    "additional_args": "", "use_recovery": True}
+                    "additional_args": "", "use_recovery": False}
         self.assertFalse(result.get("isError", False))
         self.assertEqual(self.backend.requests, [("/api/tools/nmap", expected)])
         self.assertEqual(business_payload(result), {
             "success": True, "stdout": "mock-output", "echo": expected,
         })
+
+    def test_nmap_semantic_scan_type_is_mcp_error_without_backend_request(self):
+        result = self.call("nmap_scan", {"target": "example.test", "scan_type": "service_version"})
+        self.assertTrue(result.get("isError"))
+        self.assertEqual(business_payload(result)["error_code"], "INVALID_ARGUMENT")
+        self.assertEqual(self.backend.requests, [])
 
     def test_business_failure_sets_is_error_and_keeps_fields(self):
         result = self.call("nmap_scan", {"target": "business-error"})

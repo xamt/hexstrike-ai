@@ -9,9 +9,11 @@ import { unzipSync } from '../plugins/pentest-tools/node_modules/fflate/esm/inde
 import { fileURLToPath } from 'node:url';
 
 const root = new URL('../plugins/pentest-tools/', import.meta.url);
+const manifest = JSON.parse(await readFile(new URL('.dataagent-plugin/plugin.json', root), 'utf8'));
+const archive = `dist/pentest-tools-${manifest.version}.zip`;
 
 test('ZIP 仅包含可分发内容，技能同步且摘要正确', async () => {
-  const zip = await readFile(new URL('dist/pentest-tools-1.0.0.zip', root));
+  const zip = await readFile(new URL(archive, root));
   const files = unzipSync(zip);
   for (const name of ['.dataagent-plugin/plugin.json', '.mcp.json', 'panels/workbench.panel.json',
     'ui/index.html', 'dist/records.cjs', 'dist/THIRD_PARTY_LICENSES.txt', 'LICENSE',
@@ -19,17 +21,20 @@ test('ZIP 仅包含可分发内容，技能同步且摘要正确', async () => {
     assert.ok(files[name], name);
   }
   assert.ok(Object.keys(files).every(name => !/(node_modules|pentest-records|\.git\/|\.helloagents|screenshots|\.env)/.test(name)));
+  const config = JSON.parse(Buffer.from(files['.mcp.json']).toString());
+  assert.equal(config.mcpServers.hexstrike.url, '${user_config.mcp_url}', '发布包不能固化开发机地址');
+  assert.equal(JSON.parse(Buffer.from(files['.dataagent-plugin/plugin.json']).toString()).version, manifest.version);
   const source = await readFile(new URL('../skills/pentest-tools/SKILL.md', import.meta.url), 'utf8');
   const packaged = Buffer.from(files['skills/pentest-tools/SKILL.md']).toString();
   assert.equal(packaged.replace('displayName: 渗透测试工作台\nuser-invocable: true\n', ''), source);
   const hash = createHash('sha256').update(zip).digest('hex');
-  assert.ok((await readFile(new URL('dist/pentest-tools-1.0.0.zip.sha256', root), 'utf8')).startsWith(hash));
+  assert.ok((await readFile(new URL(`${archive}.sha256`, root), 'utf8')).startsWith(hash));
 });
 
 test('解压 ZIP 在无 node_modules 的独立目录运行真实 MCP 协议', async () => {
   const directory = await realpath(await mkdtemp(join(tmpdir(), 'pentest-package-')));
   try {
-    const files = unzipSync(await readFile(new URL('dist/pentest-tools-1.0.0.zip', root)));
+    const files = unzipSync(await readFile(new URL(archive, root)));
     for (const [name, bytes] of Object.entries(files)) {
       assert.ok(!name.startsWith('/') && !name.split('/').includes('..'));
       const path = join(directory, name);

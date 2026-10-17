@@ -45,7 +45,8 @@ class CatalogContractTests(unittest.TestCase):
     def setUpClass(cls):
         cls.baseline = json.loads((ROOT / "tests/fixtures/mcp-tool-contract.json").read_text())
 
-    def test_all_original_signatures_docstrings_and_bodies_are_unchanged(self):
+    def test_signatures_and_reviewed_tool_bodies_match_contract(self):
+        # Nmap 的输入校验与禁重放行为有独立回归测试；其余工具维持迁移基线。
         catalog = registered()
         self.assertEqual(len(catalog.definitions), self.baseline["definition_count"])
         self.assertEqual(len(catalog.tools), self.baseline["unique_tool_count"])

@@ -7,6 +7,22 @@ import { fileURLToPath } from 'node:url';
 import { Client } from '../plugins/pentest-tools/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js';
 import { StdioClientTransport } from '../plugins/pentest-tools/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js';
 
+async function verifyActivityContract(call, task) {
+  const wrong = { id: 'act-001', tool: 'nmap_scan', target: 'example.test', status: 'running',
+    action: 'run', intent: '离线测试', startTime: '2026-10-17T09:00:00+08:00' };
+  const bad = await call('record_progress', { ...task, expected_revision: 1, activities: [wrong] });
+  assert.equal(bad.isError, true);
+  for (const key of ['startedAt', 'summary', 'evidenceRefs', 'startTime', 'intent', 'action']) {
+    assert.ok(bad.structuredContent.error.message.includes(key), key);
+  }
+  assert.equal((await call('get_engagement_view', task)).structuredContent.view.revision, 1);
+  const { action, intent, startTime, ...base } = wrong;
+  const fixed = { ...base, startedAt: startTime, summary: intent, evidenceRefs: [] };
+  const saved = await call('record_progress', { ...task, expected_revision: 1, activities: [fixed] });
+  assert.equal(saved.isError, false);
+  assert.deepEqual((await call('get_engagement_view', task)).structuredContent.view.activities, [fixed]);
+}
+
 test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时目录', async () => {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'pentest-plugin-protocol-')));
   const client = new Client({ name: 'offline-test', version: '1.0.0' });
@@ -45,6 +61,7 @@ test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时�
     const bad = await call('record_progress', { ...task, expected_revision: 0, phase: '错误版本' });
     assert.equal(bad.isError, true);
     assert.equal(bad.structuredContent.success, false);
+    await verifyActivityContract(call, task);
     assert.equal(errors, '');
   } finally {
     await client.close();

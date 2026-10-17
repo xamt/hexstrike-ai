@@ -1,6 +1,8 @@
-"""原 MCP 工具的机械迁移；函数体和参数由冻结契约校验，不修改执行逻辑。"""
+"""网络工具 MCP 适配；Nmap 在提交前校验扫描选项，不自动重放执行。"""
 
 from typing import Any, Dict
+
+from hexstrike_runtime.nmap_options import validate_scan_type
 
 from .support import HexStrikeColors, logger
 
@@ -14,13 +16,17 @@ def register(mcp, hexstrike_client):
 
         Args:
             target: The IP address or hostname to scan
-            scan_type: Scan type (e.g., -sV for version detection, -sC for scripts)
-            ports: Comma-separated list of ports or port ranges
-            additional_args: Additional Nmap arguments
+            scan_type: Raw Nmap flags, e.g. -sV or -sT -sV; never service_version or other semantic names
+            ports: Comma-separated ports or ranges; discover a bounded set first, then identify services on open ports
+            additional_args: Additional Nmap arguments; use a per-call time budget, report partial coverage on timeout
 
         Returns:
             Scan results with enhanced telemetry
         """
+        try:
+            validate_scan_type(scan_type)
+        except ValueError as exc:
+            return {"success": False, "error_code": "INVALID_ARGUMENT", "error": str(exc)}
         data = {
             "target": target,
             "scan_type": scan_type,
@@ -29,8 +35,8 @@ def register(mcp, hexstrike_client):
         }
         logger.info(f"{HexStrikeColors.FIRE_RED}🔍 Initiating Nmap scan: {target}{HexStrikeColors.RESET}")
 
-        # Use enhanced error handling by default
-        data["use_recovery"] = True
+        # 超时并不代表远端已停止；禁止自动重放或修改扫描范围。
+        data["use_recovery"] = False
         result = hexstrike_client.safe_post("api/tools/nmap", data)
 
         if result.get("success"):

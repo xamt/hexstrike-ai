@@ -10,8 +10,8 @@
       "signature": "target: str, scan_type: str='-sV', ports: str='', additional_args: str=''",
       "arguments_ast": "arguments(posonlyargs=[], args=[arg(arg='target', annotation=Name(id='str', ctx=Load())), arg(arg='scan_type', annotation=Name(id='str', ctx=Load())), arg(arg='ports', annotation=Name(id='str', ctx=Load())), arg(arg='additional_args', annotation=Name(id='str', ctx=Load()))], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value='-sV'), Constant(value=''), Constant(value='')])",
       "returns_ast": "Subscript(value=Name(id='Dict', ctx=Load()), slice=Tuple(elts=[Name(id='str', ctx=Load()), Name(id='Any', ctx=Load())], ctx=Load()), ctx=Load())",
-      "docstring": "\n        Execute an enhanced Nmap scan against a target with real-time logging.\n\n        Args:\n            target: The IP address or hostname to scan\n            scan_type: Scan type (e.g., -sV for version detection, -sC for scripts)\n            ports: Comma-separated list of ports or port ranges\n            additional_args: Additional Nmap arguments\n\n        Returns:\n            Scan results with enhanced telemetry\n        ",
-      "body_sha256": "75eca3c607911181b9c2a3ee3c41cb22bd7fe27dcdf422a99e3659accb611c50"
+      "docstring": "\n        Execute an enhanced Nmap scan against a target with real-time logging.\n\n        Args:\n            target: The IP address or hostname to scan\n            scan_type: Raw Nmap flags, e.g. -sV or -sT -sV; never service_version or other semantic names\n            ports: Comma-separated ports or ranges; discover a bounded set first, then identify services on open ports\n            additional_args: Additional Nmap arguments; use a per-call time budget, report partial coverage on timeout\n\n        Returns:\n            Scan results with enhanced telemetry\n        ",
+      "body_sha256": "22c2aacf76e61a891b967d31144a757ecaf6657e0f12f1e3f370772e6478d64f"
     },
     {
       "name": "gobuster_scan",
