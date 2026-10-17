@@ -24,8 +24,9 @@ def service_commands(config):
 class ServiceManager:
     """按就绪顺序启动服务，任何异常退出均结束整个容器。"""
 
-    def __init__(self, config):
+    def __init__(self, config, *, commands=None):
         self.config = config
+        self.commands = commands
         self.children = []
         self.stop_signal = None
         self.startup_deadline = time.monotonic() + config.startup_timeout
@@ -113,7 +114,7 @@ class ServiceManager:
     def run(self):
         """启动双服务并监控到结束；所有退出路径都执行清理。"""
         try:
-            api, mcp = service_commands(self.config)
+            api, mcp = self.commands or service_commands(self.config)
             self.start(api)
             if not self.wait_ready(self.config.api_probe_url):
                 return 0 if self.stop_signal else 1
@@ -129,11 +130,11 @@ class ServiceManager:
             self.shutdown()
 
 
-def main(config=None):
+def main(config=None, *, commands=None):
     """安装信号处理器并启动管理器，供容器和隔离测试调用。"""
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     try:
-        manager = ServiceManager(config or load_configuration())
+        manager = ServiceManager(config or load_configuration(), commands=commands)
     except ValueError as error:
         LOGGER.error("服务配置错误：%s", error)
         return 1

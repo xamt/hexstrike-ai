@@ -33,6 +33,7 @@
 - 原 151 次工具声明全部保留；`httpx_probe` 原有重名，因此实际发现 150 个唯一工具。
 - 当前不提供鉴权，API 和 MCP 均须限制网络访问，后续由网关统一管理权限。
 - 手工启动 MCP 时，在独立虚拟环境安装 `requirements-mcp.txt`；下方原始安装流程中的 `requirements.txt` 仅用于 API 环境，不再包含 MCP SDK。
+- 本机调试：准备 `.venv-api` 和 `.venv-mcp` 后，运行 `python3 scripts/start_local.py` 一键启动两个回环接口，`Ctrl+C` 一起停止；支持自定义解释器和端口，详见接入说明。
 
 ---
 

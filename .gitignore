@@ -5,3 +5,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# 本地API与MCP的独立Python环境。
+.venv-api/
+.venv-mcp/

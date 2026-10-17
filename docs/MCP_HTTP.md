@@ -4,6 +4,38 @@
 
 ## 1. 构建与启动
 
+### 本机调试（不使用 Docker）
+
+支持 macOS/Linux，先在项目根目录准备两个独立环境（已有环境可跳过）：
+
+```bash
+python3.11 -m venv ".venv-api"
+".venv-api/bin/python" -m pip install -r "requirements.txt"
+python3.11 -m venv ".venv-mcp"
+".venv-mcp/bin/python" -m pip install -r "requirements-mcp.txt"
+```
+
+之后每次只需一条命令，前台同时启动两个服务：
+
+```bash
+python3 "scripts/start_local.py"
+```
+
+API 为 `http://127.0.0.1:8888`，MCP 为 `http://127.0.0.1:8889/mcp`。按 `Ctrl+C` 或发送 `SIGTERM` 会同时停止两个服务及其同进程组子进程；任一服务异常退出会清理另一服务并非零退出。超时后强制清理；不要用 `kill -9` 终止管理器，因为该信号无法被捕获。脚本不修改工具执行逻辑，不自动安装依赖、不自动重载、不接管或终止已有服务；检测到端口占用会直接报错。
+
+脚本自动定位项目目录，在其他目录也可用脚本绝对路径启动。已有虚拟环境或端口冲突时可显式指定：
+
+```bash
+python3 "scripts/start_local.py" \
+  --api-python "/path/to/api-venv/bin/python" \
+  --mcp-python "/path/to/mcp-venv/bin/python" \
+  --api-port 9088 --mcp-port 9089
+```
+
+默认读取下文的端口与启动/停止超时环境变量；命令行 `--api-port`、`--mcp-port`、`--startup-timeout`、`--shutdown-timeout` 优先。两类接口固定只监听本机回环；原脚本 `hexstrike_server.py` 的直接入口仍监听所有网卡，本地启动器不会使用该入口。Python依赖安装成功不代表已安装nmap等外部工具，实际调用仍依赖本机工具和API进程的 `PATH`。
+
+### Docker 部署
+
 基础镜像和安全工具不变，仅构建应用镜像。下例在项目根目录执行，使用已有 ARM64 基础镜像；AMD64 对应替换平台和基础镜像后缀。使用新的本地标签，不覆盖已发布版本。
 
 ```bash
