@@ -14,7 +14,10 @@ test('DataAgent 插件同时声明技能、两个 MCP 和 HTML 面板', async ()
   assert.equal(config.mcpServers.hexstrike.type, 'http');
   assert.equal(config.mcpServers.hexstrike.url, 'http://127.0.0.1:8889/mcp');
   assert.equal(config.mcpServers.records.env.PENTEST_RECORDS_ROOT,
-    '${DATAAGENT_PROJECT_DIR}/pentest-records');
+    '${user_config.records_root}');
+  assert.equal(manifest.userConfig.records_root.type, 'directory');
+  assert.equal(manifest.userConfig.records_root.required, true);
+  assert.equal(manifest.userConfig.records_root.default, undefined, '不得猜测工作目录或固化开发者路径');
   const panel = await json(manifest.dataPanels);
   assert.equal(panel.schemaVersion, 2);
   assert.equal(panel.renderer, 'html');

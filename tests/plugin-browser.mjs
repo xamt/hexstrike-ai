@@ -107,8 +107,29 @@ async function stateChecks() {
   await loading.page.close();
 }
 
+async function missingRecordChecks() {
+  const { page, errors } = await pageFor('snapshot', sampleView());
+  await page.evaluate(() => {
+    window.mockState.mode = 'live';
+    window.mockState.document.data.runtime.dataSources.view.value = null;
+    window.mockState.document.data.runtime.dataSources.context.value.taskId = '00000000-0000-4000-8000-000000000002';
+    window.mockState.document.data.runtime.queries['engagement-view'] = {
+      error: JSON.stringify({ success: false, error: { code: 'NOT_FOUND', message: '未找到指定任务记录。' } }),
+    };
+    window.emit();
+  });
+  assert.match(await page.locator('#notice').innerText(), /记录服务已响应.*记录根目录.*不要重新创建任务或重跑扫描/); assertions++;
+  assert.match(await page.locator('#panel-content').innerText(), /未能读取任务记录/); assertions++;
+  await capture(page, 'missing-record');
+  await page.click('#tab-report');
+  assert.match(await page.locator('#panel-content').innerText(), /未能读取任务记录/); assertions++;
+  assert.deepEqual(errors, []); assertions++;
+  await page.close();
+}
+
 try {
   await liveChecks();
   await stateChecks();
+  await missingRecordChecks();
   console.log(`PASS：浏览器离线交互 ${assertions} 项断言；截图目录 ${output}`);
 } finally { await browser.close(); }

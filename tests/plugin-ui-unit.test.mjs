@@ -133,6 +133,20 @@ test('读取失败保留旧数据并明确提示，不自动重试', async () =>
   assert.equal(h.elements.get('panel-content').children[0].taskId, 'task-a');
 });
 
+test('NOT_FOUND明确提示目录和任务核对，不误报MCP未连接或诱导重跑', async () => {
+  const initial = state('live', 'task-a', '');
+  const h = harness(initial, () => { throw new Error(JSON.stringify({ success: false,
+    error: { code: 'NOT_FOUND', message: '未找到指定任务记录。' } })); });
+  await settle();
+  const notice = h.elements.get('notice').textContent;
+  assert.match(notice, /记录服务已响应/);
+  assert.match(notice, /记录根目录/);
+  assert.match(notice, /task_id/);
+  assert.doesNotMatch(notice, /检查记录 MCP 连接/);
+  assert.match(notice, /不要重新创建任务或重跑扫描/);
+  assert.equal(h.calls.length, 1);
+});
+
 test('查询忙态阻止重复刷新，切换任务后顺序获取新任务', async () => {
   let release;
   const pending = new Promise(resolve => { release = resolve; });
