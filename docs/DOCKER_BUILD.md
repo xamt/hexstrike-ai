@@ -95,6 +95,8 @@ docker buildx build \
 替换为宿主机上真实、可读且已解压的 `rockyou.txt` 文件的绝对路径；不能直接挂载 `rockyou.txt.gz`。
 宿主机文件须提前准备好，离线运行环境应提前传入该文件。`--mount` 在源文件不存在时会直接报错，避免误建同名目录。
 将 `/path/to/nuclei-templates` 替换为宿主机上已准备好的完整模板根目录绝对路径（准备要求见 4.4），不要指向归档文件或多包了一层的父目录。
+两份数据的固定下载地址、联网准备、离线转移及解压步骤见 **4.5**；先完成数据准备，再运行 4.1 或 4.2 的启动命令。
+以下命令假定对应架构的 `1.3.3` 应用镜像已导入离线 Docker 主机，或可从内网 Harbor 获取；仅准备数据不能代替镜像准备。
 
 ### 4.1 AMD64 应用
 
@@ -144,11 +146,14 @@ John 和 Hashcat 的现有 MCP 接口默认读取 `/usr/share/wordlists/rockyou.
 使用默认 MCP 调用前，必须按上面的启动命令将模板根目录只读挂载到 `/opt/nuclei-templates`；缺少目录、空目录或没有非空 YAML 模板时明确失败，不自动改用在线源。
 不使用 Nuclei 时可以省略该挂载，不影响 HTTP 服务和其他工具启动，但工具可被健康检查发现不代表模板已就绪。
 
-离线部署前，在有网络的准备环境从 [官方 nuclei-templates 发布页](https://github.com/projectdiscovery/nuclei-templates/releases)
-选定与本镜像 Nuclei 3.11.1 兼容的模板发布版，记录标签、下载地址及归档 SHA-256，按固定版本归档交付，不使用浮动的 latest。
-解压时保留完整目录结构、隐藏文件及辅助数据（例如 helpers、workflows），并在准备环境使用相同引擎版本核对模板语法；本仓库不承诺任意新模板兼容旧引擎。
-将归档及校验值通过部署介质传入运行环境，核对校验值后解压、设置可读权限，再将解压后的模板根目录用于挂载。
-这一步在运行前完成，不要求离线容器能够访问 GitHub，也不需要重新构建基础镜像。
+本文为当前 `1.3.3` 镜像固定使用 **Nuclei 3.11.1 + nuclei-templates v10.4.2** 作为离线数据基线，不下载浮动的 latest。
+模板 v10.4.2 发布于 2026-04-15，早于引擎 v3.11.1；选择固定的较早模板集，避免随最新版引入当前引擎不支持的新语法。
+这是一组固定部署基线，不是上游提供的一对一兼容矩阵，也不表示所有模板都具备运行条件。本次已核对下载归档、官方校验值和目录结构，未进行容器内完整模板编译或扫描验证。
+依据：[模板发布说明](https://github.com/projectdiscovery/nuclei-templates/releases/tag/v10.4.2)、[引擎发布说明](https://github.com/projectdiscovery/nuclei/releases/tag/v3.11.1)。
+该模板快照不会包含其发布之后新增的检测规则；后续更新需同时评估引擎兼容性，不能直接替换成 latest。
+
+第 4.5 节给出直接下载与解压命令，保留完整目录结构、隐藏文件和辅助数据（例如 helpers、workflows）。
+归档及校验文件在联网机器准备，再经部署介质传入运行环境；运行时不要求容器访问 GitHub，也不需要重新构建基础镜像。
 
 兼容入口通过 `NUCLEI_TEMPLATES_DIR` 指定模板根目录（默认 `/opt/nuclei-templates`），追加 `-duc` 禁止更新检查，
 并禁用公共及自定义仓库的自动模板下载。现有 `template` 参数仍可选择容器内的本地 YAML 文件或目录；逗号分隔的多个本地路径、相对于模板根目录的路径及本地通配符也支持。
@@ -157,6 +162,124 @@ John 和 Hashcat 的现有 MCP 接口默认读取 `/usr/share/wordlists/rockyou.
 默认追加 `-ni` 禁用 Interactsh 外部回连，依赖 OAST 的模板不会执行；这属于离线模式的检测范围限制，不代表这些风险不存在。
 其他模板仍会访问目标，部分模板可能另有外部 API、浏览器或辅助程序依赖，因此本入口不是网络隔离沙箱，也不保证所有模板都能在无外网环境工作。
 模板挂载可只读，但容器内 Nuclei 的用户配置目录、缓存和临时目录仍需可写；不要仅凭模板只读就将整个容器根文件系统改成只读。
+
+### 4.5 离线数据的下载、转移与解压
+
+#### 4.5.1 下载来源与准备条件
+
+| 数据 | 固定来源 | 当前镜像如何使用 |
+| --- | --- | --- |
+| Nuclei 模板 | [ProjectDiscovery 官方 v10.4.2 归档](https://github.com/projectdiscovery/nuclei-templates/archive/refs/tags/v10.4.2.tar.gz) | 配合镜像内 Nuclei 3.11.1，挂载完整模板目录，不需要在宿主机安装 Nuclei。 |
+| RockYou 字典 | [SecLists 官方 2025.3 中的 rockyou.txt.tar.gz](https://raw.githubusercontent.com/danielmiessler/SecLists/2025.3/Passwords/Leaked-Databases/rockyou.txt.tar.gz) | 只下载这一个字典归档，不下载整个 SecLists；解压得到普通文本文件，可供当前 John/Hashcat 使用，不区分 CPU 架构。 |
+
+模板归档约 8.8 MiB；RockYou 归档约 50.8 MiB，解压后的 `rockyou.txt` 为 139921497 字节（约 133.4 MiB）。
+RockYou 是历史字典，不需要与工具版本号一一对应；不要用小型示例字典、rockyou2021/2024 等不同数据集替换后仍宣称是同一份文件。
+下载命令适用于联网的 macOS/Linux 主机，需要 Bash、curl、tar、gzip，以及 `sha256sum` 或 macOS 自带的 `shasum`。
+离线主机仅需解压和校验工具；两种架构共用同一份数据。建议为归档、解压数据和后续更新保留至少 1 GiB 空间。
+所有步骤都在项目目录外的 `$HOME/pentest-offline-1.3.3` 中执行，不将大文件加入 Git 或 Docker 构建上下文。
+
+#### 4.5.2 在联网机器下载并生成交付校验清单
+
+以下整段在 **Bash** 中执行。HTTP/1.1 用于避开部分链路的 HTTP/2 中断；下载失败会停止，临时文件不会被当作完成文件。
+若网络无法连接 GitHub，应在可访问官方源的准备机器完成下载，再通过内网文件仓库或介质转移；不要在离线容器里执行这些下载命令。
+
+```bash
+(
+  set -eu
+  mkdir -p "$HOME/pentest-offline-1.3.3"
+  cd "$HOME/pentest-offline-1.3.3"
+
+  curl --http1.1 --fail --location --retry 5 \
+    --output "nuclei-templates-10.4.2.tar.gz.part" \
+    "https://github.com/projectdiscovery/nuclei-templates/archive/refs/tags/v10.4.2.tar.gz"
+  mv "nuclei-templates-10.4.2.tar.gz.part" "nuclei-templates-10.4.2.tar.gz"
+
+  curl --http1.1 --fail --location --retry 5 \
+    --output "rockyou-seclists-2025.3.tar.gz.part" \
+    "https://raw.githubusercontent.com/danielmiessler/SecLists/2025.3/Passwords/Leaked-Databases/rockyou.txt.tar.gz"
+  mv "rockyou-seclists-2025.3.tar.gz.part" "rockyou-seclists-2025.3.tar.gz"
+
+  gzip -t "nuclei-templates-10.4.2.tar.gz"
+  gzip -t "rockyou-seclists-2025.3.tar.gz"
+  printf '%s\n' '5f416b77da1397adb0e19aedf1b2744dc715673465c64b3031b53ad31a1bf6c9  nuclei-templates-10.4.2.tar.gz' > "SHA256SUMS"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum -c "SHA256SUMS"
+    sha256sum "rockyou-seclists-2025.3.tar.gz" >> "SHA256SUMS"
+  else
+    shasum -a 256 -c "SHA256SUMS"
+    shasum -a 256 "rockyou-seclists-2025.3.tar.gz" >> "SHA256SUMS"
+  fi
+)
+```
+
+Nuclei 的 SHA-256 来自 [官方 v10.4.2 校验清单](https://github.com/projectdiscovery/nuclei-templates/releases/download/v10.4.2/nuclei-templates-10.4.2_checksums.txt)，本次也已对实际下载归档核对一致。
+RockYou 的 SHA-256 在可信联网准备机器上根据实际下载生成，用于验证离线转移未损坏或被替换，**不是 SecLists 发布者的独立签名**。
+应通过可信渠道保留、传递校验清单；若归档和清单同时被替换，单独校验两者不能证明来源可信。
+
+#### 4.5.3 将文件转入离线运行主机
+
+将联网机器上 `$HOME/pentest-offline-1.3.3` 中以下三个文件整体复制到离线运行用户的 `$HOME/pentest-offline-1.3.3`：
+
+```text
+pentest-offline-1.3.3/
+├── nuclei-templates-10.4.2.tar.gz
+├── rockyou-seclists-2025.3.tar.gz
+└── SHA256SUMS
+```
+
+可使用离线介质或内部文件传输，不需要运行主机有外网。保留本节文档或下载来源记录，便于追溯固定版本。
+复制完成后，在 **离线主机** 执行下一步；联网准备机器与 Docker 主机不是同一台时，不要挂载准备机器上的路径。
+
+#### 4.5.4 离线核对并解压
+
+以下整段在离线主机的 **Bash** 中执行，无任何下载命令。校验失败立即停止，不能跳过校验继续解压。
+解压目标 `runtime` 必须尚不存在，以免把不同版本模板混在一起；已有目录时，应保留旧数据，另选新的版本化准备目录，不要直接覆盖或清空。
+
+```bash
+(
+  set -eu
+  cd "$HOME/pentest-offline-1.3.3"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum -c "SHA256SUMS"
+  else
+    shasum -a 256 -c "SHA256SUMS"
+  fi
+
+  mkdir "runtime"
+  mkdir "runtime/nuclei-templates"
+  mkdir "runtime/wordlists"
+  tar -xzf "nuclei-templates-10.4.2.tar.gz" \
+    -C "runtime/nuclei-templates" --strip-components=1
+  tar -xzf "rockyou-seclists-2025.3.tar.gz" \
+    -C "runtime/wordlists" "rockyou.txt"
+
+  test -s "runtime/wordlists/rockyou.txt"
+  test -d "runtime/nuclei-templates/http"
+  test -d "runtime/nuclei-templates/helpers"
+  test -d "runtime/nuclei-templates/workflows"
+  test -f "runtime/nuclei-templates/.nuclei-ignore"
+  chmod -R u+rX "runtime"
+  printf 'RockYou 宿主机绝对路径：%s/runtime/wordlists/rockyou.txt\n' "$(pwd -P)"
+  printf 'Nuclei 模板宿主机绝对路径：%s/runtime/nuclei-templates\n' "$(pwd -P)"
+)
+```
+
+`--strip-components=1` 仅去掉模板归档的外层 `nuclei-templates-10.4.2/`，保留内部相对路径和隐藏文件。
+RockYou 下载的是 **tar.gz 归档**，不能仅用 `gzip -dc` 将其输出重定向成 `rockyou.txt`，否则得到的是 tar 数据而非字典正文；也不要用文本编辑器转码或重新保存字典。
+
+#### 4.5.5 按架构挂载并启动
+
+把上一步输出的两个绝对路径代入 4.1（AMD64）或 4.2（ARM64）启动命令：
+
+| 启动命令中的占位符 | 替换为离线 Docker 主机上的实际路径 | 容器内固定位置 |
+| --- | --- | --- |
+| `/path/to/rockyou.txt` | `$HOME/pentest-offline-1.3.3/runtime/wordlists/rockyou.txt` 展开后的绝对路径 | `/usr/share/wordlists/rockyou.txt` |
+| `/path/to/nuclei-templates` | `$HOME/pentest-offline-1.3.3/runtime/nuclei-templates` 展开后的绝对路径 | `/opt/nuclei-templates` |
+
+两项都保持 `readonly`。不要将 `.tar.gz` 本身挂载进去，也不要把 `runtime` 的父目录当成模板根目录。
+Docker Desktop 使用当前宿主机目录时，需允许该目录被文件共享；远程 Docker context 则必须在 Docker daemon 所在主机准备这些文件。
+已有容器不能通过 `docker restart` 添加挂载：先保留需要的结果，再停止并删除旧容器，按相应架构的启动命令重新创建。
+模板和字典均为运行数据，补充或更换挂载不需要重建镜像。解压中断或升级数据时采用新目录，避免把未完成的数据交给运行中的容器。
 
 ## 5. 构建下载源
 
