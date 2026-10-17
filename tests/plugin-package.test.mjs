@@ -21,6 +21,14 @@ test('ZIP 仅包含可分发内容，技能同步且摘要正确', async () => {
     assert.ok(files[name], name);
   }
   assert.equal(Object.hasOwn(files, 'LICENSE'), false, '不重新打包已删除的项目许可证，包括旧暂存目录遗留文件');
+  assert.equal(Object.hasOwn(files, 'DEVELOPMENT.md'), false, '开发设计与构建文档不得打包');
+  const guide = Buffer.from(files['README.md']).toString();
+  assert.match(guide, /智能体使用指南/);
+  assert.match(guide, /plan/);
+  assert.doesNotMatch(guide, /npm (ci|run build|test)|DEVELOPMENT\.md/);
+  for (const [, path] of guide.matchAll(/\]\(([^)]+)\)/g)) assert.ok(files[path], `指南链接必须随包：${path}`);
+  assert.deepEqual(Object.keys(files).filter(name => name.startsWith('docs/')).sort(),
+    ['docs/data-contract.md', 'docs/troubleshooting.md']);
   assert.match(Buffer.from(files['dist/THIRD_PARTY_LICENSES.txt']).toString(), /@modelcontextprotocol\/sdk@/,
     '第三方依赖声明独立保留');
   assert.ok(Object.keys(files).every(name => !/(node_modules|pentest-records|\.git\/|\.helloagents|screenshots|\.env)/.test(name)));
@@ -45,10 +53,13 @@ test('解压 ZIP 在无 node_modules 的独立目录运行真实 MCP 协议', as
       await mkdir(dirname(path), { recursive: true });
       await writeFile(path, bytes);
     }
+    const env = { ...process.env, PENTEST_PLUGIN_ENTRY: join(directory, 'dist/records.cjs') };
+    delete env.NODE_TEST_CONTEXT; // 子进程必须独立启动测试运行器，不能继承父测试的内部执行模式。
     const result = spawnSync(process.execPath,
       ['--test', fileURLToPath(new URL('./plugin-protocol.test.mjs', import.meta.url))],
-      { cwd: directory, env: { ...process.env, PENTEST_PLUGIN_ENTRY: join(directory, 'dist/records.cjs') },
+      { cwd: directory, env,
         encoding: 'utf8', timeout: 20000 });
     assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stdout, /(?:# pass 1|pass 1)/, '确认独立协议测试实际执行并通过');
   } finally { await rm(directory, { recursive: true, force: true }); }
 });

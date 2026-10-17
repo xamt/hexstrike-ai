@@ -35,7 +35,8 @@ async function packagePlugin(version) {
   const stage = join(root, 'dist/package');
   await rm(stage, { recursive: true, force: true });
   await mkdir(stage, { recursive: true });
-  const paths = ['.dataagent-plugin', '.mcp.json', 'panels', 'ui', 'skills', 'docs',
+  const paths = ['.dataagent-plugin', '.mcp.json', 'panels', 'ui', 'skills',
+    'docs/data-contract.md', 'docs/troubleshooting.md',
     'README.md', 'dist/records.cjs', 'dist/THIRD_PARTY_LICENSES.txt'];
   for (const path of paths) {
     await mkdir(dirname(join(stage, path)), { recursive: true });

@@ -127,9 +127,35 @@ async function missingRecordChecks() {
   await page.close();
 }
 
+async function planChecks() {
+  const planned = sampleView();
+  Object.assign(planned, { status: 'planned', phase: '', assets: [], findings: [], activities: [], attackChains: [],
+    assetCount: 0, confirmedCount: 0, suspectedCount: 0, runningCount: 0,
+    plan: '阶段1：核对目标与范围\n阶段2：复用工具验证疑点\n停止条件：服务退化立即停止\n<img src=x onerror="window.injected=true">' });
+  const { page, errors } = await pageFor('live', planned);
+  assert.equal(await page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.equal(await page.locator('.test-plan .multiline').textContent(), planned.plan); assertions++;
+  assert.equal(await page.locator('#panel-content section').first().getAttribute('class'), 'section test-plan'); assertions++;
+  assert.match(await page.locator('#task-meta').innerText(), /待开始/); assertions++;
+  assert.equal(await page.locator('img').count(), 0); assertions++;
+  assert.equal(await page.evaluate(() => window.injected), undefined); assertions++;
+  assert.equal(await page.locator('.test-plan .multiline').evaluate(el => getComputedStyle(el).whiteSpace), 'pre-wrap'); assertions++;
+  await capture(page, 'plan-wide');
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); assertions++;
+  await capture(page, 'plan-narrow');
+  assert.deepEqual(errors, []); assertions++;
+  await page.close();
+  const legacy = await pageFor('snapshot', sampleView());
+  assert.match(await legacy.page.locator('.test-plan').innerText(), /尚未记录测试计划/); assertions++;
+  assert.equal(await legacy.page.evaluate(() => window.calls.length), 0); assertions++;
+  await legacy.page.close();
+}
+
 try {
   await liveChecks();
   await stateChecks();
   await missingRecordChecks();
+  await planChecks();
   console.log(`PASS：浏览器离线交互 ${assertions} 项断言；截图目录 ${output}`);
 } finally { await browser.close(); }

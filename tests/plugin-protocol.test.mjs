@@ -62,9 +62,47 @@ test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时�
     assert.equal(bad.isError, true);
     assert.equal(bad.structuredContent.success, false);
     await verifyActivityContract(call, task);
+    await verifyPlanEvents(call);
     assert.equal(errors, '');
   } finally {
     await client.close();
     await rm(root, { recursive: true, force: true });
   }
 });
+
+async function verifyPlanEvents(call) {
+  const created = await call('create_engagement', { title: '先计划后测试', targets: ['example.test'],
+    scope: '离线合成数据', plan: '阶段一：核对范围\n阶段二：验证疑点' });
+  assert.equal(created.isError, false);
+  const saved = created.structuredContent;
+  const events = created._meta['dataagent/panelEvents'];
+  assert.deepEqual(events.map(item => item.type), ['panel.open', 'data.updated']);
+  assert.equal(events[1].data.taskId, saved.task_id);
+  assert.equal(events[0].runId, saved.runId);
+  assert.equal(events[0].panelId, saved.panelId);
+  assert.equal(saved.title, '先计划后测试');
+  assert.ok(saved.task_path && saved.record_path);
+  const task = { task_id: saved.task_id };
+  const view = (await call('get_engagement_view', task)).structuredContent.view;
+  assert.equal(view.plan, '阶段一：核对范围\n阶段二：验证疑点');
+  assert.equal(view.status, 'planned');
+  assert.deepEqual(view.activities, []);
+  const update = await call('record_progress', { ...task, expected_revision: 1, plan: '调整计划，仅整理证据' });
+  assert.equal(update.structuredContent.revision, 2);
+  assert.equal(update.structuredContent.task_path, saved.task_path);
+  assert.notEqual(update.structuredContent.record_path, saved.record_path);
+  assert.notEqual(update.structuredContent.runId, saved.runId);
+  assert.equal(update._meta['dataagent/panelEvents'][1].data.taskId, saved.task_id);
+  const stale = await call('record_progress', { ...task, expected_revision: 1, plan: '旧版本' });
+  assert.equal(stale.isError, true);
+  assert.equal(stale._meta, undefined);
+  const normal = await call('record_progress', { ...task, expected_revision: 2, phase: '计划讨论' });
+  assert.equal(normal.isError, false);
+  assert.equal(normal._meta, undefined);
+  const blank = await call('create_engagement', { title: '空计划', targets: ['example.test'], scope: '离线', plan: ' ' });
+  assert.equal(blank.isError, false);
+  assert.equal(blank._meta, undefined);
+  const bad = await call('record_progress', { ...task, expected_revision: 3, plan: 123 });
+  assert.equal(bad.isError, true);
+  assert.equal(bad._meta, undefined);
+}
