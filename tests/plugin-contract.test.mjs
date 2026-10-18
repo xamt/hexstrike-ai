@@ -35,7 +35,7 @@ test('页面只允许读取固定记录工具，原子视图字段不被宿主�
   assert.equal(query.resultPath, 'view');
   assert.deepEqual(query.successConditions, [{ path: 'success', equals: true }]);
   assert.equal(query.autoLoad, false);
-  assert.equal(query.refreshIntervalSeconds, 10);
+  assert.equal(query.refreshIntervalSeconds, 15);
   const fields = panel.dataSources.find(item => item.id === 'view').fields;
   assert.equal(fields.plan.type, 'string');
   assert.equal(fields.plan.required, false, '旧快照未保存计划也能读取');

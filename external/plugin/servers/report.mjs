@@ -28,6 +28,21 @@ function pocBlock(value) {
   return `${fence}text\n${value}\n${fence}`;
 }
 
+/** Explain data scale and sampling without turning metadata into a leakage claim. */
+function dataProfile(asset) {
+  if (asset.kind !== 'data') return '';
+  const profile = asset.dataProfile;
+  if (!profile) return '规模未记录；数据类别未记录；样例状态未记录；暴露范围未记录。';
+  const sampleLabels = { not_sampled: '未取样', metadata_only: '仅观察元数据', redacted: '已保存最小脱敏样例' };
+  return [
+    `规模：${escapeMarkdown(profile.scale)}`,
+    `数据类别：${profile.categories.length ? profile.categories.map(escapeMarkdown).join('、') : '未确认'}`,
+    `样例状态：${sampleLabels[profile.sampleStatus]}`,
+    profile.redactedSample ? `脱敏样例：${escapeMarkdown(profile.redactedSample)}` : '',
+    `暴露范围：${escapeMarkdown(profile.exposure)}`,
+  ].filter(Boolean).join('\n\n');
+}
+
 /** Render each saved asset with its classification and evidence references. */
 function assets(view) {
   if (!view.assets.length) return '尚未记录资产。';
@@ -38,6 +53,7 @@ function assets(view) {
     asset.parentId ? `父级资产：${escapeMarkdown(asset.parentId)}` : '',
     asset.port ? `端口/协议/服务：${asset.port} / ${escapeMarkdown(asset.protocol ?? '')} / ${escapeMarkdown(asset.service ?? '')}` : '',
     asset.sensitivity ? `敏感性：${escapeMarkdown(asset.sensitivity)}` : '',
+    dataProfile(asset),
     '证据引用：', bullets(asset.evidenceRefs, '未记录证据引用。'),
   ].filter(Boolean).join('\n\n')).join('\n\n');
 }

@@ -36,13 +36,33 @@
     return box;
   }
 
+  /** Show data classification and sampling limits without hiding them in a wide table. */
+  function dataAsset(asset) {
+    const article = el('article', 'data-asset');
+    const head = el('div', 'row-head');
+    head.append(el('h4', '', asset.value), el('span', 'mono muted', asset.id));
+    article.append(head, field('说明', asset.description), field('发现时间', date(asset.observedAt)));
+    if (asset.sensitivity) article.append(field('敏感性', asset.sensitivity));
+    const profile = asset.dataProfile;
+    if (!profile) article.append(el('p', 'muted', '规模未记录；数据类别未记录；样例状态未记录；暴露范围未记录。'));
+    else {
+      const sampleLabels = { not_sampled: '未取样', metadata_only: '仅观察元数据', redacted: '已保存最小脱敏样例' };
+      article.append(field('规模', profile.scale), field('数据类别', profile.categories.join('、') || '未确认'),
+        field('样例状态', sampleLabels[profile.sampleStatus]), field('暴露范围', profile.exposure));
+      if (profile.redactedSample) article.append(field('脱敏样例', profile.redactedSample, true));
+    }
+    article.append(evidence(asset.evidenceRefs));
+    return article;
+  }
+
   function assets(view) {
     const box = section('03 / 资产清单', `共 ${view.assets.length} 项；完整列出当前版本记录，不受进度页筛选影响。`);
     Object.entries(names.kind).forEach(([key, label]) => {
       const items = view.assets.filter(item => item.kind === key);
       box.append(el('h3', 'subheading', `${label} · ${items.length}`));
-      box.append(items.length ? table(['类型', '资产 / 标识', '说明与证据', '发现时间'], P.assetRows(items))
-        : el('p', 'muted', '尚未记录此类资产。'));
+      if (!items.length) box.append(el('p', 'muted', '尚未记录此类资产。'));
+      else if (key === 'data') items.forEach(item => box.append(dataAsset(item)));
+      else box.append(table(['类型', '资产 / 标识', '说明与证据', '发现时间'], P.assetRows(items)));
     });
     return box;
   }
@@ -107,7 +127,7 @@
     masthead.append(el('span', 'eyebrow', '渗透测试报告'), el('h2', '', view.title),
       el('p', 'muted', `版本 ${view.revision} · 更新于 ${date(view.updatedAt)} · ${names.status[view.status] || view.status}`));
     const exportHint = el('p', 'report-export-hint muted',
-      'HTML 报告由 Agent 调用记录服务 export_report（format=html）导出到任务目录；此只读面板不直接下载。');
+      'HTML 报告由 Agent 调用记录服务 export_report（format=html）导出到任务目录；当前宿主的只读面板不支持直接下载。');
     box.append(masthead, exportHint, overview(view), targets(view), assets(view), findings(view), chains(view), limits(view, asOf));
     return box;
   }

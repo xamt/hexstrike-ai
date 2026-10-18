@@ -79,6 +79,13 @@ function assetReferences(assets) {
   const index = new Map(assets.map(asset => [asset.id, asset]));
   for (const asset of assets) {
     if (asset.kind === 'service' && ['parentId', 'port', 'protocol', 'service'].some(key => !Object.hasOwn(asset, key))) fail('VALIDATION_ERROR', '服务资产必须包含parentId、port、protocol和service。');
+    if (asset.dataProfile && asset.kind !== 'data') fail('VALIDATION_ERROR', '数据画像只能用于数据资产。');
+    if (asset.dataProfile) {
+      const { sampleStatus, redactedSample } = asset.dataProfile;
+      if ((sampleStatus === 'redacted') !== Boolean(redactedSample)) {
+        fail('VALIDATION_ERROR', '仅在已保存最小脱敏样例时将sampleStatus设为redacted；未取样时不得填写样例。');
+      }
+    }
     let node = asset;
     const seen = new Set([asset.id]);
     while (node.parentId) {

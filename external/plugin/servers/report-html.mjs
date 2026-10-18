@@ -25,13 +25,24 @@ function assetStatistics(view) {
   return `<ul class="stats"><li><span>资产总数</span><strong>${view.assets.length}</strong></li>${counts.join('')}</ul>`;
 }
 
+function dataProfile(asset) {
+  if (asset.kind !== 'data') return '';
+  const profile = asset.dataProfile;
+  if (!profile) return '<p class="muted">规模未记录；数据类别未记录；样例状态未记录；暴露范围未记录。</p>';
+  const sampleLabels = { not_sampled: '未取样', metadata_only: '仅观察元数据', redacted: '已保存最小脱敏样例' };
+  return `${field('规模', profile.scale)}${field('数据类别', profile.categories.join('、') || '未确认')}
+    ${field('样例状态', sampleLabels[profile.sampleStatus])}
+    ${profile.redactedSample ? field('脱敏样例', profile.redactedSample, true) : ''}
+    ${field('暴露范围', profile.exposure)}`;
+}
+
 function assets(view) {
   if (!view.assets.length) return '<p class="muted">尚未记录资产。</p>';
   return view.assets.map(asset => `<article><h3>${h(asset.value)} <small>${kindLabels[asset.kind]}</small></h3>
     ${field('标识', asset.id)}${field('说明', asset.description)}
     ${asset.kind === 'service' ? field('端口与服务', `${asset.protocol}/${asset.port} · ${asset.service} · 所属 ${asset.parentId}`) : ''}
     ${asset.sensitivity ? field('敏感性', asset.sensitivity) : ''}
-    ${field('发现时间', asset.observedAt)}${field('证据引用', asset.evidenceRefs.join('、'))}</article>`).join('');
+    ${dataProfile(asset)}${field('发现时间', asset.observedAt)}${field('证据引用', asset.evidenceRefs.join('、'))}</article>`).join('');
 }
 
 function findings(view) {

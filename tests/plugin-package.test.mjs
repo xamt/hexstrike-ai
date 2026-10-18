@@ -33,6 +33,8 @@ test('ZIP 仅包含可分发内容，技能同步且摘要正确', async () => {
     '第三方依赖声明独立保留');
   assert.ok(Object.keys(files).every(name => !/(node_modules|pentest-records|\.git\/|\.helloagents|screenshots|\.env)/.test(name)));
   const config = JSON.parse(Buffer.from(files['.mcp.json']).toString());
+  const panel = JSON.parse(Buffer.from(files['panels/workbench.panel.json']).toString());
+  assert.equal(panel.queries.find(query => query.id === 'engagement-view').refreshIntervalSeconds, 15);
   assert.deepEqual(config, JSON.parse(await readFile(new URL('.mcp.json', root), 'utf8')),
     '发布包忠实使用当前MCP配置，不替换用户已确定的本机地址');
   assert.equal(JSON.parse(Buffer.from(files['.dataagent-plugin/plugin.json']).toString()).version, manifest.version);

@@ -57,11 +57,11 @@
 4. 脱敏证据存入返回的 `task_path` 下，记录中引用相对路径；不得修改 `revisions` 快照文件。不要写入密码、令牌、Cookie 或完整敏感记录，历史版本不提供删除能力。
 5. 每次写入带最新 `expected_revision`；冲突时读取、合并并重试记录，不重复执行扫描。步骤、资产、漏洞、活动按 ID 完整行更新；`plan/preflight/report` 为全文替换。写入失败先解决记录问题，超限不能截断后声称完整。记录服务的前置检查约束仅限制台账写入，不是远端执行网关；智能体仍须遵守先检查、异常停止的流程。
 
-计划描述拟开展的工作；`phase/status/activities` 描述实际执行。页面分为“计划与进度”“渗透报告”两个 TAB：第一页仅用阶段图形和各阶段文字说明呈现计划，并显示真实计数、当前执行卡片及 Agent 执行记录；资产与漏洞详情在报告页。Agent 应及时保存 `phase`、步骤状态、活动摘要和发现，否则页面无法凭空反映最新工作。页面每 10 秒读取已保存记录，并显示记录时间和相对年龄；年龄文案刷新不是远端扫描心跳。超过 5 分钟仍为运行中的活动标为“状态待确认”，不是自动停止或重试指令。
+计划描述拟开展的工作；`phase/status/activities` 描述实际执行。页面分为“计划与进度”“渗透报告”两个 TAB：第一页仅用阶段图形和各阶段文字说明呈现计划，并显示真实计数、当前执行卡片及 Agent 执行记录；资产与漏洞详情在报告页。Agent 应及时保存 `phase`、步骤状态、活动摘要和发现，否则页面无法凭空反映最新工作。页面每 15 秒读取已保存记录，同版本不重复替换当前工作卡片，并显示记录时间和相对年龄；年龄文案刷新不是远端扫描心跳。超过 5 分钟仍为运行中的活动标为“状态待确认”，不是自动停止或重试指令。
 
 ## 结束与报告
 
-整理 `report.summary/keyFindings/coverage/limitations/recommendations`，核对资产数量、漏洞、PoC、影响、等级、修复建议、攻击链、未验证项和证据引用。真正完成才标记 `completed`，中断或受阻为 `paused` 并输出阶段报告。调用 `export_report({task_id,expected_revision,format:"html"})`，交付返回的真实 HTML 报告路径；省略 `format` 时保留 Markdown 导出。工作台为只读视图，不提供直接下载按钮。详见[报告规范](skills/pentest-tools/references/reporting.md)。
+整理 `report.summary/keyFindings/coverage/limitations/recommendations`，核对资产数量、数据画像（规模、类别、取样状态、最小脱敏样例、暴露边界）、间接发现的独立IP/服务资产、漏洞、PoC、影响、等级、修复建议、攻击链、未验证项和证据引用。真正完成才标记 `completed`，中断或受阻为 `paused` 并输出阶段报告。调用 `export_report({task_id,expected_revision,format:"html"})`，交付返回的真实 HTML 报告路径；省略 `format` 时保留 Markdown 导出。工作台为只读视图，不提供直接下载按钮；DataAgent宿主需新增受控下载能力后才能从该TAB直接保存文件。详见[报告规范](skills/pentest-tools/references/reporting.md)。
 
 导出后重新 `open_engagement` 获取新的 `runId`，读取这一次面板结果并核对版本。实时视图、本 run 首次报告、历史快照不是同一个时点；不能用测试初始报告代替最终结果。历史快照不联网查询。
 

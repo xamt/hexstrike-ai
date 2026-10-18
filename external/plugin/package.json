@@ -1,6 +1,6 @@
 {
   "name": "pentest-tools-dataagent-plugin",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "private": true,
   "type": "module",
   "description": "DataAgent 渗透测试工作台插件构建源",

@@ -61,6 +61,13 @@ async function liveChecks() {
   assert.equal(await page.locator('#tab-progress').count(), 0); assertions++;
   assert.equal(await page.locator('#tab-plan').getAttribute('aria-selected'), 'true'); assertions++;
   assert.match(await page.locator('.now-card').innerText(), /疑点复核与证据整理/); assertions++;
+  assert.equal(await page.locator('.now-card .scan-mark[aria-hidden="true"]').count(), 1); assertions++;
+  assert.equal(await page.locator('.now-card').evaluate(node => getComputedStyle(node).animationName), 'none'); assertions++;
+  assert.equal(await page.evaluate(() => {
+    const before = document.querySelector('.now-card');
+    window.emit();
+    return document.querySelector('.now-card') === before;
+  }), true, '同版本轮询不替换当前工作卡片'); assertions++;
   assert.deepEqual(await page.locator('.metric strong').allTextContents(), ['4', '1', '1', '1']); assertions++;
   assert.equal(await page.locator('.activity').count(), 1); assertions++;
   assert.equal(await page.locator('.table-wrap').count(), 0, '首页不重复报告的资产和漏洞详细清单'); assertions++;
@@ -71,6 +78,10 @@ async function liveChecks() {
     assert.ok((await page.locator('#panel-content').innerText()).includes(text), text); assertions++;
   }
   assert.match(await page.locator('.asset-stats').innerText(), /资产总数\s*4.*IP 地址\s*1.*域名\s*1.*端口与服务\s*1.*数据资产\s*1/s); assertions++;
+  assert.equal(await page.locator('.data-asset').count(), 1); assertions++;
+  for (const value of ['集合3个；记录数未查询', '订单元数据', 'orderId=[REDACTED]', '无真实内容读取']) {
+    assert.ok((await page.locator('#panel-content').innerText()).includes(value), value); assertions++;
+  }
   assert.match(await page.locator('.report-export-hint').innerText(), /HTML.*Agent.*导出/s); assertions++;
   assert.equal(await page.locator('img').count(), 0); assertions++;
   assert.equal(await page.evaluate(() => window.injected), undefined); assertions++;
@@ -78,6 +89,8 @@ async function liveChecks() {
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); assertions++;
   await capture(page, 'report-narrow');
+  await page.locator('.data-asset').first().scrollIntoViewIfNeeded();
+  await capture(page, 'report-narrow-data');
   await page.locator('.report-finding').first().scrollIntoViewIfNeeded();
   await capture(page, 'report-narrow-finding');
   await page.click('#tab-plan');
@@ -266,7 +279,18 @@ async function stepStatusChecks() {
   assert.equal(await page.locator('.stage-track .stage[data-status="running"]').count(), 0); assertions++;
   assert.equal(await page.evaluate(() => window.calls.length), 1, '状态更新不追加查询或打开'); assertions++;
   assert.match(await page.locator('.now-card').innerText(), /已暂停.*停止新的目标测试/s); assertions++;
+  assert.equal(await page.locator('.now-card .scan-mark').count(), 0, '暂停时不暗示正在测试'); assertions++;
   await capture(page, 'steps-blocked');
+  assert.deepEqual(errors, []); assertions++;
+  await page.close();
+}
+
+async function legacyDataCheck() {
+  const view = sampleView();
+  delete view.assets.find(item => item.kind === 'data').dataProfile;
+  const { page, errors } = await pageFor('snapshot', view);
+  await page.click('#tab-report');
+  assert.match(await page.locator('.data-asset').innerText(), /规模未记录.*数据类别未记录.*样例状态未记录.*暴露范围未记录/s); assertions++;
   assert.deepEqual(errors, []); assertions++;
   await page.close();
 }
@@ -278,5 +302,6 @@ try {
   await planChecks();
   await unboundWorkbenchChecks();
   await stepStatusChecks();
+  await legacyDataCheck();
   console.log(`PASS：浏览器离线交互 ${assertions} 项断言；截图目录 ${output}`);
 } finally { await browser.close(); }

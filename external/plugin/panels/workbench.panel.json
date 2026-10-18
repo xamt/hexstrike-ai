@@ -158,7 +158,7 @@
         }
       },
       "autoLoad": false,
-      "refreshIntervalSeconds": 10
+      "refreshIntervalSeconds": 15
     }
   ],
   "summary": [

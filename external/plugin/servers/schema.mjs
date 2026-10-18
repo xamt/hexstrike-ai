@@ -26,10 +26,25 @@ export const assetSchema = object({
   description: text, evidenceRefs: evidence, observedAt: timestamp,
   parentId: id, port: { type: 'integer', minimum: 1, maximum: 65535 },
   protocol: nonempty, service: nonempty, sensitivity: text,
+  dataProfile: object({
+    scale: { ...nonempty, maxLength: 500, description: '已知的集合/记录规模及来源；未知时明确写未查询，不推断记录量。' },
+    categories: { type: 'array', items: { ...nonempty, maxLength: 100 }, maxItems: 30 },
+    sampleStatus: choice('not_sampled', 'metadata_only', 'redacted'),
+    redactedSample: { ...nonempty, maxLength: 500, description: '仅保存最小脱敏样例，不包含原始敏感内容。仅sampleStatus=redacted时填写。' },
+    exposure: { ...nonempty, maxLength: 1000, description: '已验证的可见范围；区分元数据暴露与内容读取。' },
+  }, ['scale', 'categories', 'sampleStatus', 'exposure']),
 }, ['id', 'kind', 'value', 'description', 'evidenceRefs', 'observedAt']);
 assetSchema.allOf = [{
   if: { properties: { kind: { const: 'service' } } },
   then: { required: ['parentId', 'port', 'protocol', 'service'] },
+}, {
+  if: { required: ['dataProfile'] },
+  then: { properties: { kind: { const: 'data' } } },
+}];
+assetSchema.properties.dataProfile.allOf = [{
+  if: { properties: { sampleStatus: { const: 'redacted' } }, required: ['sampleStatus'] },
+  then: { required: ['redactedSample'] },
+  else: { not: { required: ['redactedSample'] } },
 }];
 
 export const findingSchema = object({

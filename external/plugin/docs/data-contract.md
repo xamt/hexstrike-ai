@@ -36,7 +36,7 @@ attackChains: AttackChain[]
 report: Report
 ```
 
-Asset：`id,kind,value,description,evidenceRefs,observedAt` 必填；kind 为 `ip|domain|service|data`；可选 `parentId,port,protocol,service,sensitivity`。端口为 1–65535 整数，service 类型必须有 parentId、port、protocol、service；parentId 引用已有资产，不能自指或成环。data 资产只描述类别/位置/最小脱敏证据，不保存原始敏感记录。evidenceRefs 为相对任务目录的证据文件路径数组，不读其内容。
+Asset：`id,kind,value,description,evidenceRefs,observedAt` 必填；kind 为 `ip|domain|service|data`；可选 `parentId,port,protocol,service,sensitivity,dataProfile`。端口为 1–65535 整数，service 类型必须有 parentId、port、protocol、service；parentId 引用已有资产，不能自指或成环。`dataProfile` 只适用于 data 资产，包含必填的 `scale`（测得的规模或明确未知）、`categories`（已知类别，可空）、`sampleStatus`（`not_sampled|metadata_only|redacted`）、`exposure`（已验证可见边界）；仅 `redacted` 时填写不超过500字符的 `redactedSample`。旧任务不要求补字段，报告明确显示未记录。data 资产只描述类别/位置/最小脱敏证据，不保存原始敏感记录。间接发现的每个IP和服务单独建资产，汇总数量不替代明细。evidenceRefs 为相对任务目录的证据文件路径数组，不读其内容。
 
 Finding：`id,title,status,severity,assetIds,description,validation,poc,impact,remediation,evidenceRefs` 必填；status 为 `suspected|confirmed|rejected|remediated`；severity 为 `critical|high|medium|low|info`。所有文本允许多行；PoC 是已观察最小复现的脱敏文本，不执行。confirmed 必须提供非空验证、PoC、影响、修复及至少一个证据引用。assetIds 必须引用已保存资产。未验证线索不计入已确认漏洞统计。
 

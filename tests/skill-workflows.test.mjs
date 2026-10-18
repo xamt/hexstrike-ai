@@ -51,3 +51,16 @@ test('场景中的参数示例符合真实工具参数类型和必填项，不�
   }
   assert.equal(count, 3);
 });
+
+test('新漏洞与间接资产必须增量规划，数据画像不把元数据当泄漏', () => {
+  const workflow = readFileSync(join(root, 'references/planning-validation.md'), 'utf8');
+  const plugin = readFileSync(join(root, 'references/plugin-workbench.md'), 'utf8');
+  const report = readFileSync(join(root, 'references/reporting.md'), 'utf8');
+  for (const value of ['增量计划', 'Qdrant', 'collections', '规模未知', '最小脱敏样例', 'actuator', '逐个拆成IP与服务']) {
+    assert.ok(workflow.includes(value), value);
+  }
+  assert.match(plugin, /dataProfile.*scale\/categories\/sampleStatus\/exposure/);
+  assert.match(plugin, /planSteps.*假设.*最小验证.*停止条件/);
+  assert.match(report, /记录数未知、未读取内容/);
+  assert.match(report, /每个间接IP\/端口\/端点/);
+});

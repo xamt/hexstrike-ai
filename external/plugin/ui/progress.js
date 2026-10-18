@@ -32,7 +32,14 @@
     const label = context.snapshot ? '历史快照记录' : stale ? '上次记录的工作'
       : view.status === 'running' && runningSteps.length ? '当前正在进行' : '当前进展';
     const main = el('div', 'now-main');
-    main.append(el('p', 'now-label', label), el('h2', '', phase));
+    const heading = el('div', 'now-heading');
+    if (view.status === 'running' && !stale && !context.snapshot) {
+      const mark = el('span', 'scan-mark');
+      mark.setAttribute('aria-hidden', 'true');
+      heading.append(mark);
+    }
+    heading.append(el('p', 'now-label', label));
+    main.append(heading, el('h2', '', phase));
     if (view.phase && view.phase !== phase) main.append(el('p', 'now-phase', `Agent 记录阶段：${view.phase}`));
     const latest = [...view.activities].sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
     const detail = el('div', 'now-detail');
@@ -48,7 +55,7 @@
     const timestamp = el('p', 'now-timestamp');
     timestamp.append(el('span', '', `记录于 ${date(view.updatedAt)} · `), el('span', '', ''));
     timestamp.lastChild.id = 'record-age';
-    timestamp.append(el('span', '', ' · 10 秒只读轮询，非远端进程心跳'));
+    timestamp.append(el('span', '', ' · 15 秒只读轮询，非远端进程心跳'));
     box.append(timestamp);
     return box;
   }

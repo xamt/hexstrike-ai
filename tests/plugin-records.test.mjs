@@ -73,6 +73,37 @@ test('按ID更新、引用校验、计数和revision历史', async t => {
   assert.equal((await call('get_engagement_view', { task_id: taskId })).view.findings.length, 1);
 });
 
+test('数据资产画像保存并在两种报告中呈现，旧记录明确缺口', async t => {
+  const { call } = await store(t);
+  const taskId = await create(call);
+  const base = asset('A-D');
+  const data = { ...base, kind: 'data', value: '示例向量集合', description: '仅观察集合元数据',
+    dataProfile: { scale: '集合3个，记录数未查询', categories: ['向量', '业务标签'],
+      sampleStatus: 'redacted', redactedSample: 'id=[REDACTED], type=case', exposure: '匿名可见集合名称；内容读取未验证 <script>alert(1)</script>' } };
+  assert.equal((await call('record_progress', { task_id: taskId, expected_revision: 1, assets: [data] })).success, true);
+  const view = (await call('get_engagement_view', { task_id: taskId })).view;
+  assert.deepEqual(view.assets[0].dataProfile, data.dataProfile);
+  for (const format of ['markdown', 'html']) {
+    const result = await call('export_report', { task_id: taskId, expected_revision: 2, format });
+    const report = (await readFile(result.report_path, 'utf8')).replaceAll('\\', '');
+    for (const value of ['集合3个，记录数未查询', '向量', '业务标签', 'id=[REDACTED], type=case', '匿名可见集合名称']) {
+      assert.ok(report.includes(value), `${format}: ${value}`);
+    }
+  }
+  const htmlResult = await call('export_report', { task_id: taskId, expected_revision: 2, format: 'html' });
+  const html = await readFile(htmlResult.report_path, 'utf8');
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script\b/i);
+  const malformed = { ...data, id: 'A-BAD', dataProfile: { ...data.dataProfile, sampleStatus: 'redacted', redactedSample: '' } };
+  assert.equal((await call('record_progress', { task_id: taskId, expected_revision: 2, assets: [malformed] })).error.code, 'VALIDATION_ERROR');
+  assert.equal((await call('record_progress', { task_id: taskId, expected_revision: 2,
+    assets: [{ ...data, id: 'A-BAD', kind: 'ip' }] })).error.code, 'VALIDATION_ERROR');
+  const legacy = { ...base, id: 'A-OLD', kind: 'data', value: '旧数据资产' };
+  assert.equal((await call('record_progress', { task_id: taskId, expected_revision: 2, assets: [legacy] })).success, true);
+  const oldHtml = await call('export_report', { task_id: taskId, expected_revision: 3, format: 'html' });
+  assert.match(await readFile(oldHtml.report_path, 'utf8'), /规模未记录/);
+});
+
 test('CAS冲突不写入、不自动重放，空修改被拒绝', async t => {
   const { call } = await store(t);
   const taskId = await create(call);

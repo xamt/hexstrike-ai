@@ -14,6 +14,12 @@
   let tab = 'plan';
   let localError = '';
   let requestedTask = '';
+  let renderedSignature = '';
+
+  function contentSignature() {
+    return [taskId, view?.revision ?? '', view?.updatedAt ?? '', tab,
+      latest?.mode ?? '', String(queryError() ?? '')].join('|');
+  }
 
   function runtime() {
     return latest?.document?.data?.runtime || {};
@@ -53,6 +59,7 @@
       if (selection !== undefined && replacement.setSelectionRange) replacement.setSelectionRange(selection, selection);
     }
     updateRecordAge();
+    renderedSignature = contentSignature();
   }
 
   function updateRecordAge() {
@@ -75,7 +82,7 @@
     notice.className = error ? 'notice error' : 'notice';
     if (error) notice.textContent = `记录读取失败：${String(error)}。${view ? `保留旧数据，记录时间 ${P.model.date(view.updatedAt)}。` : '尚无可用数据。'}${P.model.recordErrorHint(error)}`;
     else if (latest?.mode === 'snapshot') notice.textContent = '历史快照 · 内容已冻结，不发起远端请求；仍可切换页签、筛选和分页。';
-    else notice.textContent = '只读工作台 · 宿主每 10 秒轮询记录。远端 pentest-tools MCP 的连接状态不由此页检测；未连接时不能执行测试。';
+    else notice.textContent = '只读工作台 · 宿主每 15 秒轮询记录。远端 pentest-tools MCP 的连接状态不由此页检测；未连接时不能执行测试。';
   }
 
   function receive(state) {
@@ -93,7 +100,8 @@
     }
     if (taskId && incoming?.taskId === taskId && incoming.schemaVersion === 1) view = incoming;
     renderHeading();
-    renderContent();
+    if (contentSignature() !== renderedSignature) renderContent();
+    else updateRecordAge();
     if (ready && state.mode === 'live' && taskId && taskId !== requestedTask && !busy) void load();
   }
 
