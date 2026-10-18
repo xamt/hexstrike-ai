@@ -28,8 +28,10 @@ async function pageFor(mode, view, options = {}) {
     const listeners = [];
     window.calls = [];
     window.mockState = { mode, document: { data: { runtime: {
-      dataSources: { context: { value: { taskId: view.taskId, title: view.title }, hasData: true },
-        view: { value: options.loading ? null : view, hasData: !options.loading } }, queries: {},
+      dataSources: { context: options.unbound ? { value: {}, hasData: false }
+        : { value: { taskId: view.taskId, title: view.title }, hasData: true },
+        view: { value: options.loading || options.unbound ? null : view,
+          hasData: !options.loading && !options.unbound } }, queries: {},
     } } } };
     window.emit = () => listeners.forEach(fn => fn(window.mockState));
     window.DataAgentPanel = {
@@ -44,7 +46,7 @@ async function pageFor(mode, view, options = {}) {
     };
   }, { mode, view, options });
   await page.goto('https://plugin.test');
-  await page.locator('#task-title').filter({ hasText: view.title }).waitFor();
+  await page.locator('#task-title').filter({ hasText: options.unbound ? '等待任务上下文' : view.title }).waitFor();
   return { page, errors };
 }
 
@@ -174,6 +176,29 @@ async function planChecks() {
   await early.page.close();
 }
 
+async function unboundWorkbenchChecks() {
+  const view = sampleView();
+  const { page, errors } = await pageFor('live', view, { unbound: true });
+  assert.equal(await page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.match(await page.locator('#panel-content').innerText(), /工作台已打开，等待 Agent 确认目标与范围/); assertions++;
+  assert.equal(await page.evaluate(() => window.calls.length), 0, '无真实任务时不查询记录'); assertions++;
+  await capture(page, 'unbound-wide');
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); assertions++;
+  await capture(page, 'unbound-narrow');
+  await page.evaluate(next => {
+    const sources = window.mockState.document.data.runtime.dataSources;
+    sources.context = { value: { taskId: next.taskId, title: next.title }, hasData: true };
+    sources.view = { value: next, hasData: true };
+    window.emit();
+  }, view);
+  await page.locator('#task-title').filter({ hasText: view.title }).waitFor();
+  assert.equal(await page.evaluate(() => window.calls.length), 1, '绑定任务后只查询一次'); assertions++;
+  assert.equal(await page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.deepEqual(errors, []); assertions++;
+  await page.close();
+}
+
 async function stepStatusChecks() {
   const view = sampleView();
   view.plan = '验证过程按实际结果更新，不以扫描调用成功代替完成。';
@@ -216,6 +241,7 @@ try {
   await stateChecks();
   await missingRecordChecks();
   await planChecks();
+  await unboundWorkbenchChecks();
   await stepStatusChecks();
   console.log(`PASS：浏览器离线交互 ${assertions} 项断言；截图目录 ${output}`);
 } finally { await browser.close(); }

@@ -33,8 +33,10 @@ function finding() {
 
 test('工具声明、初始记录、原子版本读取与open保持一致', async t => {
   const { root, call } = await store(t);
-  assert.deepEqual(tools.map(tool => tool.name), ['create_engagement', 'record_progress', 'get_engagement_view', 'open_engagement', 'export_report']);
+  assert.deepEqual(tools.map(tool => tool.name), ['open_workbench', 'create_engagement', 'record_progress', 'get_engagement_view', 'open_engagement', 'export_report']);
   assert.ok(tools.every(tool => tool.inputSchema.additionalProperties === false));
+  assert.equal((await call('open_workbench', {})).success, true);
+  assert.deepEqual(await readdir(root), [], '先打开工作台不能提前创建任务目录');
   const taskId = await create(call);
   const { view } = await call('get_engagement_view', { task_id: taskId });
   assert.equal(view.revision, 1);

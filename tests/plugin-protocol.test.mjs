@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, realpath } from 'node:fs/promises';
+import { mkdtemp, rm, realpath, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,6 +24,21 @@ async function verifyActivityContract(call, task) {
   assert.deepEqual((await call('get_engagement_view', task)).structuredContent.view.activities, [fixed]);
 }
 
+async function verifyEarlyWorkbench(call, root) {
+  const first = await call('open_workbench', {});
+  const second = await call('open_workbench', {});
+  assert.equal(first.isError, false);
+  assert.notEqual(first.structuredContent.runId, second.structuredContent.runId);
+  assert.equal(first.structuredContent.task_id, undefined);
+  assert.deepEqual(first._meta['dataagent/panelEvents'].map(event => event.type), ['panel.open']);
+  assert.deepEqual(first.structuredContent.dataagentPanelEvents, first._meta['dataagent/panelEvents']);
+  assert.deepEqual(JSON.parse(first.content[1].text), first._meta['dataagent/panelEvents'][0]);
+  assert.deepEqual(await readdir(root), [], '仅打开空工作台不能创建任务记录');
+  const bad = await call('open_workbench', { task_id: '不应接受' });
+  assert.equal(bad.isError, true);
+  assert.equal(bad._meta, undefined);
+}
+
 test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时目录', async () => {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'pentest-plugin-protocol-')));
   const client = new Client({ name: 'offline-test', version: '1.0.0' });
@@ -35,12 +50,14 @@ test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时�
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 5);
+    assert.equal(tools.length, 6);
     assert.equal(tools.find(item => item.name === 'get_engagement_view').annotations.readOnlyHint, true);
+    assert.equal(tools.find(item => item.name === 'open_workbench').annotations.readOnlyHint, true);
     for (const name of ['create_engagement', 'record_progress', 'export_report']) {
       assert.equal(tools.find(item => item.name === name).annotations.readOnlyHint, false);
     }
     const call = (name, args) => client.callTool({ name, arguments: args });
+    await verifyEarlyWorkbench(call, root);
     const rejected = await call('create_engagement', { title: '长'.repeat(161),
       targets: ['example.test'], scope: '仅测试' });
     assert.equal(rejected.isError, true);
@@ -52,6 +69,8 @@ test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时�
     assert.deepEqual(initial._meta?.['dataagent/panelEvents'].map(event => event.type), ['panel.open', 'data.updated']);
     assert.equal(initial._meta['dataagent/panelEvents'][1].data.taskId, created.task_id);
     assert.equal(initial._meta['dataagent/panelEvents'][0].runId, created.runId);
+    assert.deepEqual(initial.structuredContent.dataagentPanelEvents, initial._meta['dataagent/panelEvents']);
+    assert.deepEqual(initial.content.slice(1).map(item => JSON.parse(item.text)), initial._meta['dataagent/panelEvents']);
     const task = { task_id: created.task_id };
     const first = await call('open_engagement', task);
     const second = await call('open_engagement', task);
