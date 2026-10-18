@@ -7,6 +7,15 @@
   function overview(view) {
     const box = section('01 / 摘要', view.status === 'completed' ? '已完成任务报告；结论以本版本留存证据为准。' : '阶段报告；任务尚未完成，不将当前覆盖视为完整测试。');
     box.append(el('p', 'report-summary multiline', view.report.summary || '报告尚未整理。以下展示当前已保存的事实，不生成示例结论。'));
+    const assetStats = el('div', 'asset-stats');
+    const kinds = [['资产总数', view.assets.length], ...Object.entries(names.kind).map(([kind, label]) =>
+      [label, view.assets.filter(item => item.kind === kind).length])];
+    kinds.forEach(([label, count]) => {
+      const stat = el('div', 'asset-stat');
+      stat.append(el('span', '', label), el('strong', '', count));
+      assetStats.append(stat);
+    });
+    box.append(el('h3', 'subheading', '资产统计'), assetStats);
     const counts = severityCounts(view.findings);
     const stats = el('div', 'severity-stats');
     Object.entries(names.severity).forEach(([key, label]) => {
@@ -97,7 +106,9 @@
     const masthead = el('div', 'report-masthead');
     masthead.append(el('span', 'eyebrow', '渗透测试报告'), el('h2', '', view.title),
       el('p', 'muted', `版本 ${view.revision} · 更新于 ${date(view.updatedAt)} · ${names.status[view.status] || view.status}`));
-    box.append(masthead, overview(view), targets(view), assets(view), findings(view), chains(view), limits(view, asOf));
+    const exportHint = el('p', 'report-export-hint muted',
+      'HTML 报告由 Agent 调用记录服务 export_report（format=html）导出到任务目录；此只读面板不直接下载。');
+    box.append(masthead, exportHint, overview(view), targets(view), assets(view), findings(view), chains(view), limits(view, asOf));
     return box;
   }
 

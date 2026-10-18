@@ -27,7 +27,7 @@
 }
 ```
 
-创建成功会发出新的 `panel.open` 和任务上下文，默认打开“渗透计划”页；未保存计划时显示“正在制定测试计划”。保存真实返回的 `task_id/revision/task_path/record_path` 和**新的** `pluginId/panelId/runId`；再调用宿主实际提供的 `mcp__dataagent-panels__read_panel`，传入本次任务绑定返回的三个面板标识及 `waitMs:45000`，不能用空工作台的旧runId。
+创建成功会发出新的 `panel.open` 和任务上下文，默认打开“计划与进度”页；未保存计划时显示“正在制定测试计划”。保存真实返回的 `task_id/revision/task_path/record_path` 和**新的** `pluginId/panelId/runId`；再调用宿主实际提供的 `mcp__dataagent-panels__read_panel`，传入本次任务绑定返回的三个面板标识及 `waitMs:45000`，不能用空工作台的旧runId。
 
 检查 `complete=true`、`timedOut=false`、`errors` 为空，并核对 `dataSources` 中本次记录的 `taskId`，才能报告“宿主面板已加载本次任务”。初始空资产/漏洞是正常结果，不需要先扫描。发出事件不等于加载成功；`read_panel` 也不证明用户屏幕可见。缺工具、权限错误、查询失败或超时须说明具体原因，可继续本地规划但不派发目标测试。用户反馈未打开或宿主未接收事件时，用同一任务调用一次 `open_engagement` 并读取新 run；不要循环重开、重建任务或重复扫描。
 
@@ -57,11 +57,11 @@
 4. 脱敏证据存入返回的 `task_path` 下，记录中引用相对路径；不得修改 `revisions` 快照文件。不要写入密码、令牌、Cookie 或完整敏感记录，历史版本不提供删除能力。
 5. 每次写入带最新 `expected_revision`；冲突时读取、合并并重试记录，不重复执行扫描。步骤、资产、漏洞、活动按 ID 完整行更新；`plan/preflight/report` 为全文替换。写入失败先解决记录问题，超限不能截断后声称完整。记录服务的前置检查约束仅限制台账写入，不是远端执行网关；智能体仍须遵守先检查、异常停止的流程。
 
-计划描述拟开展的工作；`phase/status/activities` 描述实际执行。页面分为“渗透计划”“渗透进度”“渗透报告”三个 TAB：计划页以步骤轨迹突出 `running` 阶段；进度页显示真实计数、当前工作卡片、资产、漏洞与线索及工具记录。Agent 应及时保存 `phase`、步骤状态、活动摘要和发现，否则页面无法凭空反映最新工作。页面每 10 秒读取已保存记录，并显示记录时间和相对年龄；年龄文案刷新不是远端扫描心跳。超过 5 分钟仍为运行中的活动标为“状态待确认”，不是自动停止或重试指令。
+计划描述拟开展的工作；`phase/status/activities` 描述实际执行。页面分为“计划与进度”“渗透报告”两个 TAB：第一页仅用阶段图形和各阶段文字说明呈现计划，并显示真实计数、当前执行卡片及 Agent 执行记录；资产与漏洞详情在报告页。Agent 应及时保存 `phase`、步骤状态、活动摘要和发现，否则页面无法凭空反映最新工作。页面每 10 秒读取已保存记录，并显示记录时间和相对年龄；年龄文案刷新不是远端扫描心跳。超过 5 分钟仍为运行中的活动标为“状态待确认”，不是自动停止或重试指令。
 
 ## 结束与报告
 
-整理 `report.summary/keyFindings/coverage/limitations/recommendations`，核对资产、漏洞、PoC、影响、等级、修复建议、攻击链、未验证项和证据引用。真正完成才标记 `completed`，中断或受阻为 `paused` 并输出阶段报告。调用 `export_report({task_id,expected_revision})`，交付返回的真实报告路径。详见[报告规范](skills/pentest-tools/references/reporting.md)。
+整理 `report.summary/keyFindings/coverage/limitations/recommendations`，核对资产数量、漏洞、PoC、影响、等级、修复建议、攻击链、未验证项和证据引用。真正完成才标记 `completed`，中断或受阻为 `paused` 并输出阶段报告。调用 `export_report({task_id,expected_revision,format:"html"})`，交付返回的真实 HTML 报告路径；省略 `format` 时保留 Markdown 导出。工作台为只读视图，不提供直接下载按钮。详见[报告规范](skills/pentest-tools/references/reporting.md)。
 
 导出后重新 `open_engagement` 获取新的 `runId`，读取这一次面板结果并核对版本。实时视图、本 run 首次报告、历史快照不是同一个时点；不能用测试初始报告代替最终结果。历史快照不联网查询。
 

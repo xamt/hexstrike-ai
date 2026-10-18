@@ -1,8 +1,8 @@
 (function () {
   'use strict';
   const P = window.Pentest;
-  const { el, section, empty, badge, select, pager, table, evidence } = P.dom;
-  const { names, paginate, activityState, date, searchAsset } = P.model;
+  const { el, section, empty, badge, pager, evidence } = P.dom;
+  const { names, paginate, activityState, date } = P.model;
 
   function assetRows(assets) {
     return assets.map(asset => {
@@ -17,56 +17,6 @@
       detail.append(evidence(asset.evidenceRefs));
       return [names.kind[asset.kind] || asset.kind, identity, detail, date(asset.observedAt)];
     });
-  }
-
-  function assets(view, state, update) {
-    const box = section('资产清单', '四类资产统一归档；数据资产仅展示类别、位置和脱敏证据。');
-    const controls = el('div', 'filters');
-    controls.append(select('资产类型', 'asset-kind', { '': '全部类型', ...names.kind }, state.kind, value => {
-      update({ kind: value, assetPage: 1 });
-    }));
-    const label = el('label', 'control grow');
-    label.append(el('span', '', '检索资产'));
-    const input = el('input');
-    input.id = 'asset-search';
-    input.type = 'search';
-    input.placeholder = 'IP、域名、服务或描述';
-    input.value = state.search;
-    input.addEventListener('input', () => update({ search: input.value, assetPage: 1 }));
-    label.append(input);
-    controls.append(label);
-    box.append(controls);
-    const filtered = view.assets.filter(item => (!state.kind || item.kind === state.kind) && searchAsset(item, state.search));
-    const page = paginate(filtered, state.assetPage, 12);
-    box.append(page.total ? table(['类型', '资产 / 标识', '说明与证据', '发现时间'], assetRows(page.items))
-      : empty('暂无匹配资产', view.assets.length ? '调整筛选条件查看其他记录。' : 'Agent 保存资产记录后会在这里显示，不代表目标没有资产。'));
-    box.append(pager(page, 'assets', value => update({ assetPage: value })));
-    return box;
-  }
-
-  function findings(view, state, update) {
-    const box = section('漏洞与线索', '待验证线索不计入已确认漏洞；等级由证据支持，不以工具告警代替结论。');
-    const controls = el('div', 'filters');
-    controls.append(select('验证状态', 'finding-status', { '': '全部状态', ...names.finding }, state.findingStatus,
-      value => update({ findingStatus: value, findingPage: 1 })));
-    controls.append(select('风险等级', 'finding-severity', { '': '全部等级', ...names.severity }, state.severity,
-      value => update({ severity: value, findingPage: 1 })));
-    box.append(controls);
-    const filtered = view.findings.filter(item => (!state.findingStatus || item.status === state.findingStatus)
-      && (!state.severity || item.severity === state.severity));
-    const page = paginate(filtered, state.findingPage, 6);
-    page.items.forEach(item => {
-      const row = el('article', 'finding-row');
-      const head = el('div', 'row-head');
-      head.append(badge(names.severity[item.severity], item.severity), el('h3', '', item.title),
-        badge(names.finding[item.status], item.status));
-      row.append(head, el('p', 'muted mono', `${item.id} · 关联资产 ${item.assetIds.join('、') || '未记录'}`),
-        el('p', 'multiline', item.description), evidence(item.evidenceRefs));
-      box.append(row);
-    });
-    if (!page.total) box.append(empty('暂无匹配漏洞记录', view.findings.length ? '调整筛选条件查看其他记录。' : '尚未保存发现；这不是“目标安全”的结论。'));
-    box.append(pager(page, 'findings', value => update({ findingPage: value })));
-    return box;
   }
 
   /** 最新进展仅取留存快照；陈旧运行记录不得称作正在执行的远端进程。 */
@@ -123,7 +73,8 @@
     return box;
   }
 
-  function progress(view, state, update, asOf = Date.now(), context = {}) {
+  /** Combine the plan with current work, counters and saved Agent activity. */
+  function planProgress(view, state, update, asOf = Date.now(), context = {}) {
     const box = el('div');
     const metrics = el('div', 'metrics');
     const confirmed = view.findings.filter(item => item.status === 'confirmed').length;
@@ -134,11 +85,11 @@
       metric.append(el('span', 'muted', label), el('strong', '', count));
       metrics.append(metric);
     });
-    box.append(currentWork(view, asOf, context), metrics, assets(view, state, update),
-      findings(view, state, update), activities(view, state, update, asOf));
+    box.append(P.testPlan(view, context), currentWork(view, asOf, context), metrics,
+      P.preflight(view.preflight), activities(view, state, update, asOf));
     return box;
   }
 
-  P.progress = progress;
+  P.planProgress = planProgress;
   P.assetRows = assetRows;
 }());

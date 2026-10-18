@@ -62,7 +62,7 @@ npm run build
 npm test
 ```
 
-需要 Node.js 22 或更高版本。依赖版本由 `package-lock.json` 固定。根目录 `scripts/plugin-build.mjs` 复制技能、补充 DataAgent 元信息、打包记录服务，输出 `dist/records.cjs`、`dist/pentest-tools-1.0.8.zip` 和 `.sha256`。生成的技能与 dist 不手工维护。
+需要 Node.js 22 或更高版本。依赖版本由 `package-lock.json` 固定。根目录 `scripts/plugin-build.mjs` 复制技能、补充 DataAgent 元信息、打包记录服务，输出 `dist/records.cjs`、`dist/pentest-tools-1.0.9.zip` 和 `.sha256`。生成的技能与 dist 不手工维护。
 
 打包采用白名单：插件清单、MCP 配置、面板、UI、技能、智能体 README、`docs/data-contract.md`、`docs/troubleshooting.md`、记录服务及其第三方声明。开发文档 `DEVELOPMENT.md`、其他未列出的 docs、测试、源码工具链、截图、真实记录、node_modules 与工作流状态不进入 ZIP。新增运行文档时显式调整白名单和包测试。
 

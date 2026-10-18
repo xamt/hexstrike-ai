@@ -59,7 +59,7 @@ Preflight：`status/checkedAt/server/tool/summary` 必填；status为passed/fail
 - `record_progress({task_id,expected_revision,phase?,status?,plan?,planSteps?,preflight?,assets?,findings?,activities?,attackChains?,report?})`：按ID完整行upsert，不支持删除；plan、preflight和report全量替换。验证合并后的引用。修改必须CAS匹配版本；冲突不写入，调用方重新读取后合并，不自动重放扫描。空修改拒绝。
 - `get_engagement_view({task_id})`：只读，未知任务返回错误，不伪造空成功。
 - `open_engagement({task_id})`：确认任务存在后返回pluginId/panelId/new runId/task_id；先发panel.open，再发context数据事件。不得等待页面查询；不改任务数据。
-- `export_report({task_id,expected_revision})`：将该版本完整Markdown报告保存到任务目录 `reports/report-r<revision>.md`，内容转义，包含所有必需章节；不发网络请求，不更改任务状态。
+- `export_report({task_id,expected_revision,format?})`：`format=html` 将该版本完整自包含 HTML 报告保存到任务目录 `reports/report-r<revision>.html`；省略或传 `markdown` 兼容原 `.md` 路径。两种格式均对不可信内容转义，包含资产统计与必需章节；不发网络请求，不更改任务状态，同版本重导出只接受内容相同的文件。
 
 持久数据根目录从显式 `PENTEST_RECORDS_ROOT` 环境变量读取。插件1.0.7映射为 `${DATAAGENT_PROJECT_DIR}/pentest-records`，由宿主展开为工作区内的绝对路径；记录服务不回退到进程cwd。智能体与面板必须解析到同一工作区。升级已有任务时，选择原task_path的父目录，不搬迁、不重建数据。配置变更需要重新加载记录MCP进程，页面刷新不能更新进程环境变量。NOT_FOUND说明记录服务已响应，但当前根目录下找不到该UUID；错误包含任务ID与当前根目录用于对照，不是无漏洞结论。不允许在工具参数中输入任意文件路径；task_id必须UUID。目录权限0700、文件0600；拒绝符号链接和路径逃逸。单个view上限1MiB；记录上限assets500/findings200/activities500/attackChains100；超限报错，不截断伪装完整。保留每次revision快照以追溯，写入原子化、跨进程互斥并有锁定超时；崩溃遗留锁应明确错误，不自动破坏性清理。
 
@@ -77,4 +77,4 @@ record_progress成功保存非空plan仍发打开事件；普通步骤/活动/�
 context 数据源的value为 `{taskId,title}`；view 数据源的value为上述view。
 唯一查询ID `engagement-view`，固定服务records和工具get_engagement_view，可变参数task_id。autoLoad=false，refreshIntervalSeconds=10。模板在ready收到context后查询一次；新taskId切换时不展示上一个任务的view。宿主负责后续轮询，不在页面追加定时器。快照不查询；已有view时显示冻结内容，否则显示未保存数据。
 
-页面三个主TAB：渗透计划、渗透进度、渗透报告。计划页按 `planSteps` 绘制阶段轨迹，只有 `running` 步骤标为当前阶段；旧任务缺省计划时提示未记录，不推断历史。进度页显示资产/已确认漏洞/待验证线索/执行中记录计数，以及由 `status/phase/planSteps/activities` 构成的当前工作卡片；卡片标出最近记录时间与相对年龄，后者不是远端进程心跳。资产和漏洞可筛选，分页在已载入完整快照内完成。报告章节为摘要、漏洞统计、关键发现、测试目标、资产清单、漏洞详情（描述/验证/PoC/影响/等级/修复）、攻击链、未验证项与覆盖限制。查询失败保留旧值且明确显示错误及旧数据时间。动态内容仅用textContent；不使用innerHTML、外链资源或任意fetch。所有操作键盘可达，支持窄窗和减弱动效。
+页面两个主TAB：计划与进度、渗透报告。第一页按 `planSteps` 绘制阶段轨迹，只有 `running` 步骤标为当前阶段；每步保留文字说明，但不重复显示状态列表和计数。旧任务无结构化步骤时显示原文本计划，不推断历史。第一页还显示资产/已确认漏洞/待验证线索/执行中记录计数、由 `status/phase/planSteps/activities` 构成的当前执行卡片，以及 Agent 执行记录；卡片标出最近记录时间与相对年龄，后者不是远端进程心跳。报告页显示资产总数和IP/域名/端口服务/数据资产分项，以及摘要、漏洞统计、关键发现、目标、资产清单、漏洞详情（描述/验证/PoC/影响/等级/修复）、攻击链、未验证项与覆盖限制。面板只读，HTML 导出由 Agent 调用 `export_report` 写入任务目录，不在 iframe 内直接下载。查询失败保留旧值且明确显示错误及旧数据时间。动态内容仅用textContent；不使用innerHTML、外链资源或任意fetch。所有操作键盘可达，支持窄窗和减弱动效。

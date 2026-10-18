@@ -76,8 +76,7 @@ function harness(initial, query) {
     query: async (id, parameters) => { calls.push({ id, parameters }); return query?.(id, parameters); },
   };
   const P = { model, dom: { empty: (title, detail) => ({ title, detail }) },
-    testPlan: view => ({ planTaskId: view.taskId }),
-    progress: (view, filters, update, asOf) => ({ taskId: view.taskId, asOf }),
+    planProgress: (view, filters, update, asOf) => ({ planTaskId: view.taskId, asOf }),
     report: (view, asOf) => ({ reportTaskId: view.taskId, asOf }) };
   const document = { getElementById: id => {
     if (!elements.has(id)) elements.set(id, new Element(id));
@@ -96,8 +95,6 @@ test('快照不查询，页签可以在本地切换', async () => {
   assert.equal(h.calls.length, 0);
   assert.equal(h.elements.get('refresh').disabled, true);
   assert.equal(h.elements.get('panel-content').children[0].planTaskId, 'task-a');
-  h.elements.get('tab-progress').listeners.click();
-  assert.equal(h.elements.get('panel-content').children[0].asOf, Date.parse('2026-10-17T10:00:00Z'));
   h.elements.get('tab-report').listeners.click();
   assert.equal(h.elements.get('panel-content').children[0].reportTaskId, 'task-a');
   assert.equal(h.elements.get('panel-content').children[0].asOf, Date.parse('2026-10-17T10:00:00Z'));
@@ -169,10 +166,8 @@ test('键盘方向键切换页签并维护ARIA状态', async () => {
   let prevented = false;
   h.elements.get('tab-plan').listeners.keydown({ key: 'ArrowRight', preventDefault: () => { prevented = true; } });
   assert.equal(prevented, true);
-  assert.equal(h.elements.get('tab-progress').attributes['aria-selected'], 'true');
-  h.elements.get('tab-progress').listeners.keydown({ key: 'ArrowRight', preventDefault: () => {} });
   assert.equal(h.elements.get('tab-report').attributes['aria-selected'], 'true');
-  assert.equal(h.elements.get('tab-progress').tabIndex, -1);
+  assert.equal(h.elements.get('tab-plan').tabIndex, -1);
   assert.equal(h.elements.get('panel-content').attributes['aria-labelledby'], 'tab-report');
 });
 

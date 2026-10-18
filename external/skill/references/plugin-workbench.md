@@ -21,7 +21,7 @@
 5. 发现资产就更新 `assets`，类型为 `ip/domain/service/data`；端口服务关联父资产，数据资产只存位置、类别、敏感级别及最小脱敏证据。发现线索先存 `findings.status=suspected`；验证后才改为 `confirmed`，同时保存描述、验证过程、最小 PoC、影响、等级、修复建议及证据引用。不要把凭据、Cookie、完整敏感记录写入台账/页面/报告。
 6. 深挖结果更新 `attackChains`，每一步引用已有发现；未验证环节保持 `hypothesis/partial`，不能画成已打通。更新阶段和覆盖矩阵。资产、漏洞与活动按 ID 完整行更新，不支持删除；原版本保留供追溯。
 7. 每次写入必须带当前 `expected_revision`。冲突后重新读取 `get_engagement_view`，合并最新状态再更新；**仅重做记录合并，不重复执行远端工具**。写入失败先修复记录，不继续无记录的测试。字段和限额以记录工具 `inputSchema` 为准，禁止截断后宣称完整。
-8. 测试结束时整理 `report.summary/keyFindings/coverage/limitations/recommendations`，核对引用、统计、脱敏；把未完成事项明确记入限制。完整完成才标 `completed`，受阻或中断为 `paused`，不是虚假完成。调用 `export_report({task_id,expected_revision})` 输出完整 Markdown 并交付真实路径；详细格式仍遵守报告生成规范。
+8. 测试结束时整理 `report.summary/keyFindings/coverage/limitations/recommendations`，核对引用、资产及漏洞统计、脱敏；把未完成事项明确记入限制。完整完成才标 `completed`，受阻或中断为 `paused`，不是虚假完成。调用 `export_report({task_id,expected_revision,format:"html"})` 输出完整独立 HTML 并交付真实路径；需要 Markdown 时省略 `format` 或传 `markdown`。导出在任务目录执行，HTML 面板是只读视图，不提供直接下载按钮；详细格式仍遵守报告生成规范。
 
 ## 步骤状态与健康检查
 

@@ -98,6 +98,7 @@ export function renderReport(view) {
     `任务：${view.taskId}；版本：${view.revision}；记录更新时间：${escapeMarkdown(view.updatedAt)}`,
     '本报告仅整理已保存、已脱敏的记录，不发起扫描；工具执行状态由Agent报告，不是远端进程遥测。',
     '## 摘要', escapeMarkdown(view.report.summary) || '报告尚未整理。',
+    '## 资产统计', `总数：${view.assets.length}；IP：${view.assets.filter(item => item.kind === 'ip').length}；域名：${view.assets.filter(item => item.kind === 'domain').length}；端口与服务：${view.assets.filter(item => item.kind === 'service').length}；数据资产：${view.assets.filter(item => item.kind === 'data').length}。`,
     '## 漏洞统计', statistics(view),
     '## 关键发现', bullets(view.report.keyFindings, '尚未整理关键发现。'),
     '## 测试目标', bullets(view.targets),

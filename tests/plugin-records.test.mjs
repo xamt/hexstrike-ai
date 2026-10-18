@@ -130,12 +130,27 @@ test('完整报告导出、PoC fence安全、阶段标识与版本固定', async
   assert.equal(result.success, true, JSON.stringify(result));
   const report = await readFile(result.report_path, 'utf8');
   for (const section of ['摘要', '漏洞统计', '关键发现', '测试目标', '资产清单', '漏洞详情', '攻击链分析', '未验证项与覆盖限制', '修复建议']) assert.ok(report.includes(section), section);
+  assert.match(report, /资产统计[\s\S]*总数：1[\s\S]*域名：1/);
   assert.match(report, /阶段报告/);
   assert.match(report, /&lt;script&gt;/);
   assert.match(report, /````text\nGET \/item\/1\n```\n<script>/);
   assert.equal((await call('export_report', { task_id: taskId, expected_revision: 1 })).error.code, 'REVISION_CONFLICT');
   assert.equal((await call('get_engagement_view', { task_id: taskId })).view.revision, 2);
   assert.equal((await call('export_report', { task_id: taskId, expected_revision: 2 })).success, true);
+  const htmlResult = await call('export_report', { task_id: taskId, expected_revision: 2, format: 'html' });
+  assert.equal(htmlResult.success, true, JSON.stringify(htmlResult));
+  assert.match(htmlResult.report_path, /report-r2\.html$/);
+  assert.equal(htmlResult.format, 'html');
+  const html = await readFile(htmlResult.report_path, 'utf8');
+  for (const section of ['摘要', '资产统计', '关键发现', '测试目标', '资产清单', '漏洞详情', '攻击链分析', '未验证项与覆盖限制', '修复建议']) assert.ok(html.includes(section), section);
+  assert.match(html, /资产总数[\s\S]*1[\s\S]*域名[\s\S]*1/);
+  assert.match(html, /&lt;script&gt;恶意标题&lt;\/script&gt;/);
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script\b|<link\b|<iframe\b|<img\b/i);
+  assert.equal((await call('export_report', { task_id: taskId, expected_revision: 2, format: 'html' })).report_path, htmlResult.report_path);
+  assert.equal((await call('export_report', { task_id: taskId, expected_revision: 2, format: 'pdf' })).error.code, 'VALIDATION_ERROR');
+  await writeFile(htmlResult.report_path, 'tampered');
+  assert.equal((await call('export_report', { task_id: taskId, expected_revision: 2, format: 'html' })).error.code, 'EXPORT_CONFLICT');
 });
 
 test('跨进程CAS只允许一个版本写入', async t => {

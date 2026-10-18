@@ -90,7 +90,7 @@ updateSchema.anyOf = [
 ];
 const readSchema = object({ task_id: taskId });
 const openWorkbenchSchema = object({}, []);
-const exportSchema = object({ task_id: taskId, expected_revision: { type: 'integer', minimum: 1 } });
+const exportSchema = object({ task_id: taskId, expected_revision: { type: 'integer', minimum: 1 }, format: choice('markdown', 'html') }, ['task_id', 'expected_revision']);
 
 export const tools = [
   { name: 'open_workbench', description: '开始执行本插件技能时首先调用，参数必须为{}。立即请求宿主打开HTML工作台，尚无目标和计划也可打开；只返回本次面板标识，不创建任务、不扫描。目标范围明确后再创建真实任务并绑定页面。', inputSchema: openWorkbenchSchema },
@@ -98,7 +98,7 @@ export const tools = [
   { name: 'record_progress', description: '以expected_revision执行CAS更新。plan/报告/preflight全文替换；planSteps按ID整行更新，状态pending/running/completed/blocked。开始步骤须preflight passed；failed暂停任务和执行中步骤，停止派发测试，不代表远端进程停止。plan非空自动打开，步骤状态更新不反复打开。activities必填id/tool/target/status/startedAt/summary/evidenceRefs，可选planStepId；没有action/intent/startTime字段。仅存脱敏信息；冲突先读取合并，不重放扫描。', inputSchema: updateSchema },
   { name: 'get_engagement_view', description: '只读获取一个完整原子版本，包含资产、漏洞、工具活动和报告；未知任务报错。', inputSchema: readSchema, annotations: { readOnlyHint: true } },
   { name: 'open_engagement', description: '读取既有任务并打开渗透工作台；不修改任务或执行扫描。', inputSchema: readSchema, annotations: { readOnlyHint: true } },
-  { name: 'export_report', description: '将指定当前版本导出为完整Markdown报告；任务未完成时为阶段报告。仅写任务目录，不执行扫描、不改变任务状态。', inputSchema: exportSchema },
+  { name: 'export_report', description: '将指定当前版本导出为完整报告；format可选markdown（默认）或html。任务未完成时为阶段报告。仅写任务目录，不执行扫描、不改变任务状态。', inputSchema: exportSchema },
 ];
 for (const tool of tools) {
   const readOnly = ['open_workbench', 'get_engagement_view', 'open_engagement'].includes(tool.name);

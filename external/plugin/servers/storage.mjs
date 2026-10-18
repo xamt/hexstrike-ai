@@ -178,18 +178,19 @@ class RecordStore {
   }
 
   /** Export a version-fixed report without replacing an existing different file. */
-  async exportReport(task, view, markdown) {
+  async exportReport(task, view, content, format = 'markdown') {
     const reports = path.join(task, 'reports');
     await directory(reports);
-    const target = path.join(reports, `report-r${view.revision}.md`);
-    try { await publish(target, markdown); } catch (error) {
+    const extension = format === 'html' ? 'html' : 'md';
+    const target = path.join(reports, `report-r${view.revision}.${extension}`);
+    try { await publish(target, content); } catch (error) {
       if (error.code !== 'EEXIST') throw error;
       await safePath(target);
       if (!(await fs.lstat(target)).isFile()) fail('EXPORT_CONFLICT', '报告路径不是普通文件，未覆盖原内容。');
       const handle = await fs.open(target, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
       try {
         const info = await handle.stat();
-        if (!info.isFile() || info.size !== Buffer.byteLength(markdown) || await handle.readFile('utf8') !== markdown) fail('EXPORT_CONFLICT', '同版本报告已存在但内容不同，未覆盖原报告。');
+        if (!info.isFile() || info.size !== Buffer.byteLength(content) || await handle.readFile('utf8') !== content) fail('EXPORT_CONFLICT', '同版本报告已存在但内容不同，未覆盖原报告。');
       } finally { await handle.close(); }
     }
     return target;

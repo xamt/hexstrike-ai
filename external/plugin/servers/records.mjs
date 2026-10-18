@@ -5,6 +5,7 @@ import { validate, validateView, bounded, uniqueRows } from './validate.mjs';
 import { createStore } from './storage.mjs';
 import { fail, failure } from './errors.mjs';
 import { renderReport } from './report.mjs';
+import { renderHtmlReport } from './report-html.mjs';
 import { applyPreflight } from './workflow.mjs';
 
 export { tools };
@@ -88,8 +89,10 @@ export function createHandler({ root }) {
     /** Export only the caller's current expected version. */
     async export_report(args) {
       return store.transaction(args.task_id, args.expected_revision, async (view, task) => {
-        const reportPath = await store.exportReport(task, view, renderReport(view));
-        return { success: true, task_id: view.taskId, revision: view.revision, report_path: reportPath };
+        const format = args.format || 'markdown';
+        const reportPath = await store.exportReport(task, view,
+          format === 'html' ? renderHtmlReport(view) : renderReport(view), format);
+        return { success: true, task_id: view.taskId, revision: view.revision, format, report_path: reportPath };
       });
     },
   };

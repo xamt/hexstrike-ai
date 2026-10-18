@@ -3,14 +3,14 @@
   const P = window.Pentest;
   const panel = window.DataAgentPanel;
   const byId = id => document.getElementById(id);
-  const initial = () => ({ kind: '', search: '', findingStatus: '', severity: '', assetPage: 1, findingPage: 1, activityPage: 1 });
+  const initial = () => ({ activityPage: 1 });
   let filters = initial();
   let latest;
   let view;
   let taskId = '';
   let busy = false;
   let ready = false;
-  const tabs = ['plan', 'progress', 'report'];
+  const tabs = ['plan', 'report'];
   let tab = 'plan';
   let localError = '';
   let requestedTask = '';
@@ -35,9 +35,7 @@
     const content = byId('panel-content');
     const asOf = view && P.model.displayTime(latest?.mode, view);
     if (view) {
-      const pages = { plan: () => P.testPlan(view,
-        { stale: Boolean(queryError()), snapshot: latest?.mode === 'snapshot' }),
-        progress: () => P.progress(view, filters, updateFilters, asOf,
+      const pages = { plan: () => P.planProgress(view, filters, updateFilters, asOf,
         { stale: Boolean(queryError()), snapshot: latest?.mode === 'snapshot' }),
         report: () => P.report(view, asOf) };
       content.replaceChildren(pages[tab]());

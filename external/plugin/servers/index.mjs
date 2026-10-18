@@ -5,7 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { tools, createHandler } from './records.mjs';
 
 const handler = createHandler({ root: process.env.PENTEST_RECORDS_ROOT });
-const server = new Server({ name: 'pentest-tools-records', title: '渗透测试记录', version: '1.0.8' },
+const server = new Server({ name: 'pentest-tools-records', title: '渗透测试记录', version: '1.0.9' },
   { capabilities: { tools: {} } });
 
 function result(value) {
