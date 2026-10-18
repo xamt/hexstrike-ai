@@ -5,7 +5,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { catalog, validateArguments } from './skill-catalog.mjs';
 
-const root = fileURLToPath(new URL('../skills/pentest-tools/', import.meta.url));
+const root = fileURLToPath(new URL('../external/skill/', import.meta.url));
 
 test('离线示例校验拒绝旧别名、错误参数名和错误类型', () => {
   assert.throws(() => validateArguments('httpx_probe_extended', {}), /未知工具/);

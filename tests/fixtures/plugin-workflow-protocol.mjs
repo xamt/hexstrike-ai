@@ -11,8 +11,8 @@ export async function verifyWorkflowProtocol(call) {
   const refused = await call('record_progress', running);
   assert.equal(refused.structuredContent.error.code, 'PREFLIGHT_REQUIRED');
   assert.equal(refused._meta, undefined);
-  const preflight = { status: 'passed', checkedAt: new Date().toISOString(), server: 'plugin:pentest-tools:hexstrike',
-    tool: 'mcp__plugin_pentest-tools_hexstrike__server_health', summary: '合成正常响应，仅协议测试' };
+  const preflight = { status: 'passed', checkedAt: new Date().toISOString(), server: 'plugin:pentest-tools:scanner',
+    tool: 'mcp__plugin_pentest-tools_scanner__server_health', summary: '合成正常响应，仅协议测试' };
   const started = await call('record_progress', { ...running, preflight });
   assert.equal(started.isError, false);
   assert.equal(started._meta, undefined, '步骤状态更新不反复打开');

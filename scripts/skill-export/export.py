@@ -5,7 +5,7 @@ import json
 
 from source import ROOT, definitions, parameters
 
-DEST = ROOT / "skills/pentest-tools"
+DEST = ROOT / "external/skill"
 
 
 def artifacts():

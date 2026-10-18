@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-export const catalog = JSON.parse(readFileSync(new URL('../skills/pentest-tools/references/tool-catalog.json', import.meta.url), 'utf8'));
+export const catalog = JSON.parse(readFileSync(new URL('../external/skill/references/tool-catalog.json', import.meta.url), 'utf8'));
 
 /** 仅离线检查文档示例；实际 MCP 参数验证由宿主和服务负责。 */
 export function validateArguments(name, args) {

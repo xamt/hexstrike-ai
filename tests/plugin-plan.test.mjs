@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, realpath, rm, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createHandler } from '../plugins/pentest-tools/servers/records.mjs';
+import { createHandler } from '../external/plugin/servers/records.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(join(await realpath(tmpdir()), 'plugin-plan-'));

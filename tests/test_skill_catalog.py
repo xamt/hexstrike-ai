@@ -55,7 +55,7 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertEqual(client.mock_calls, [])
 
     def test_reference_manifest_and_documents_are_exactly_the_registered_tools(self):
-        root = ROOT / "skills/pentest-tools"
+        root = ROOT / "external/skill"
         catalog = json.loads((root / "references/tool-catalog.json").read_text())
         expected = {node.name for node in definitions()}
         self.assertEqual(set(catalog), expected)

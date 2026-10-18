@@ -1,6 +1,6 @@
 # 渗透测试记录契约
 
-版本 1。插件身份 `pentest-tools`；远端工具服务 `plugin:pentest-tools:hexstrike`；本地记录服务 `plugin:pentest-tools:records`；HTML 面板 `pentest-workbench`。
+版本 1。插件身份 `pentest-tools`；远端工具服务 `plugin:pentest-tools:scanner`；本地记录服务 `plugin:pentest-tools:records`；HTML 面板 `pentest-workbench`。
 
 ## 真实来源与职责
 
@@ -61,7 +61,7 @@ Preflight：`status/checkedAt/server/tool/summary` 必填；status为passed/fail
 - `open_engagement({task_id})`：确认任务存在后返回pluginId/panelId/new runId/task_id；先发panel.open，再发context数据事件。不得等待页面查询；不改任务数据。
 - `export_report({task_id,expected_revision})`：将该版本完整Markdown报告保存到任务目录 `reports/report-r<revision>.md`，内容转义，包含所有必需章节；不发网络请求，不更改任务状态。
 
-持久数据根目录从显式 `PENTEST_RECORDS_ROOT` 环境变量读取。插件1.0.2起固定映射为必填 `${user_config.records_root}`，必须为绝对路径；不再依赖 `${DATAAGENT_PROJECT_DIR}`，也不回退到进程cwd。升级已有任务时，选择原task_path的父目录，不搬迁、不重建数据。配置变更需要重新加载记录MCP进程，页面刷新不能更新进程环境变量。NOT_FOUND说明记录服务已响应，但当前根目录下找不到该UUID；错误包含任务ID与当前根目录用于对照，不是无漏洞结论。不允许在工具参数中输入任意文件路径；task_id必须UUID。目录权限0700、文件0600；拒绝符号链接和路径逃逸。单个view上限1MiB；记录上限assets500/findings200/activities500/attackChains100；超限报错，不截断伪装完整。保留每次revision快照以追溯，写入原子化、跨进程互斥并有锁定超时；崩溃遗留锁应明确错误，不自动破坏性清理。
+持久数据根目录从显式 `PENTEST_RECORDS_ROOT` 环境变量读取。插件1.0.7映射为 `${DATAAGENT_PROJECT_DIR}/pentest-records`，由宿主展开为工作区内的绝对路径；记录服务不回退到进程cwd。智能体与面板必须解析到同一工作区。升级已有任务时，选择原task_path的父目录，不搬迁、不重建数据。配置变更需要重新加载记录MCP进程，页面刷新不能更新进程环境变量。NOT_FOUND说明记录服务已响应，但当前根目录下找不到该UUID；错误包含任务ID与当前根目录用于对照，不是无漏洞结论。不允许在工具参数中输入任意文件路径；task_id必须UUID。目录权限0700、文件0600；拒绝符号链接和路径逃逸。单个view上限1MiB；记录上限assets500/findings200/activities500/attackChains100；超限报错，不截断伪装完整。保留每次revision快照以追溯，写入原子化、跨进程互斥并有锁定超时；崩溃遗留锁应明确错误，不自动破坏性清理。
 
 插件1.0.5起，create_engagement成功即返回panel.open和context数据事件，不要求plan或planSteps；目标和范围明确后即可打开，再补完整计划。响应保留task_id/title/revision/task_path/record_path，并增加pluginId/panelId/新runId。无计划的新任务phase为“制定测试计划”，首次保存非空计划或步骤后默认变为“计划已记录”；显式phase优先。旧快照不迁移、不推断历史。
 

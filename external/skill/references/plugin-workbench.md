@@ -4,13 +4,13 @@
 
 ## 两个服务，职责不同
 
-- `plugin:pentest-tools:hexstrike`：已经部署的远端 pentest-tools MCP，执行原有安全工具。宿主显示的完整工具名及 `inputSchema` 是调用依据。
+- `plugin:pentest-tools:scanner`：已经部署的远端 pentest-tools MCP，执行原有安全工具。宿主显示的完整工具名及 `inputSchema` 是调用依据。
 - `plugin:pentest-tools:records`：插件自带的本地记录 MCP，只创建、更新、读取任务记录和导出报告，不扫描、不代理工具、不执行 Shell。
 - HTML 视图 `pentest-workbench` 只读查询记录服务。它不会自动监听远端工具，所以 **每次调用前后都必须记录状态**；没有记录的数据不会出现在页面里。
 
 不要仅凭同名工具绑定其他服务。发现上述服务缺失时说明缺口，不改走业务 API、不编写替代客户端。插件本地记录服务由宿主通过 Node.js 启动；远端工具调用本身不需要本机 Python。
 
-插件1.0.2起必须配置“记录根目录”（`records_root`）为明确绝对路径，智能体与页面使用同一目录。优先选用用户指定工作区下的 `pentest-records`；续测时必须使用原 `task_path` 的父目录，不选UUID子目录。不要根据当前进程cwd重新推导或改变存储位置。以工具真实返回的 `task_path/record_path` 为准，仍在该任务目录保存工作区证据。
+插件1.0.7使用 `${DATAAGENT_PROJECT_DIR}/pentest-records`：宿主解析工作区变量，不需要填写 `records_root`，记录服务自身不猜测cwd。同一任务的智能体和HTML查询必须解析到同一工作区。以工具真实返回的 `task_path/record_path` 为准，仍在该任务目录保存工作区证据。旧记录不会自动迁移；续测先切回原工作区，旧记录不在该布局时将MCP环境变量改为原task_path父目录的绝对路径后重载，不选UUID子目录。
 
 ## 一次任务的记录顺序
 
@@ -39,8 +39,8 @@
   "preflight": {
     "status": "failed",
     "checkedAt": "2026-10-17T09:00:00+08:00",
-    "server": "plugin:pentest-tools:hexstrike",
-    "tool": "mcp__plugin_pentest-tools_hexstrike__server_health",
+    "server": "plugin:pentest-tools:scanner",
+    "tool": "mcp__plugin_pentest-tools_scanner__server_health",
     "summary": "连接超时，未开始目标测试；等待修复后重新检查"
   }
 }
@@ -63,7 +63,7 @@
   "expected_revision": 1,
   "activities": [{
     "id": "act-001",
-    "tool": "mcp__plugin_pentest-tools_hexstrike__nmap_scan",
+    "tool": "mcp__plugin_pentest-tools_scanner__nmap_scan",
     "target": "example.test",
     "status": "running",
     "startedAt": "2026-10-17T09:00:00+08:00",
@@ -77,7 +77,7 @@
 
 ## 读取面板结果与终态
 
-若查询返回 `NOT_FOUND`，记录服务已经响应，不能报成“未连接”或“没有发现”。对照原任务ID与错误中的当前记录根目录；核实插件配置指向原task_path父目录后重新加载记录MCP，再用原task_id打开实时面板。仅刷新HTML不会刷新MCP环境变量。不要新建空任务、伪造记录或重跑扫描来掩盖读取错误；无法读取时明确保留已有证据与报告路径。页面与智能体读取结果应是同一个taskId及revision。
+若查询返回 `NOT_FOUND`，记录服务已经响应，不能报成“未连接”或“没有发现”。对照原任务ID与错误中的当前记录根目录；核实工作区及MCP环境变量指向原task_path父目录后重新加载记录MCP，再用原task_id打开实时面板。仅刷新HTML不会刷新MCP环境变量。不要新建空任务、伪造记录或重跑扫描来掩盖读取错误；无法读取时明确保留已有证据与报告路径。页面与智能体读取结果应是同一个taskId及revision。
 
 打开工具立即返回事件及定位，不等待业务查询；随后必须调用宿主实际发现的 `mcp__dataagent-panels__read_panel`，参数为 `{pluginId,panelId,runId,waitMs:45000}`，标识只取刚刚创建或打开的真实返回值。只有 `complete=true`、`timedOut=false`、`errors` 为空，并且 `dataSources` 中本次记录的 `taskId` 与任务一致，才能报告“宿主面板已加载本次任务”。初始资产/漏洞为空是合法结果，无需先扫描。该工具确认宿主数据链路，不证明用户屏幕当前可见或已查看。
 

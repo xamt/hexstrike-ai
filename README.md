@@ -68,7 +68,7 @@ API 入口为 `server.py`，MCP 入口为 `mcp_server.py`，共用运行模块�
 }
 ```
 
-配置文件见 [MCP 配置](mcp-config.json)。客户端不再配置 Python 启动命令或脚本路径，远程连接时将示例 URL 替换为可达地址。DataAgent 可安装 [渗透测试工作台插件](plugins/pentest-tools/README.md)，复用远端 MCP、技能及进度/报告面板，避免重复建立同一服务连接。
+配置文件见 [MCP 配置](mcp-config.json)。客户端不再配置 Python 启动命令或脚本路径，远程连接时将示例 URL 替换为可达地址。DataAgent 可安装 [渗透测试工作台插件](external/plugin/README.md)，复用远端 MCP、技能及进度/报告面板，避免重复建立同一服务连接。
 
 ## Features
 
@@ -79,7 +79,7 @@ API 入口为 `server.py`，MCP 入口为 `mcp_server.py`，共用运行模块�
 - **测试辅助工作流**：目标分析、工具选择、参数优化、漏洞情报及报告辅助。
 - **运行管理**：执行状态、进程管理、缓存、遥测及错误恢复。
 
-当前 MCP 注册 150 个唯一工具名称；实际能力取决于已安装的工具、运行权限及目标环境。完整名称和参数见 [工具索引](skills/pentest-tools/references/tools-index.md)，调用时以 `tools/list` 返回的 Schema 为准。
+当前 MCP 注册 150 个唯一工具名称；实际能力取决于已安装的工具、运行权限及目标环境。完整名称和参数见 [工具索引](external/skill/references/tools-index.md)，调用时以 `tools/list` 返回的 Schema 为准。
 
 ## API Reference
 

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { mkdtemp, realpath, rm, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createHandler } from '../plugins/pentest-tools/servers/records.mjs';
+import { createHandler } from '../external/plugin/servers/records.mjs';
 
 const step = (id, status = 'pending', summary = '') => ({ id, title: `测试步骤 ${id}`, status, summary, evidenceRefs: [] });
-const health = status => ({ status, checkedAt: new Date().toISOString(), server: 'plugin:pentest-tools:hexstrike',
-  tool: 'mcp__plugin_pentest-tools_hexstrike__server_health', summary: status === 'passed' ? '合成正常响应' : '合成连接超时' });
+const health = status => ({ status, checkedAt: new Date().toISOString(), server: 'plugin:pentest-tools:scanner',
+  tool: 'mcp__plugin_pentest-tools_scanner__server_health', summary: status === 'passed' ? '合成正常响应' : '合成连接超时' });
 
 async function fixture(t) {
   const root = await mkdtemp(join(await realpath(tmpdir()), 'plugin-steps-'));
@@ -61,10 +61,10 @@ test('健康检查失败暂停任务和执行中步骤，不宣称停止远端�
 
 test('文档的新建计划与失败检查示例可执行，最大长度失败原因仍可保存', async t => {
   const { call, task } = await fixture(t);
-  const readme = await readFile(new URL('../plugins/pentest-tools/README.md', import.meta.url), 'utf8');
+  const readme = await readFile(new URL('../external/plugin/README.md', import.meta.url), 'utf8');
   const createArgs = JSON.parse(readme.match(/```json\n([\s\S]*?)\n```/)[1]);
   assert.equal((await call('create_engagement', createArgs)).success, true);
-  const workflow = await readFile(new URL('../skills/pentest-tools/references/plugin-workbench.md', import.meta.url), 'utf8');
+  const workflow = await readFile(new URL('../external/skill/references/plugin-workbench.md', import.meta.url), 'utf8');
   const example = JSON.parse(workflow.match(/<!-- preflight-example -->\s*```json\n([\s\S]*?)\n```/)[1]);
   assert.equal((await call('record_progress', { ...example, ...task })).success, true);
   const started = await call('record_progress', { ...task, expected_revision: 2, preflight: health('passed'),

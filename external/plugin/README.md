@@ -2,11 +2,12 @@
 
 ## 组件与前置条件
 
-本插件通过技能 `pentest-tools:pentest-tools` 组织测试，通过远端 MCP `plugin:pentest-tools:hexstrike` 执行工具，通过本地 MCP `plugin:pentest-tools:records` 保存记录，通过 HTML 视图 `pentest-workbench` 展示渗透进度与报告。
+本插件通过技能 `pentest-tools:pentest-tools` 组织测试，通过远端 MCP `plugin:pentest-tools:scanner` 执行工具，通过本地 MCP `plugin:pentest-tools:records` 保存记录，通过 HTML 视图 `pentest-workbench` 展示渗透进度与报告。
 
 - 加载插件技能，使用宿主实际发现的完整工具名和输入 Schema。不要混用其他同名连接，不直接调用业务 HTTP API，不编写替代客户端。
 - 本地记录服务需要 Node.js 22 或更高版本；插件已包含运行依赖，不需要本机 Python 或 requests。远端工具使用宿主已连接的实际 MCP 地址，不是业务 HTTP 接口地址。
-- “记录根目录”`records_root` 必须是绝对路径。已有任务选择原 `task_path` 的父目录，即包含多个 UUID 子目录的 `pentest-records`，不是某个 UUID 目录。改配置后重新加载记录 MCP；只刷新 HTML 不会更新进程环境变量。升级不搬迁或删除任务数据。
+- 记录目录使用 `${DATAAGENT_PROJECT_DIR}/pentest-records`，由宿主在启动记录服务前解析，无需填写 `records_root`。同一任务的智能体和面板必须使用相同工作区；以工具返回的 `task_path/record_path` 为准。旧记录不自动迁移，续测需切回原工作区；旧目录不符合此布局时，在 MCP 环境配置中显式指定原绝对路径并重新加载记录服务，不能新建任务掩盖读取失败。
+- 多工作区部署需使用已修复项目变量解析的 DataAgent：面板查询必须使用会话工作区，而非服务启动目录；仅导入插件不会更新宿主。详见[运行故障与升级说明](docs/troubleshooting.md)。
 - 允许页面只读查询 `records.get_engagement_view`。安装插件或打开页面不等于授权扫描；不要为解决显示问题放开所有工具权限。连接受控网络或网关时遵循宿主鉴权配置，不把令牌写入记录。
 
 ## 开始任务时先打开工作台

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createHandler, tools } from '../plugins/pentest-tools/servers/records.mjs';
-import { validate } from '../plugins/pentest-tools/servers/validate.mjs';
+import { createHandler, tools } from '../external/plugin/servers/records.mjs';
+import { validate } from '../external/plugin/servers/validate.mjs';
 
 test('错误活动一次返回缺失与未知字段，修正后持久化且不影响版本', async () => {
   const root = await mkdtemp(join(await realpath(tmpdir()), 'activity-contract-'));
@@ -14,7 +14,7 @@ test('错误活动一次返回缺失与未知字段，修正后持久化且不�
     const base = { task_id: created.task_id, expected_revision: 1 };
     const activity = { action: 'run', id: 'act-001', intent: '识别端口与服务',
       startTime: '2026-10-17T00:00:00+08:00', status: 'running',
-      target: 'example.test', tool: 'mcp__plugin_pentest-tools_hexstrike__nmap_scan' };
+      target: 'example.test', tool: 'mcp__plugin_pentest-tools_scanner__nmap_scan' };
     const bad = await call('record_progress', { ...base, activities: [activity] });
     assert.equal(bad.success, false);
     for (const key of ['startedAt', 'summary', 'evidenceRefs', 'action', 'intent', 'startTime']) {
@@ -39,7 +39,7 @@ test('运行时Schema直接解释活动字段，不依赖模型猜测字段别�
 });
 
 test('技能中的活动示例与运行时输入Schema一致', async () => {
-  const doc = await readFile(new URL('../skills/pentest-tools/references/plugin-workbench.md', import.meta.url), 'utf8');
+  const doc = await readFile(new URL('../external/skill/references/plugin-workbench.md', import.meta.url), 'utf8');
   const match = doc.match(/<!-- record-progress-example -->\s*```json\n([\s\S]*?)\n```/);
   assert.ok(match);
   const schema = tools.find(item => item.name === 'record_progress').inputSchema;

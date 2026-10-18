@@ -6,8 +6,8 @@ import { sampleView } from './fixtures/plugin-view.mjs';
 
 if (!process.env.PLAYWRIGHT_MODULE) throw new Error('请提供 PLAYWRIGHT_MODULE 模块入口路径。');
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href);
-const ui = fileURLToPath(new URL('../plugins/pentest-tools/ui/', import.meta.url));
-const output = fileURLToPath(new URL('../plugins/pentest-tools/dist/screenshots/', import.meta.url));
+const ui = fileURLToPath(new URL('../external/plugin/ui/', import.meta.url));
+const output = fileURLToPath(new URL('../external/plugin/dist/screenshots/', import.meta.url));
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL });
 let assertions = 0;
@@ -206,8 +206,8 @@ async function stepStatusChecks() {
     id: `s${index}`, title: ['资产识别', '访问控制验证', '基线证据核对', '需账号的验证'][index], status,
     summary: ['尚未执行', '已保存正常请求，等待对照结果', '已核对现有证据', '缺少测试角色账号'][index], evidenceRefs: [],
   }));
-  view.preflight = { status: 'passed', checkedAt: view.updatedAt, server: 'plugin:pentest-tools:hexstrike',
-    tool: 'mcp__plugin_pentest-tools_hexstrike__server_health', summary: '合成健康响应，核心工具及本轮所用工具可用' };
+  view.preflight = { status: 'passed', checkedAt: view.updatedAt, server: 'plugin:pentest-tools:scanner',
+    tool: 'mcp__plugin_pentest-tools_scanner__server_health', summary: '合成健康响应，核心工具及本轮所用工具可用' };
   const { page, errors } = await pageFor('live', view);
   assert.deepEqual(await page.locator('.plan-step .badge').allTextContents(), ['待执行', '执行中', '已完成', '受阻']); assertions++;
   assert.match(await page.locator('.plan-counts').innerText(), /待执行 1 · 执行中 1 · 已完成 1 · 受阻 1/); assertions++;

@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { bundledLicenses } from './plugin-build-licenses.mjs';
 
 const repository = fileURLToPath(new URL('../', import.meta.url));
-const root = join(repository, 'plugins/pentest-tools');
+const root = join(repository, 'external/plugin');
 const require = createRequire(join(root, 'package.json'));
 const { build } = require('esbuild');
 const { zipSync } = require('fflate');
@@ -24,7 +24,7 @@ async function collect(directory, base, files = {}) {
 async function copySkills() {
   const target = join(root, 'skills/pentest-tools');
   await rm(target, { recursive: true, force: true }); // 仅清理声明为生成产物的目录。
-  await cp(join(repository, 'skills/pentest-tools'), target, { recursive: true });
+  await cp(join(repository, 'external/skill'), target, { recursive: true });
   const entry = join(target, 'SKILL.md');
   const source = await readFile(entry, 'utf8');
   await writeFile(entry, source.replace('name: pentest-tools\n',

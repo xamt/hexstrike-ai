@@ -77,12 +77,12 @@ class ProductBrandingTests(unittest.TestCase):
         self.assertIn(config, examples)
 
     def test_plugin_display_changes_without_identity_migration(self):
-        plugin = json.loads((ROOT / "plugins/pentest-tools/.dataagent-plugin/plugin.json").read_text())
+        plugin = json.loads((ROOT / "external/plugin/.dataagent-plugin/plugin.json").read_text())
         self.assertEqual(plugin["name"], "pentest-tools")
         self.assertIn(PRODUCT, plugin["description"])
-        self.assertIn(PRODUCT, plugin["userConfig"]["mcp_url"]["title"])
-        for path in ("plugins/pentest-tools/ui/app.js", "skills/pentest-tools/SKILL.md",
-                     "skills/pentest-tools/agents/openai.yaml"):
+        self.assertNotIn("userConfig", plugin)
+        for path in ("external/plugin/ui/app.js", "external/skill/SKILL.md",
+                     "external/skill/agents/openai.yaml"):
             with self.subTest(path=path):
                 source = (ROOT / path).read_text()
                 self.assertNotIn("HexStrike", source)

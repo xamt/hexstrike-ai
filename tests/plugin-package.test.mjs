@@ -5,10 +5,10 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { unzipSync } from '../plugins/pentest-tools/node_modules/fflate/esm/index.mjs';
+import { unzipSync } from '../external/plugin/node_modules/fflate/esm/index.mjs';
 import { fileURLToPath } from 'node:url';
 
-const root = new URL('../plugins/pentest-tools/', import.meta.url);
+const root = new URL('../external/plugin/', import.meta.url);
 const manifest = JSON.parse(await readFile(new URL('.dataagent-plugin/plugin.json', root), 'utf8'));
 const archive = `dist/pentest-tools-${manifest.version}.zip`;
 
@@ -36,7 +36,7 @@ test('ZIP 仅包含可分发内容，技能同步且摘要正确', async () => {
   assert.deepEqual(config, JSON.parse(await readFile(new URL('.mcp.json', root), 'utf8')),
     '发布包忠实使用当前MCP配置，不替换用户已确定的本机地址');
   assert.equal(JSON.parse(Buffer.from(files['.dataagent-plugin/plugin.json']).toString()).version, manifest.version);
-  const source = await readFile(new URL('../skills/pentest-tools/SKILL.md', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../external/skill/SKILL.md', import.meta.url), 'utf8');
   const packaged = Buffer.from(files['skills/pentest-tools/SKILL.md']).toString();
   assert.equal(packaged.replace('displayName: 渗透测试工作台\nuser-invocable: true\n', ''), source);
   const hash = createHash('sha256').update(zip).digest('hex');

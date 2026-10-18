@@ -3,10 +3,10 @@ import { readFile, mkdtemp, realpath, readdir, rm } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import assert from 'node:assert/strict';
-import { Client } from '../plugins/pentest-tools/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js';
-import { StdioClientTransport } from '../plugins/pentest-tools/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js';
+import { Client } from '../external/plugin/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js';
+import { StdioClientTransport } from '../external/plugin/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js';
 
-const plugin = fileURLToPath(new URL('../plugins/pentest-tools/', import.meta.url));
+const plugin = fileURLToPath(new URL('../external/plugin/', import.meta.url));
 const host = process.env.DATAAGENT_SOURCE_ROOT;
 if (!host) throw new Error('请用 DATAAGENT_SOURCE_ROOT 指定 DataAgent 应用源码根目录（含 src）。');
 if (!process.versions.bun) throw new Error('此源码验收使用 DataAgent 原生 Bun 运行时，请用 bun 执行，不替换宿主模块。');

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 
-const root = new URL('../plugins/pentest-tools/', import.meta.url);
+const root = new URL('../external/plugin/', import.meta.url);
 const json = async path => JSON.parse(await readFile(new URL(path, root), 'utf8'));
 
 test('DataAgent 插件同时声明技能、两个 MCP 和 HTML 面板', async () => {
@@ -11,13 +11,12 @@ test('DataAgent 插件同时声明技能、两个 MCP 和 HTML 面板', async ()
   assert.equal(manifest.skills, undefined, '默认技能目录不能重复声明');
   assert.equal(manifest.mcpServers, './.mcp.json');
   const config = await json('.mcp.json');
-  assert.equal(config.mcpServers.hexstrike.type, 'http');
-  assert.equal(config.mcpServers.hexstrike.url, 'http://127.0.0.1:8889/mcp');
+  assert.equal(config.mcpServers.scanner.type, 'http');
+  assert.equal(config.mcpServers.scanner.url, 'http://127.0.0.1:8889/mcp');
+  assert.deepEqual(Object.keys(config.mcpServers).sort(), ['records', 'scanner']);
   assert.equal(config.mcpServers.records.env.PENTEST_RECORDS_ROOT,
-    '${user_config.records_root}');
-  assert.equal(manifest.userConfig.records_root.type, 'directory');
-  assert.equal(manifest.userConfig.records_root.required, true);
-  assert.equal(manifest.userConfig.records_root.default, undefined, '不得猜测工作目录或固化开发者路径');
+    '${DATAAGENT_PROJECT_DIR}/pentest-records');
+  assert.equal(manifest.userConfig, undefined, '无需手工选项，不声明未接入的必填配置');
   const panel = await json(manifest.dataPanels);
   assert.equal(panel.schemaVersion, 2);
   assert.equal(panel.renderer, 'html');

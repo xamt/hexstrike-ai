@@ -4,8 +4,8 @@ import { mkdtemp, rm, realpath, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Client } from '../plugins/pentest-tools/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js';
-import { StdioClientTransport } from '../plugins/pentest-tools/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js';
+import { Client } from '../external/plugin/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js';
+import { StdioClientTransport } from '../external/plugin/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js';
 import { verifyWorkflowProtocol } from './fixtures/plugin-workflow-protocol.mjs';
 
 async function verifyActivityContract(call, task) {
@@ -43,7 +43,7 @@ test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时�
   const root = await realpath(await mkdtemp(join(tmpdir(), 'pentest-plugin-protocol-')));
   const client = new Client({ name: 'offline-test', version: '1.0.0' });
   const transport = new StdioClientTransport({ command: process.execPath,
-    args: [process.env.PENTEST_PLUGIN_ENTRY || fileURLToPath(new URL('../plugins/pentest-tools/dist/records.cjs', import.meta.url))],
+    args: [process.env.PENTEST_PLUGIN_ENTRY || fileURLToPath(new URL('../external/plugin/dist/records.cjs', import.meta.url))],
     env: { PENTEST_RECORDS_ROOT: root }, stderr: 'pipe' });
   let errors = '';
   transport.stderr?.on('data', chunk => { errors += chunk; });

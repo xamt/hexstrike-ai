@@ -4,7 +4,7 @@ import { runInNewContext } from 'node:vm';
 import test from 'node:test';
 
 const context = { window: {} };
-runInNewContext(readFileSync(new URL('../plugins/pentest-tools/ui/model.js', import.meta.url), 'utf8'), context);
+runInNewContext(readFileSync(new URL('../external/plugin/ui/model.js', import.meta.url), 'utf8'), context);
 const model = context.window.Pentest.model;
 
 test('本地分页保留完整集合并收敛越界页', () => {
@@ -86,7 +86,7 @@ function harness(initial, query) {
     return elements.get(id);
   } };
   const window = { Pentest: P, DataAgentPanel: panel, addEventListener() {} };
-  runInNewContext(readFileSync(new URL('../plugins/pentest-tools/ui/app.js', import.meta.url), 'utf8'), { window, document });
+  runInNewContext(readFileSync(new URL('../external/plugin/ui/app.js', import.meta.url), 'utf8'), { window, document });
   return { calls, elements, emit: next => { current = next; listener(next); } };
 }
 
@@ -176,7 +176,7 @@ test('键盘方向键切换页签并维护ARIA状态', async () => {
 
 test('视图没有直接网络调用、动态HTML或自建轮询', () => {
   for (const name of ['model', 'dom', 'progress', 'report', 'app']) {
-    const source = readFileSync(new URL(`../plugins/pentest-tools/ui/${name}.js`, import.meta.url), 'utf8');
+    const source = readFileSync(new URL(`../external/plugin/ui/${name}.js`, import.meta.url), 'utf8');
     assert.doesNotMatch(source, /innerHTML|outerHTML|insertAdjacentHTML|\bfetch\s*\(|XMLHttpRequest|setInterval\s*\(|setTimeout\s*\(/);
   }
 });

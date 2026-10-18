@@ -19,7 +19,7 @@ export function sampleView() {
       asset('A-04', 'data', '演示订单元数据', { sensitivity: '已脱敏 · 无真实记录', parentId: 'A-03' })],
     findings: [finding('F-01', 'confirmed', 'high', '合成发现：对象级授权缺口'),
       finding('F-02', 'suspected', 'medium', '待验证：关联接口权限一致性')],
-    activities: [{ id: 'T-01', tool: 'plugin:pentest-tools:hexstrike / httpx_probe',
+    activities: [{ id: 'T-01', tool: 'plugin:pentest-tools:scanner / httpx_probe',
       target: 'app.example.test', status: 'running', startedAt: now,
       summary: '仅验证执行记录展示，未调用真实工具。', evidenceRefs }],
     attackChains: [{ id: 'C-01', title: '合成路径：对象访问 → 数据范围', status: 'partial',

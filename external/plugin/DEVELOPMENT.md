@@ -4,10 +4,10 @@
 
 ## 组件与数据流
 
-- 技能源在仓库 `skills/pentest-tools`；负责规划、工具选择、低影响验证、证据与报告，不重复实现扫描器。
-- 远端服务 ID 为 `plugin:pentest-tools:hexstrike`，本地记录服务为 `plugin:pentest-tools:records`，面板为 `pentest-workbench`。名称是绑定契约，不随意改动。
+- 技能源在仓库 `external/skill`；负责规划、工具选择、低影响验证、证据与报告，不重复实现扫描器。
+- 远端服务 ID 为 `plugin:pentest-tools:scanner`，本地记录服务为 `plugin:pentest-tools:records`，面板为 `pentest-workbench`。名称是绑定契约，不随意改动。
 - `.mcp.json` 原样打包；当前远端地址固定为 `http://127.0.0.1:8889/mcp`，不是 8888 业务 API。当前连接没有引用 `user_config.mcp_url`，不能把修改该配置项说成已经修改连接地址；需要另行修改连接配置。
-- 记录服务只读写任务目录，不连接目标、不执行命令。`PENTEST_RECORDS_ROOT` 明确映射必填 `${user_config.records_root}`，不以 cwd 推导，不自动迁移旧数据。
+- 记录服务只读写任务目录，不连接目标、不执行命令。`PENTEST_RECORDS_ROOT` 映射 `${DATAAGENT_PROJECT_DIR}/pentest-records`，由宿主展开为绝对路径；不再声明必填 userConfig，记录服务自身不推导 cwd，不自动迁移旧数据。
 - 任务 UUID、不可变 revision 快照、CAS 与跨进程锁共同防止覆盖。目录/文件权限为 0700/0600，拒绝符号链接与路径逃逸。证据由智能体写入任务目录，服务只保存引用。
 - 单版本上限 1 MiB，资产 500、漏洞 200、活动 500、攻击链 100；超限明确报错，不截断。崩溃遗留锁不自动删除，确认无写入进程并备份后再处理。
 - HTML 只读查询记录，每 10 秒由宿主轮询；历史快照不查询。内容使用 `textContent`，不解析不可信 HTML，不直接调用远端工具。工具状态来自智能体记录，不是进程遥测。
@@ -62,7 +62,7 @@ npm run build
 npm test
 ```
 
-需要 Node.js 22 或更高版本。依赖版本由 `package-lock.json` 固定。根目录 `scripts/plugin-build.mjs` 复制技能、补充 DataAgent 元信息、打包记录服务，输出 `dist/records.cjs`、`dist/pentest-tools-1.0.6.zip` 和 `.sha256`。生成的技能与 dist 不手工维护。
+需要 Node.js 22 或更高版本。依赖版本由 `package-lock.json` 固定。根目录 `scripts/plugin-build.mjs` 复制技能、补充 DataAgent 元信息、打包记录服务，输出 `dist/records.cjs`、`dist/pentest-tools-1.0.7.zip` 和 `.sha256`。生成的技能与 dist 不手工维护。
 
 打包采用白名单：插件清单、MCP 配置、面板、UI、技能、智能体 README、`docs/data-contract.md`、`docs/troubleshooting.md`、记录服务及其第三方声明。开发文档 `DEVELOPMENT.md`、其他未列出的 docs、测试、源码工具链、截图、真实记录、node_modules 与工作流状态不进入 ZIP。新增运行文档时显式调整白名单和包测试。
 
@@ -72,6 +72,7 @@ npm test
 
 - 插件测试覆盖临时目录记录、CAS、计划新建/更新/历史兼容、真实 SDK stdio 的面板事件、ZIP 内容与独立解包启动。
 - 从仓库根运行 `DATAAGENT_SOURCE_ROOT="<DataAgent应用源码根目录>" bun "scripts/plugin-host-check.mjs"`，使用宿主原生 Schema 校验。
+- 从仓库根运行 `DATAAGENT_SOURCE_ROOT="<DataAgent应用源码根目录>" bun "scripts/plugin-environment-check.mjs"`，复现旧配置缺值错误并验证工作区变量展开。
 - 浏览器离线检查：`PLAYWRIGHT_MODULE="<Playwright模块入口绝对路径>" node "tests/plugin-browser.mjs"`；使用已安装 Chrome 时增加 `PLAYWRIGHT_CHANNEL=chrome`。页面资源全部拦截，使用合成 SDK 与数据；截图进入 `dist/screenshots`，不打包。
 - 验证计划先于工具活动显示、换行和不可信文本安全、旧任务无计划提示、窄窗口、错误及历史快照。离线验证不等于实际智能体安装联调通过。
 - 本次功能不要求镜像构建、数据库连接或真实扫描。导入新版后保留原记录根目录和 UUID，重新加载记录 MCP；旧任务没有计划时不会自动产生计划。

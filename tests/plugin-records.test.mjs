@@ -4,7 +4,7 @@ import { mkdtemp, realpath, readFile, readdir, mkdir, symlink, stat, rm, writeFi
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { createHandler, tools } from '../plugins/pentest-tools/servers/records.mjs';
+import { createHandler, tools } from '../external/plugin/servers/records.mjs';
 
 /** Create an isolated store that is removed after each test. */
 async function store(t) {
@@ -57,7 +57,7 @@ test('按ID更新、引用校验、计数和revision历史', async t => {
     task_id: taskId, expected_revision: 1, status: 'running', phase: '验证',
     assets: [asset(), { ...asset('A-2'), kind: 'service', value: 'HTTPS', parentId: 'A-1', port: 443, protocol: 'tcp', service: 'https' }],
     findings: [finding()],
-    activities: [{ id: 'T-1', tool: 'plugin:pentest-tools:hexstrike:nmap_scan', target: 'example.test', status: 'running', startedAt: '2026-10-17T01:00:00Z', summary: '仅为离线夹具', evidenceRefs: [] }],
+    activities: [{ id: 'T-1', tool: 'plugin:pentest-tools:scanner:nmap_scan', target: 'example.test', status: 'running', startedAt: '2026-10-17T01:00:00Z', summary: '仅为离线夹具', evidenceRefs: [] }],
     attackChains: [{ id: 'C-1', title: '对象访问链', status: 'verified', steps: [{ findingId: 'F-1', description: '已复核', verified: true }], impact: '受限影响', evidenceRefs: ['evidence/F-1.txt'] }],
   });
   assert.equal(result.success, true, JSON.stringify(result));
@@ -141,7 +141,7 @@ test('完整报告导出、PoC fence安全、阶段标识与版本固定', async
 test('跨进程CAS只允许一个版本写入', async t => {
   const { root, call } = await store(t);
   const taskId = await create(call);
-  const moduleUrl = new URL('../plugins/pentest-tools/servers/records.mjs', import.meta.url).href;
+  const moduleUrl = new URL('../external/plugin/servers/records.mjs', import.meta.url).href;
   const code = `import {createHandler} from ${JSON.stringify(moduleUrl)}; console.log(JSON.stringify(await createHandler({root:process.argv[1]})('record_progress',{task_id:process.argv[2],expected_revision:1,phase:'跨进程'})));`;
   const run = () => new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['--input-type=module', '-e', code, root, taskId], { stdio: ['ignore', 'pipe', 'pipe'] });
