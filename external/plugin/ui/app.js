@@ -10,7 +10,8 @@
   let taskId = '';
   let busy = false;
   let ready = false;
-  let tab = 'progress';
+  const tabs = ['plan', 'progress', 'report'];
+  let tab = 'plan';
   let localError = '';
   let requestedTask = '';
 
@@ -33,7 +34,14 @@
     const selection = typeof active?.selectionStart === 'number' ? active.selectionStart : undefined;
     const content = byId('panel-content');
     const asOf = view && P.model.displayTime(latest?.mode, view);
-    if (view) content.replaceChildren(tab === 'progress' ? P.progress(view, filters, updateFilters, asOf) : P.report(view, asOf));
+    if (view) {
+      const pages = { plan: () => P.testPlan(view,
+        { stale: Boolean(queryError()), snapshot: latest?.mode === 'snapshot' }),
+        progress: () => P.progress(view, filters, updateFilters, asOf,
+        { stale: Boolean(queryError()), snapshot: latest?.mode === 'snapshot' }),
+        report: () => P.report(view, asOf) };
+      content.replaceChildren(pages[tab]());
+    }
     else content.replaceChildren(P.dom.empty(
       latest?.mode === 'snapshot' ? '快照未保存任务数据' : queryError() ? '未能读取任务记录' : taskId ? '等待任务记录' : '尚未选择测试任务',
       latest?.mode === 'snapshot' ? '历史快照不会发起查询；本地筛选和页签仍可使用。'
@@ -46,6 +54,12 @@
       replacement.focus({ preventScroll: true });
       if (selection !== undefined && replacement.setSelectionRange) replacement.setSelectionRange(selection, selection);
     }
+    updateRecordAge();
+  }
+
+  function updateRecordAge() {
+    const node = byId('record-age');
+    if (node && view) node.textContent = latest?.mode === 'snapshot' ? '历史快照' : P.model.recordAge(view.updatedAt);
   }
 
   function renderHeading() {
@@ -77,7 +91,7 @@
       view = undefined;
       localError = '';
       filters = initial();
-      activate('progress');
+      activate('plan');
     }
     if (taskId && incoming?.taskId === taskId && incoming.schemaVersion === 1) view = incoming;
     renderHeading();
@@ -104,7 +118,7 @@
 
   function activate(name, focus = false) {
     tab = name;
-    ['progress', 'report'].forEach(value => {
+    tabs.forEach(value => {
       const button = byId(`tab-${value}`);
       button.setAttribute('aria-selected', String(name === value));
       button.tabIndex = name === value ? 0 : -1;
@@ -115,12 +129,13 @@
   }
 
   function bindTabs() {
-    ['progress', 'report'].forEach(name => {
+    tabs.forEach(name => {
       const button = byId(`tab-${name}`);
       button.addEventListener('click', () => activate(name));
       button.addEventListener('keydown', event => {
-        const next = { ArrowLeft: name === 'progress' ? 'report' : 'progress',
-          ArrowRight: name === 'progress' ? 'report' : 'progress', Home: 'progress', End: 'report' }[event.key];
+        const index = tabs.indexOf(name);
+        const next = { ArrowLeft: tabs[(index + tabs.length - 1) % tabs.length],
+          ArrowRight: tabs[(index + 1) % tabs.length], Home: tabs[0], End: tabs.at(-1) }[event.key];
         if (next) { event.preventDefault(); activate(next, true); }
       });
     });
@@ -134,6 +149,8 @@
     byId('notice').textContent = '未连接 DataAgent 面板宿主。请从已安装插件打开工作台，并启用 records MCP 与远端 pentest-tools MCP；此页面不会直接调用 HTTP 接口。';
     return;
   }
+  const ageTimer = window.setInterval(updateRecordAge, 15000);
+  window.addEventListener('pagehide', () => window.clearInterval(ageTimer), { once: true });
   const unsubscribe = panel.subscribe(receive);
   window.addEventListener('pagehide', unsubscribe, { once: true });
   panel.ready.then(state => { ready = true; receive(state || panel.getState()); }).catch(error => {

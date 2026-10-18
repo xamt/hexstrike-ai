@@ -44,6 +44,16 @@
     return Number.isNaN(parsed.getTime()) ? '未记录' : parsed.toLocaleString('zh-CN', { hour12: false });
   }
 
+  /** 相对时间仅描述本地记录新鲜度，不代表远端工具心跳。 */
+  function recordAge(value, now = Date.now()) {
+    const elapsed = now - Date.parse(value);
+    if (!Number.isFinite(elapsed)) return '记录时间未知';
+    if (elapsed < 0 || elapsed < 30000) return '刚刚更新';
+    if (elapsed < 60000) return `${Math.floor(elapsed / 1000)} 秒前更新`;
+    if (elapsed < 3600000) return `${Math.floor(elapsed / 60000)} 分钟前更新`;
+    return `${Math.floor(elapsed / 3600000)} 小时前更新 · 可能滞后`;
+  }
+
   function searchAsset(asset, query) {
     return [asset.id, asset.value, asset.description, asset.port, asset.protocol, asset.service]
       .filter(value => value !== undefined).join(' ').toLowerCase().includes(query.toLowerCase());
@@ -54,12 +64,6 @@
     return mode === 'snapshot' ? Date.parse(view.updatedAt) : now;
   }
 
-  /** 首页仅突出尚未完成的最新记录，完整历史由独立区域展示。 */
-  function currentActivities(activities) {
-    return activities.filter(item => ['running', 'unknown'].includes(item.status))
-      .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt)).slice(0, 3);
-  }
-
   /** 区分已连接但找不到记录与传输错误，避免诱导重建任务。 */
   function recordErrorHint(error) {
     if (/"code"\s*:\s*"NOT_FOUND"/.test(String(error))) {
@@ -68,5 +72,5 @@
     return '请根据错误检查记录 MCP 连接、读取权限和记录完整性。';
   }
 
-  window.Pentest = { model: { names, paginate, activityState, severityCounts, date, searchAsset, displayTime, currentActivities, recordErrorHint } };
+  window.Pentest = { model: { names, paginate, activityState, severityCounts, date, recordAge, searchAsset, displayTime, recordErrorHint } };
 }());

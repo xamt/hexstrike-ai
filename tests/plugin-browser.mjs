@@ -57,6 +57,12 @@ async function capture(page, name) {
 async function liveChecks() {
   const { page, errors } = await pageFor('live', sampleView());
   assert.equal(await page.evaluate(() => window.calls.length), 1); assertions++;
+  assert.deepEqual(await page.locator('.tabs [role="tab"]').allTextContents(), ['渗透计划', '渗透进度', '渗透报告']); assertions++;
+  assert.equal(await page.locator('#tab-plan').getAttribute('aria-selected'), 'true'); assertions++;
+  await page.locator('#tab-plan').focus();
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.match(await page.locator('.now-card').innerText(), /疑点复核与证据整理/); assertions++;
   assert.equal(await page.locator('#panel-content tbody tr').count(), 4); assertions++;
   await capture(page, 'progress-wide');
   await page.selectOption('#asset-kind', 'data');
@@ -77,12 +83,14 @@ async function liveChecks() {
   await capture(page, 'report-narrow-finding');
   await page.click('#tab-progress');
   await capture(page, 'progress-narrow');
+  assert.equal(await page.evaluate(() => window.calls.length), 1, '切换三页不触发额外查询'); assertions++;
   assert.deepEqual(errors, []); assertions++;
   await page.close();
 }
 
 async function stateChecks() {
   const { page, errors } = await pageFor('snapshot', sampleView());
+  await page.click('#tab-progress');
   assert.equal(await page.evaluate(() => window.calls.length), 0); assertions++;
   assert.equal(await page.locator('#refresh').isDisabled(), true); assertions++;
   await capture(page, 'snapshot');
@@ -92,6 +100,7 @@ async function stateChecks() {
     window.emit();
   });
   assert.match(await page.locator('#notice').innerText(), /合成断连.*保留旧数据/); assertions++;
+  assert.match(await page.locator('.now-card').innerText(), /上次记录的工作/); assertions++;
   assert.equal(await page.locator('#panel-content tbody tr').count(), 4); assertions++;
   await capture(page, 'error-stale');
   assert.deepEqual(errors, []); assertions++;
@@ -99,6 +108,7 @@ async function stateChecks() {
   const empty = sampleView();
   empty.assets = []; empty.findings = []; empty.activities = []; empty.attackChains = [];
   const emptyPage = await pageFor('snapshot', empty);
+  await emptyPage.page.click('#tab-progress');
   assert.ok((await emptyPage.page.locator('#panel-content').innerText()).includes('暂无匹配资产')); assertions++;
   await capture(emptyPage.page, 'empty');
   await emptyPage.page.close();
@@ -135,7 +145,7 @@ async function planChecks() {
     assetCount: 0, confirmedCount: 0, suspectedCount: 0, runningCount: 0,
     plan: '阶段1：核对目标与范围\n阶段2：复用工具验证疑点\n停止条件：服务退化立即停止\n<img src=x onerror="window.injected=true">' });
   const { page, errors } = await pageFor('live', planned);
-  assert.equal(await page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.equal(await page.locator('#tab-plan').getAttribute('aria-selected'), 'true'); assertions++;
   assert.equal(await page.locator('.test-plan .multiline').textContent(), planned.plan); assertions++;
   assert.equal(await page.locator('#panel-content section').first().getAttribute('class'), 'section test-plan'); assertions++;
   assert.match(await page.locator('#task-meta').innerText(), /待开始/); assertions++;
@@ -153,7 +163,7 @@ async function planChecks() {
   assert.equal(await legacy.page.evaluate(() => window.calls.length), 0); assertions++;
   await legacy.page.close();
   const early = await pageFor('live', { ...planned, plan: '', planSteps: [], phase: '制定测试计划' });
-  assert.equal(await early.page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.equal(await early.page.locator('#tab-plan').getAttribute('aria-selected'), 'true'); assertions++;
   assert.match(await early.page.locator('.test-plan').innerText(), /正在制定测试计划/); assertions++;
   assert.match(await early.page.locator('.test-plan').innerText(), /尚未开始目标测试/); assertions++;
   assert.match(await early.page.locator('.test-plan').innerText(), /MCP 尚未检查/); assertions++;
@@ -170,7 +180,7 @@ async function planChecks() {
     sources.view.value.taskId = sources.context.value.taskId;
     window.emit();
   });
-  assert.equal(await early.page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.equal(await early.page.locator('#tab-plan').getAttribute('aria-selected'), 'true'); assertions++;
   assert.equal(await early.page.evaluate(() => window.calls.length), 2); assertions++;
   assert.deepEqual(early.errors, []); assertions++;
   await early.page.close();
@@ -179,7 +189,7 @@ async function planChecks() {
 async function unboundWorkbenchChecks() {
   const view = sampleView();
   const { page, errors } = await pageFor('live', view, { unbound: true });
-  assert.equal(await page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.equal(await page.locator('#tab-plan').getAttribute('aria-selected'), 'true'); assertions++;
   assert.match(await page.locator('#panel-content').innerText(), /工作台已打开，等待 Agent 确认目标与范围/); assertions++;
   assert.equal(await page.evaluate(() => window.calls.length), 0, '无真实任务时不查询记录'); assertions++;
   await capture(page, 'unbound-wide');
@@ -194,7 +204,7 @@ async function unboundWorkbenchChecks() {
   }, view);
   await page.locator('#task-title').filter({ hasText: view.title }).waitFor();
   assert.equal(await page.evaluate(() => window.calls.length), 1, '绑定任务后只查询一次'); assertions++;
-  assert.equal(await page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.equal(await page.locator('#tab-plan').getAttribute('aria-selected'), 'true'); assertions++;
   assert.deepEqual(errors, []); assertions++;
   await page.close();
 }
@@ -209,10 +219,35 @@ async function stepStatusChecks() {
   view.preflight = { status: 'passed', checkedAt: view.updatedAt, server: 'plugin:pentest-tools:scanner',
     tool: 'mcp__plugin_pentest-tools_scanner__server_health', summary: '合成健康响应，核心工具及本轮所用工具可用' };
   const { page, errors } = await pageFor('live', view);
+  assert.equal(await page.locator('.stage-track .stage').count(), 4); assertions++;
+  assert.equal(await page.locator('.stage-track .stage[data-status="running"]').count(), 1); assertions++;
+  assert.match(await page.locator('.stage-now').innerText(), /当前阶段.*访问控制验证/s); assertions++;
+  const archived = await pageFor('snapshot', view);
+  assert.match(await archived.page.locator('.stage-now').innerText(), /快照时的阶段.*访问控制验证/s); assertions++;
+  await archived.page.close();
   assert.deepEqual(await page.locator('.plan-step .badge').allTextContents(), ['待执行', '执行中', '已完成', '受阻']); assertions++;
   assert.match(await page.locator('.plan-counts').innerText(), /待执行 1 · 执行中 1 · 已完成 1 · 受阻 1/); assertions++;
   assert.match(await page.locator('.preflight').innerText(), /最近检查通过.*检查于/s); assertions++;
   await capture(page, 'steps-wide');
+  await page.click('#tab-progress');
+  assert.match(await page.locator('.now-card').innerText(), /当前正在进行.*访问控制验证/s); assertions++;
+  assert.match(await page.locator('.now-card').innerText(), /最近工具记录.*Agent 留存/s); assertions++;
+  assert.deepEqual(await page.locator('.metric strong').allTextContents(), ['4', '1', '1', '1']); assertions++;
+  await capture(page, 'progress-active-wide');
+  await page.evaluate(() => {
+    const current = window.mockState.document.data.runtime.dataSources.view.value;
+    current.revision++;
+    current.assets.push({ ...current.assets[0], id: 'A-05', value: '192.0.2.11' });
+    current.findings.push({ ...current.findings[1], id: 'F-03', title: '新留存线索' });
+    current.activities.push({ ...current.activities[0], id: 'T-02', tool: '合成新工具记录',
+      startedAt: new Date(Date.parse(current.updatedAt) + 1000).toISOString() });
+    current.updatedAt = new Date(Date.parse(current.updatedAt) + 1000).toISOString();
+    window.emit();
+  });
+  assert.deepEqual(await page.locator('.metric strong').allTextContents(), ['5', '1', '2', '2']); assertions++;
+  assert.match(await page.locator('.now-card').innerText(), /合成新工具记录/); assertions++;
+  assert.equal(await page.evaluate(() => window.calls.length), 1, '留存快照更新不重复发查询'); assertions++;
+  await page.click('#tab-plan');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('.test-plan').scrollIntoViewIfNeeded();
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); assertions++;
@@ -230,7 +265,10 @@ async function stepStatusChecks() {
   assert.deepEqual(await page.locator('.plan-step .badge').allTextContents(), ['待执行', '受阻', '已完成', '受阻']); assertions++;
   assert.match(await page.locator('.preflight').innerText(), /检查未通过.*已暂停测试派发/s); assertions++;
   assert.match(await page.locator('[data-step-id="s1"]').innerText(), /远端执行状态未知/); assertions++;
+  assert.equal(await page.locator('.stage-track .stage[data-status="running"]').count(), 0); assertions++;
   assert.equal(await page.evaluate(() => window.calls.length), 1, '状态更新不追加查询或打开'); assertions++;
+  await page.click('#tab-progress');
+  assert.match(await page.locator('.now-card').innerText(), /已暂停.*停止新的目标测试/s); assertions++;
   await capture(page, 'steps-blocked');
   assert.deepEqual(errors, []); assertions++;
   await page.close();

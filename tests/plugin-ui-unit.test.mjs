@@ -41,13 +41,10 @@ test('快照执行状态按留存时点派生，不随着查看日期变化', ()
   assert.equal(model.activityState(activity, model.displayTime('live', view, Date.parse('2027-01-01T00:00:00Z'))).label, '状态待确认');
 });
 
-test('当前工具最多展示三条最新执行中或未知记录，不混入历史完成项', () => {
-  const rows = ['running', 'succeeded', 'unknown', 'running', 'running'].map((status, index) => ({
-    id: String(index), status, startedAt: `2026-10-17T10:0${index}:00Z`,
-  }));
-  const selected = model.currentActivities(rows);
-  assert.equal(selected.map(item => item.id).join(','), '4,3,2');
-  assert.equal(rows.length, 5);
+test('记录相对时间只说明新鲜度，长时间未更新明确标记可能滞后', () => {
+  const now = Date.parse('2026-10-17T10:10:00Z');
+  assert.equal(model.recordAge('2026-10-17T10:09:50Z', now), '刚刚更新');
+  assert.equal(model.recordAge('2026-10-17T09:00:00Z', now), '1 小时前更新 · 可能滞后');
 });
 
 class Element {
@@ -79,13 +76,14 @@ function harness(initial, query) {
     query: async (id, parameters) => { calls.push({ id, parameters }); return query?.(id, parameters); },
   };
   const P = { model, dom: { empty: (title, detail) => ({ title, detail }) },
+    testPlan: view => ({ planTaskId: view.taskId }),
     progress: (view, filters, update, asOf) => ({ taskId: view.taskId, asOf }),
     report: (view, asOf) => ({ reportTaskId: view.taskId, asOf }) };
   const document = { getElementById: id => {
     if (!elements.has(id)) elements.set(id, new Element(id));
     return elements.get(id);
   } };
-  const window = { Pentest: P, DataAgentPanel: panel, addEventListener() {} };
+  const window = { Pentest: P, DataAgentPanel: panel, addEventListener() {}, setInterval: () => 1, clearInterval() {} };
   runInNewContext(readFileSync(new URL('../external/plugin/ui/app.js', import.meta.url), 'utf8'), { window, document });
   return { calls, elements, emit: next => { current = next; listener(next); } };
 }
@@ -97,6 +95,8 @@ test('快照不查询，页签可以在本地切换', async () => {
   await settle();
   assert.equal(h.calls.length, 0);
   assert.equal(h.elements.get('refresh').disabled, true);
+  assert.equal(h.elements.get('panel-content').children[0].planTaskId, 'task-a');
+  h.elements.get('tab-progress').listeners.click();
   assert.equal(h.elements.get('panel-content').children[0].asOf, Date.parse('2026-10-17T10:00:00Z'));
   h.elements.get('tab-report').listeners.click();
   assert.equal(h.elements.get('panel-content').children[0].reportTaskId, 'task-a');
@@ -122,7 +122,7 @@ test('切换任务时立即清空旧数据，新任务仅查询一次', async ()
   assert.equal(h.calls.length, 2);
   assert.equal(h.calls[1].parameters.task_id, 'task-b');
   h.emit(state('live', 'task-b'));
-  assert.equal(h.elements.get('panel-content').children[0].taskId, 'task-b');
+  assert.equal(h.elements.get('panel-content').children[0].planTaskId, 'task-b');
 });
 
 test('读取失败保留旧数据并明确提示，不自动重试', async () => {
@@ -130,7 +130,7 @@ test('读取失败保留旧数据并明确提示，不自动重试', async () =>
   await settle();
   assert.equal(h.calls.length, 1);
   assert.match(h.elements.get('notice').textContent, /连接不可用.*保留旧数据/);
-  assert.equal(h.elements.get('panel-content').children[0].taskId, 'task-a');
+  assert.equal(h.elements.get('panel-content').children[0].planTaskId, 'task-a');
 });
 
 test('NOT_FOUND明确提示目录和任务核对，不误报MCP未连接或诱导重跑', async () => {
@@ -167,16 +167,20 @@ test('键盘方向键切换页签并维护ARIA状态', async () => {
   const h = harness(state('snapshot', 'task-a'));
   await settle();
   let prevented = false;
-  h.elements.get('tab-progress').listeners.keydown({ key: 'ArrowRight', preventDefault: () => { prevented = true; } });
+  h.elements.get('tab-plan').listeners.keydown({ key: 'ArrowRight', preventDefault: () => { prevented = true; } });
   assert.equal(prevented, true);
+  assert.equal(h.elements.get('tab-progress').attributes['aria-selected'], 'true');
+  h.elements.get('tab-progress').listeners.keydown({ key: 'ArrowRight', preventDefault: () => {} });
   assert.equal(h.elements.get('tab-report').attributes['aria-selected'], 'true');
   assert.equal(h.elements.get('tab-progress').tabIndex, -1);
   assert.equal(h.elements.get('panel-content').attributes['aria-labelledby'], 'tab-report');
 });
 
-test('视图没有直接网络调用、动态HTML或自建轮询', () => {
-  for (const name of ['model', 'dom', 'progress', 'report', 'app']) {
+test('视图没有直接网络调用或动态HTML，仅本地年龄文案定时刷新', () => {
+  for (const name of ['model', 'dom', 'plan', 'progress', 'report', 'app']) {
     const source = readFileSync(new URL(`../external/plugin/ui/${name}.js`, import.meta.url), 'utf8');
-    assert.doesNotMatch(source, /innerHTML|outerHTML|insertAdjacentHTML|\bfetch\s*\(|XMLHttpRequest|setInterval\s*\(|setTimeout\s*\(/);
+    assert.doesNotMatch(source, /innerHTML|outerHTML|insertAdjacentHTML|\bfetch\s*\(|XMLHttpRequest|setTimeout\s*\(/);
+    if (name !== 'app') assert.doesNotMatch(source, /setInterval\s*\(/);
+    else assert.match(source, /setInterval\(updateRecordAge, 15000\)/);
   }
 });

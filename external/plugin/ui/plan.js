@@ -5,6 +5,31 @@
   const labels = { pending: '待执行', running: '执行中', completed: '已完成', blocked: '受阻' };
   const tones = { pending: 'info', running: 'running', completed: 'succeeded', blocked: 'failed' };
 
+  /** 用真实步骤状态绘制阶段轨迹，只有 running 状态可标为当前阶段。 */
+  function stageTrack(steps, context) {
+    const wrap = el('div', 'stage-visual');
+    const active = steps.filter(step => step.status === 'running');
+    const now = el('div', 'stage-now');
+    const label = context.snapshot ? '快照时的阶段' : context.stale ? '上次记录的阶段' : '当前阶段';
+    now.append(el('span', 'eyebrow', active.length ? label : '阶段状态'),
+      el('strong', '', active.length ? active.map(step => step.title).join(' · ')
+        : steps.every(step => step.status === 'completed') ? '已记录阶段均已完成' : '暂无执行中的阶段'));
+    wrap.append(now);
+    const track = el('ol', 'stage-track');
+    track.setAttribute('aria-label', '测试计划阶段轨迹');
+    steps.forEach((step, index) => {
+      const stage = el('li', 'stage');
+      stage.dataset.status = step.status;
+      if (step.id === active[0]?.id) stage.setAttribute('aria-current', 'step');
+      stage.append(el('span', 'stage-index', String(index + 1).padStart(2, '0')),
+        el('span', 'stage-title', step.title),
+        el('span', 'stage-status', labels[step.status] || '状态未知'));
+      track.append(stage);
+    });
+    wrap.append(track);
+    return wrap;
+  }
+
   /** 展示最近留存的MCP检查，不将其伪装成实时探测。 */
   function preflight(check) {
     const box = el('div', `preflight ${check?.status === 'failed' ? 'preflight-failed' : ''}`);
@@ -36,10 +61,11 @@
   }
 
   /** 渲染同一原子快照中的计划、健康检查与步骤状态。 */
-  function testPlan(view) {
-    const box = section('渗透测试计划', '状态由 Agent 按实际执行更新；一次工具成功不等于整个步骤完成。');
+  function testPlan(view, context = {}) {
+    const box = section('渗透测试计划', '沿已保存的步骤推进；状态由 Agent 按实际执行更新，一次工具成功不等于整个阶段完成。');
     box.classList.add('test-plan');
     const steps = view.planSteps ?? [];
+    if (steps.length) box.append(stageTrack(steps, context));
     if (view.plan?.trim()) box.append(el('p', 'multiline plan-text', view.plan));
     else if (!steps.length) {
       const planning = view.phase === '制定测试计划';

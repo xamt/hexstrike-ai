@@ -18,13 +18,13 @@
 create_engagement(plan) / record_progress(plan)
   → 校验并原子保存
   → 成功响应携带 panel.open + context 数据事件
-  → 宿主打开进度页并查询同一 task_id
+  → 宿主打开工作台计划页并查询同一 task_id
   → 页面首先展示已保存的渗透测试计划
 ```
 
 `plan` 为最多 20,000 字符的多行纯文本，整段替换，旧版本保留。计划与已验证结果分开呈现，保存计划不会扫描。1.0.3仅在成功写入非空计划时自动打开；1.0.5已将创建时机提前，当前规则见下节。每次打开生成新 runId，并保留写入返回的版本与路径。
 
-快照仍为 schemaVersion=1：旧快照可以没有 `plan`，新建任务默认空字符串；不自动推断历史计划。MCP 视图 Schema 和面板数据源均声明此可选字段，避免宿主丢弃字段。页面沿用现有色彩、排版、焦点与响应式规则，不新增依赖；进度页按计划、统计、当前工具、资产、漏洞、活动排列，空计划明确提示。
+快照仍为 schemaVersion=1：旧快照可以没有 `plan`，新建任务默认空字符串；不自动推断历史计划。MCP 视图 Schema 和面板数据源均声明此可选字段，避免宿主丢弃字段。页面沿用现有色彩、排版、焦点与响应式规则，不新增依赖；计划页展示阶段轨迹和前置检查，进度页按当前工作、统计、资产、漏洞、活动排列，空计划明确提示。
 
 ## 1.0.4：步骤状态与前置检查
 
@@ -42,7 +42,7 @@ create_engagement(plan) / record_progress(plan)
 
 宿主源码中`pluginPanelRuntime.ts`以会话/插件/面板复用实时实例，并按runId隔离首次报告；桌面`dataPanelStore.ts`接收新HTML运行事件后打开工作台。插件保持activation.autoOpen=true及records来源绑定，不修改宿主行为。旧客户端缺宿主read_panel或HTML能力时明确限制。
 
-保存非空plan仍请求打开并生成新run；普通步骤、活动和健康记录不重开。任务切换回到进度TAB，同一任务轮询保留用户所选TAB。保留健康检查前禁止目标测试的既有规则。测试仅证明离线协议、浏览器行为及当前宿主Schema，不宣称已完成真实客户端导入验收。
+保存非空plan仍请求打开并生成新run；普通步骤、活动和健康记录不重开。任务切换回到计划TAB，同一任务轮询保留用户所选TAB。进度页“最新工作”只来自留存快照，10秒查询与15秒记录年龄文案更新不代表远端进程心跳。保留健康检查前禁止目标测试的既有规则。测试仅证明离线协议、浏览器行为及当前宿主Schema，不宣称已完成真实客户端导入验收。
 
 ## 1.0.6：显式早开入口与宿主事件闭环
 
@@ -62,7 +62,7 @@ npm run build
 npm test
 ```
 
-需要 Node.js 22 或更高版本。依赖版本由 `package-lock.json` 固定。根目录 `scripts/plugin-build.mjs` 复制技能、补充 DataAgent 元信息、打包记录服务，输出 `dist/records.cjs`、`dist/pentest-tools-1.0.7.zip` 和 `.sha256`。生成的技能与 dist 不手工维护。
+需要 Node.js 22 或更高版本。依赖版本由 `package-lock.json` 固定。根目录 `scripts/plugin-build.mjs` 复制技能、补充 DataAgent 元信息、打包记录服务，输出 `dist/records.cjs`、`dist/pentest-tools-1.0.8.zip` 和 `.sha256`。生成的技能与 dist 不手工维护。
 
 打包采用白名单：插件清单、MCP 配置、面板、UI、技能、智能体 README、`docs/data-contract.md`、`docs/troubleshooting.md`、记录服务及其第三方声明。开发文档 `DEVELOPMENT.md`、其他未列出的 docs、测试、源码工具链、截图、真实记录、node_modules 与工作流状态不进入 ZIP。新增运行文档时显式调整白名单和包测试。
 

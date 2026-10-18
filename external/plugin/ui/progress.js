@@ -69,19 +69,37 @@
     return box;
   }
 
-  function currentTools(view, asOf) {
-    const box = section('当前工具（Agent 记录）', '仅展示最新 3 条执行中或状态未知记录；不是远端进程监控，完整历史见页面下方。');
-    box.classList.add('current-tools');
-    const current = P.model.currentActivities(view.activities);
-    current.forEach(item => {
-      const status = activityState(item, asOf);
-      const row = el('article', 'current-tool');
-      const identity = el('div', 'current-tool-identity');
-      identity.append(el('h3', 'mono', item.tool), el('p', 'muted', `目标：${item.target}`));
-      row.append(identity, badge(status.label, status.tone));
-      box.append(row);
-    });
-    if (!current.length) box.append(el('p', 'muted', '暂无执行中或状态未知的记录；缺少记录不代表工具未执行。'));
+  /** 最新进展仅取留存快照；陈旧运行记录不得称作正在执行的远端进程。 */
+  function currentWork(view, asOf, context) {
+    const box = el('section', 'now-card');
+    box.setAttribute('aria-label', '当前渗透进展');
+    const runningSteps = (view.planSteps || []).filter(step => step.status === 'running');
+    const phase = view.status === 'paused' ? '已暂停' : view.status === 'completed' ? '测试已完成'
+      : runningSteps.length ? runningSteps.map(step => step.title).join(' · ')
+        : view.status === 'planned' ? '等待开始' : view.phase || '等待新的步骤状态';
+    const age = asOf - Date.parse(view.updatedAt);
+    const stale = context.stale || (Number.isFinite(age) && age > 300000);
+    const label = context.snapshot ? '历史快照记录' : stale ? '上次记录的工作'
+      : view.status === 'running' && runningSteps.length ? '当前正在进行' : '当前进展';
+    const main = el('div', 'now-main');
+    main.append(el('p', 'now-label', label), el('h2', '', phase));
+    if (view.phase && view.phase !== phase) main.append(el('p', 'now-phase', `Agent 记录阶段：${view.phase}`));
+    const latest = [...view.activities].sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+    const detail = el('div', 'now-detail');
+    if (view.status === 'paused') detail.append(el('p', '', '停止新的目标测试；已有远端进程是否结束仍须核实。'));
+    else if (view.status === 'completed') detail.append(el('p', '', '已完成测试记录；查看报告核对最终结论与未验证项。'));
+    else if (latest) {
+      const state = activityState(latest, asOf);
+      detail.append(el('span', 'now-detail-label', '最近工具记录 · Agent 留存'),
+        el('p', 'mono', `${latest.tool} · ${latest.target}`),
+        el('p', '', latest.summary || '尚未保存执行摘要'), badge(state.label, state.tone));
+    } else detail.append(el('p', '', '等待 Agent 保存工具执行记录；此处不会主动发起扫描。'));
+    box.append(main, detail);
+    const timestamp = el('p', 'now-timestamp');
+    timestamp.append(el('span', '', `记录于 ${date(view.updatedAt)} · `), el('span', '', ''));
+    timestamp.lastChild.id = 'record-age';
+    timestamp.append(el('span', '', ' · 10 秒只读轮询，非远端进程心跳'));
+    box.append(timestamp);
     return box;
   }
 
@@ -105,7 +123,7 @@
     return box;
   }
 
-  function progress(view, state, update, asOf = Date.now()) {
+  function progress(view, state, update, asOf = Date.now(), context = {}) {
     const box = el('div');
     const metrics = el('div', 'metrics');
     const confirmed = view.findings.filter(item => item.status === 'confirmed').length;
@@ -116,7 +134,7 @@
       metric.append(el('span', 'muted', label), el('strong', '', count));
       metrics.append(metric);
     });
-    box.append(P.testPlan(view), metrics, currentTools(view, asOf), assets(view, state, update),
+    box.append(currentWork(view, asOf, context), metrics, assets(view, state, update),
       findings(view, state, update), activities(view, state, update, asOf));
     return box;
   }
