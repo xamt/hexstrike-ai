@@ -21,6 +21,8 @@ test('DataAgent 插件同时声明技能、两个 MCP 和 HTML 面板', async ()
   const panel = await json(manifest.dataPanels);
   assert.equal(panel.schemaVersion, 2);
   assert.equal(panel.renderer, 'html');
+  assert.equal(panel.activation.autoOpen, true);
+  assert.deepEqual(panel.activation.mcpServers, ['plugin:pentest-tools:records']);
   assert.deepEqual(panel.layout, { type: 'dashboard', sections: [] });
   await access(new URL(`${panel.template.root}/${panel.template.entry}`, root));
 });

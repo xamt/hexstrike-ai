@@ -150,6 +150,28 @@ async function planChecks() {
   assert.match(await legacy.page.locator('.test-plan').innerText(), /尚未记录测试计划/); assertions++;
   assert.equal(await legacy.page.evaluate(() => window.calls.length), 0); assertions++;
   await legacy.page.close();
+  const early = await pageFor('live', { ...planned, plan: '', planSteps: [], phase: '制定测试计划' });
+  assert.equal(await early.page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.match(await early.page.locator('.test-plan').innerText(), /正在制定测试计划/); assertions++;
+  assert.match(await early.page.locator('.test-plan').innerText(), /尚未开始目标测试/); assertions++;
+  assert.match(await early.page.locator('.test-plan').innerText(), /MCP 尚未检查/); assertions++;
+  await capture(early.page, 'early-open');
+  await early.page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await early.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); assertions++;
+  await capture(early.page, 'early-open-narrow');
+  await early.page.click('#tab-report');
+  await early.page.evaluate(() => window.emit());
+  assert.equal(await early.page.locator('#tab-report').getAttribute('aria-selected'), 'true'); assertions++;
+  await early.page.evaluate(() => {
+    const sources = window.mockState.document.data.runtime.dataSources;
+    sources.context.value.taskId = '00000000-0000-4000-8000-000000000002';
+    sources.view.value.taskId = sources.context.value.taskId;
+    window.emit();
+  });
+  assert.equal(await early.page.locator('#tab-progress').getAttribute('aria-selected'), 'true'); assertions++;
+  assert.equal(await early.page.evaluate(() => window.calls.length), 2); assertions++;
+  assert.deepEqual(early.errors, []); assertions++;
+  await early.page.close();
 }
 
 async function stepStatusChecks() {

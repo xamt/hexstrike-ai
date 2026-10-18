@@ -43,3 +43,20 @@ test('旧版无plan快照仍可读取和追加计划，不修改原版本', asyn
   assert.equal((await call('record_progress', { ...task, expected_revision: 1, plan: '补充已确认的计划' })).success, true);
   assert.equal(JSON.parse(await readFile(created.record_path, 'utf8')).plan, undefined);
 });
+
+test('先创建后补计划只改变规划阶段，显式阶段优先且不自动开始测试', async t => {
+  const call = await fixture(t);
+  for (const patch of [{ plan: '离线计划' }, { planSteps: [
+    { id: 's1', title: '离线核对', status: 'pending', summary: '', evidenceRefs: [] },
+  ] }, { plan: '离线计划', phase: '范围确认中' }]) {
+    const created = await call('create_engagement', { title: '规划', targets: ['example.test'], scope: '离线' });
+    const task = { task_id: created.task_id };
+    assert.equal((await call('get_engagement_view', task)).view.phase, '制定测试计划');
+    assert.equal((await call('record_progress', { ...task, expected_revision: 1, ...patch })).success, true);
+    const view = (await call('get_engagement_view', task)).view;
+    assert.equal(view.phase, patch.phase || '计划已记录');
+    assert.equal(view.status, 'planned');
+    assert.deepEqual(view.activities, []);
+    assert.equal(view.preflight, undefined);
+  }
+});

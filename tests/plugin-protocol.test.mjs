@@ -41,11 +41,17 @@ test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时�
       assert.equal(tools.find(item => item.name === name).annotations.readOnlyHint, false);
     }
     const call = (name, args) => client.callTool({ name, arguments: args });
-    assert.equal((await call('create_engagement', { title: '长'.repeat(161),
-      targets: ['example.test'], scope: '仅测试' })).isError, true);
-    const created = (await call('create_engagement', { title: '离线契约验证',
-      targets: ['example.test'], scope: '合成数据，无实际网络请求' })).structuredContent;
+    const rejected = await call('create_engagement', { title: '长'.repeat(161),
+      targets: ['example.test'], scope: '仅测试' });
+    assert.equal(rejected.isError, true);
+    assert.equal(rejected._meta, undefined);
+    const initial = await call('create_engagement', { title: '离线契约验证',
+      targets: ['example.test'], scope: '合成数据，无实际网络请求' });
+    const created = initial.structuredContent;
     assert.equal(created.success, true);
+    assert.deepEqual(initial._meta?.['dataagent/panelEvents'].map(event => event.type), ['panel.open', 'data.updated']);
+    assert.equal(initial._meta['dataagent/panelEvents'][1].data.taskId, created.task_id);
+    assert.equal(initial._meta['dataagent/panelEvents'][0].runId, created.runId);
     const task = { task_id: created.task_id };
     const first = await call('open_engagement', task);
     const second = await call('open_engagement', task);
@@ -57,6 +63,9 @@ test('真实 stdio 协商、任务记录、面板事件与导出仅操作临时�
     const view = (await call('get_engagement_view', task)).structuredContent.view;
     assert.equal(view.revision, 1);
     assert.deepEqual(view.assets, []);
+    assert.equal(view.phase, '制定测试计划');
+    assert.equal(view.plan, '');
+    assert.equal(view.preflight, undefined);
     const exported = await call('export_report', { ...task, expected_revision: 1 });
     assert.equal(exported.isError, false);
     const bad = await call('record_progress', { ...task, expected_revision: 0, phase: '错误版本' });
@@ -103,7 +112,7 @@ async function verifyPlanEvents(call) {
   assert.equal(normal._meta, undefined);
   const blank = await call('create_engagement', { title: '空计划', targets: ['example.test'], scope: '离线', plan: ' ' });
   assert.equal(blank.isError, false);
-  assert.equal(blank._meta, undefined);
+  assert.equal(blank._meta['dataagent/panelEvents'][0].type, 'panel.open');
   const bad = await call('record_progress', { ...task, expected_revision: 3, plan: 123 });
   assert.equal(bad.isError, true);
   assert.equal(bad._meta, undefined);
