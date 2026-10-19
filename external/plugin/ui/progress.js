@@ -61,7 +61,7 @@
   }
 
   function activities(view, state, update, asOf) {
-    const box = section('Agent 执行记录 · 非进程监控', '显示 Agent 调用工具前后保存的记录。执行中超过 5 分钟标记待确认，不代表任务被停止。');
+    const box = section('关键渗透动作', '显示 Agent 调用工具前后保存的记录。执行中超过 5 分钟标记待确认，不代表任务被停止。');
     const ordered = [...view.activities].sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
     const page = paginate(ordered, state.activityPage, 8);
     page.items.forEach(item => {

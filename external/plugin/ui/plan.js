@@ -36,7 +36,7 @@
       box.append(el('strong', '', 'MCP 尚未检查'), el('p', 'muted', '实际测试前必须通过健康检查；只制定计划或离线写报告不调用远端服务。'));
       return box;
     }
-    box.append(el('strong', '', check.status === 'passed' ? 'MCP 最近检查通过' : 'MCP 检查未通过 · 已暂停测试派发'),
+    box.append(el('strong', '', check.status === 'passed' ? '渗透工具的MCP检查通过' : '渗透工具的MCP检查未通过 · 已暂停测试派发'),
       el('p', 'muted', `检查于 ${P.model.date(check.checkedAt)} · Agent 留存，非实时监控`),
       el('p', 'mono', `${check.server} · ${check.tool}`), el('p', 'multiline', check.summary));
     if (check.status === 'failed') box.append(el('p', 'muted', '不再发起测试；已有远端进程是否结束仍须核实，不自动重放。'));
